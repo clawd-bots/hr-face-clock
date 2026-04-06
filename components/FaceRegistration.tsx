@@ -46,24 +46,24 @@ export default function FaceRegistration({
   return (
     <div>
       <FaceScanner onFaceDetected={handleFaceDetected} autoDetect showOverlay>
-        <div className="mt-spacing-andyou-4">
-          <div className="flex items-center justify-between mb-spacing-andyou-3">
-            <span className="text-andyou-body-sm text-andyou-text-secondary">
+        <div className="mt-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-[rgba(0,0,0,0.65)]">
               Captures: {captures.length} / {requiredCaptures}
             </span>
-            <div className="flex gap-spacing-andyou-1">
+            <div className="flex gap-1">
               {Array.from({ length: requiredCaptures }).map((_, i) => (
                 <div
                   key={i}
-                  className="w-3 h-3 rounded-full transition-colors duration-andyou-fast"
+                  className="w-3 h-3 rounded-full transition-colors duration-150"
                   style={{ background: i < captures.length ? "#cf9358" : "rgba(0,0,0,0.1)" }}
                 />
               ))}
             </div>
           </div>
-          <div className="w-full bg-andyou-warm-light rounded-andyou-full h-2 mb-spacing-andyou-4">
+          <div className="w-full bg-[#f4f1e6] rounded-full h-2 mb-5">
             <div
-              className="h-2 rounded-andyou-full transition-all duration-andyou-normal"
+              className="h-2 rounded-full transition-all duration-300"
               style={{
                 width: `${(captures.length / requiredCaptures) * 100}%`,
                 background: "linear-gradient(to right, #ffc671, #cf9358)",
@@ -73,22 +73,19 @@ export default function FaceRegistration({
           {captures.length < requiredCaptures && (
             <button
               onClick={captureCurrentFace}
-              className="w-full py-spacing-andyou-3 rounded-andyou-full text-andyou-ui-label text-andyou-accent-on transition-all duration-andyou-fast hover:shadow-andyou-card-md"
+              className="w-full h-12 rounded-full text-sm font-medium text-[#61474c] transition-all duration-150 hover:shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
               style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
             >
               Capture Face ({captures.length + 1}/{requiredCaptures})
             </button>
           )}
           {captures.length > 0 && captures.length < requiredCaptures && (
-            <p className="text-andyou-ui-badge text-andyou-text-muted mt-spacing-andyou-2 text-center">
+            <p className="text-xs font-medium text-[rgba(0,0,0,0.4)] mt-2 text-center">
               Move your head slightly between captures for better accuracy
             </p>
           )}
           {captures.length >= requiredCaptures && (
-            <div
-              className="text-center py-spacing-andyou-3 rounded-andyou-md text-andyou-body-sm"
-              style={{ background: "rgba(207, 147, 88, 0.12)", color: "#9a6d2a" }}
-            >
+            <div className="text-center py-3 rounded-2xl text-sm font-medium bg-[rgba(207,147,88,0.12)] text-[#9a6d2a]">
               All captures complete!
             </div>
           )}

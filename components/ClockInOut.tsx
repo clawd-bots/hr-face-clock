@@ -99,37 +99,38 @@ export default function ClockInOut() {
   if (result) {
     const isIn = result.action === "clock_in";
     return (
-      <div className="min-h-screen flex items-center justify-center bg-andyou-cream">
+      <div className="min-h-screen flex items-center justify-center bg-[#fafaf2]">
         <div
-          className="text-center p-spacing-andyou-12 rounded-andyou-lg max-w-lg w-full shadow-andyou-card-md"
+          className="text-center p-12 rounded-3xl max-w-lg w-full shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
           style={{
-            background: isIn
-              ? "linear-gradient(167deg, #f4f1e6 0%, #faf8f2 38%, #faf8f2 84%, #f4f1e6 100%)"
-              : "linear-gradient(167deg, #f4f1e6 0%, #faf8f2 38%, #faf8f2 84%, #f4f1e6 100%)",
+            background: "linear-gradient(167deg, #f4f1e6 0%, #faf8f2 38%, #faf8f2 84%, #f4f1e6 100%)",
             border: `2px solid ${isIn ? "#cf9358" : "#5c8cb5"}`,
           }}
         >
-          <div className="text-andyou-heading-display-primary mb-spacing-andyou-2" style={{ color: isIn ? "#cf9358" : "#5c8cb5" }}>
+          <div
+            className="text-[52px] font-medium tracking-[-3.5px] leading-none mb-2"
+            style={{ color: isIn ? "#cf9358" : "#5c8cb5" }}
+          >
             {isIn ? "Welcome" : "Goodbye"}
           </div>
-          <h2 className="text-andyou-heading-h1-primary text-andyou-text-primary mb-spacing-andyou-2">
+          <h2 className="text-[44px] font-medium tracking-[-2px] leading-[1.1] text-[rgba(0,0,0,0.88)] mb-2">
             {result.employeeName}
           </h2>
           <p
-            className="text-andyou-heading-h3-primary mb-spacing-andyou-1"
+            className="text-xl font-medium tracking-[-1px] mb-1"
             style={{ color: isIn ? "#cf9358" : "#5c8cb5" }}
           >
             {isIn ? "Clocked In" : "Clocked Out"}
           </p>
-          <p className="text-andyou-heading-h1-primary text-andyou-text-primary font-andyou-mono my-spacing-andyou-6">
+          <p className="text-[44px] font-medium tracking-[-2px] text-[rgba(0,0,0,0.88)] font-mono my-6">
             {result.time}
           </p>
           {result.hoursWorked && (
-            <p className="text-andyou-body text-andyou-text-secondary">
+            <p className="text-base text-[rgba(0,0,0,0.65)]">
               Hours today: {result.hoursWorked.toFixed(1)}h
             </p>
           )}
-          <div className="mt-spacing-andyou-6 text-andyou-body-sm text-andyou-text-muted">
+          <div className="mt-6 text-sm font-medium text-[rgba(0,0,0,0.4)]">
             Returning to home...
           </div>
         </div>
@@ -140,42 +141,42 @@ export default function ClockInOut() {
   // Action selection screen
   if (!selectedAction) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-andyou-cream p-spacing-andyou-6">
-        <h1 className="text-andyou-heading-h1-primary text-andyou-text-primary mb-spacing-andyou-2">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#fafaf2] p-6">
+        <h1 className="text-[44px] font-medium tracking-[-2px] leading-[1.1] text-[rgba(0,0,0,0.88)] mb-2">
           &you HR System
         </h1>
-        <p className="text-andyou-body text-andyou-text-secondary mb-spacing-andyou-8">
+        <p className="text-base text-[rgba(0,0,0,0.65)] mb-10">
           Select an action to begin
         </p>
         {error && (
-          <div className="mb-spacing-andyou-6 px-spacing-andyou-4 py-spacing-andyou-3 bg-andyou-warm-light border border-andyou-category-hair-loss/30 rounded-andyou-md text-andyou-body-sm" style={{ color: "#8a3a34" }}>
+          <div className="mb-6 px-4 py-3 bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34]">
             {error}
           </div>
         )}
-        <div className="flex gap-spacing-andyou-4">
+        <div className="flex gap-4">
           <button
             onClick={() => handleSelectAction("clock_in")}
-            className="group w-56 h-56 rounded-andyou-lg shadow-andyou-card hover:shadow-andyou-card-md transition-all duration-andyou-normal ease-andyou-standard flex flex-col items-center justify-center gap-spacing-andyou-4 border-2"
+            className="group w-56 h-56 rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_24px_rgba(0,0,0,0.10)] transition-all duration-300 flex flex-col items-center justify-center gap-4 border-2"
             style={{
               background: "linear-gradient(167deg, #f4f1e6 0%, #faf8f2 38%, #faf8f2 84%, #f4f1e6 100%)",
               borderColor: "rgba(207, 147, 88, 0.3)",
             }}
           >
             <span className="text-[56px] leading-none">👋</span>
-            <span className="text-andyou-heading-h2-primary" style={{ color: "#cf9358" }}>
+            <span className="text-[28px] font-medium tracking-[-1.75px] text-[#cf9358]">
               Clock In
             </span>
           </button>
           <button
             onClick={() => handleSelectAction("clock_out")}
-            className="group w-56 h-56 rounded-andyou-lg shadow-andyou-card hover:shadow-andyou-card-md transition-all duration-andyou-normal ease-andyou-standard flex flex-col items-center justify-center gap-spacing-andyou-4 border-2"
+            className="group w-56 h-56 rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_24px_rgba(0,0,0,0.10)] transition-all duration-300 flex flex-col items-center justify-center gap-4 border-2"
             style={{
               background: "linear-gradient(167deg, #f4f1e6 0%, #faf8f2 38%, #faf8f2 84%, #f4f1e6 100%)",
               borderColor: "rgba(92, 140, 181, 0.3)",
             }}
           >
             <span className="text-[56px] leading-none">🏠</span>
-            <span className="text-andyou-heading-h2-primary" style={{ color: "#5c8cb5" }}>
+            <span className="text-[28px] font-medium tracking-[-1.75px] text-[#5c8cb5]">
               Clock Out
             </span>
           </button>
@@ -187,26 +188,26 @@ export default function ClockInOut() {
   // Face scanning screen
   const isIn = selectedAction === "clock_in";
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-andyou-cream p-spacing-andyou-6">
-      <div className="flex items-center gap-spacing-andyou-4 mb-spacing-andyou-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#fafaf2] p-6">
+      <div className="flex items-center gap-4 mb-6">
         <button
           onClick={handleBack}
-          className="px-spacing-andyou-4 py-spacing-andyou-2 text-andyou-body-sm text-andyou-text-secondary border border-andyou-border-default hover:border-andyou-border-strong rounded-andyou-full transition-colors duration-andyou-fast"
+          className="px-4 py-2 text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.1)] hover:border-[rgba(0,0,0,0.2)] rounded-full transition-colors duration-150"
         >
           Back
         </button>
         <h1
-          className="text-andyou-heading-h2-primary"
+          className="text-[28px] font-medium tracking-[-1.75px]"
           style={{ color: isIn ? "#cf9358" : "#5c8cb5" }}
         >
           {isIn ? "Clock In" : "Clock Out"}
         </h1>
       </div>
-      <p className="text-andyou-body text-andyou-text-secondary mb-spacing-andyou-6">
+      <p className="text-base text-[rgba(0,0,0,0.65)] mb-6">
         Look at the camera to scan your face
       </p>
       {error && (
-        <div className="mb-spacing-andyou-4 px-spacing-andyou-4 py-spacing-andyou-2 bg-andyou-warm-light border border-andyou-category-hair-loss/30 rounded-andyou-md text-andyou-body-sm" style={{ color: "#8a3a34" }}>
+        <div className="mb-4 px-4 py-2 bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34]">
           {error}
         </div>
       )}
@@ -218,9 +219,9 @@ export default function ClockInOut() {
         />
       </div>
       {processing && (
-        <div className="mt-spacing-andyou-4 flex items-center gap-spacing-andyou-2" style={{ color: "#cf9358" }}>
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-andyou-accent" />
-          Processing...
+        <div className="mt-4 flex items-center gap-2 text-[#cf9358]">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#ffc671]" />
+          <span className="text-sm font-medium">Processing...</span>
         </div>
       )}
     </div>

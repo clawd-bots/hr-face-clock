@@ -95,7 +95,7 @@ export default function FaceScanner({
 
   return (
     <div className="relative">
-      <div className="relative rounded-andyou-lg overflow-hidden bg-andyou-black shadow-andyou-card-md">
+      <div className="relative rounded-3xl overflow-hidden bg-black shadow-[0_4px_24px_rgba(0,0,0,0.10)]">
         <video
           ref={videoRef}
           className="w-full max-w-[640px]"
@@ -111,21 +111,21 @@ export default function FaceScanner({
           />
         )}
         {!ready && (
-          <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.8)" }}>
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-andyou-accent mx-auto mb-spacing-andyou-3" />
-              <p className="text-andyou-body-sm text-andyou-text-inverse">{status}</p>
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#ffc671] mx-auto mb-3" />
+              <p className="text-sm font-medium text-white">{status}</p>
             </div>
           </div>
         )}
       </div>
       {ready && (
-        <div className="mt-spacing-andyou-3 flex items-center gap-spacing-andyou-2">
+        <div className="mt-3 flex items-center gap-2">
           <div
-            className="w-3 h-3 rounded-full transition-colors duration-andyou-fast"
+            className="w-3 h-3 rounded-full transition-colors duration-150"
             style={{ background: faceFound ? "#cf9358" : "rgba(0,0,0,0.15)" }}
           />
-          <span className="text-andyou-body-sm text-andyou-text-secondary">
+          <span className="text-sm font-medium text-[rgba(0,0,0,0.65)]">
             {faceFound ? "Face detected" : "No face detected"}
           </span>
         </div>

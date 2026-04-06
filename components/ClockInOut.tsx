@@ -65,12 +65,12 @@ export default function ClockInOut() {
           hoursWorked: data.log.hours_worked,
         });
 
-        // Reset after 5 seconds
+        // Reset after 2 seconds
         setTimeout(() => {
           setResult(null);
           setSelectedAction(null);
           cooldownRef.current = false;
-        }, 5000);
+        }, 2000);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
         setScanning(true);

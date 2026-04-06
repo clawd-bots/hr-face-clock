@@ -23,7 +23,7 @@ export default function AdminLayout({
           <div className="flex justify-between h-16">
             <div className="flex items-center gap-spacing-andyou-8">
               <Link href="/admin" className="text-andyou-heading-h3-primary text-andyou-text-primary">
-                HR Face Clock
+                &you HR System
               </Link>
               <div className="flex gap-spacing-andyou-1">
                 {navItems.map((item) => (

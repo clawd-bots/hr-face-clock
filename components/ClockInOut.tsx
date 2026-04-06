@@ -142,9 +142,9 @@ export default function ClockInOut() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-andyou-cream p-spacing-andyou-6">
         <h1 className="text-andyou-heading-h1-primary text-andyou-text-primary mb-spacing-andyou-2">
-          HR Face Clock
+          &you HR System
         </h1>
-        <p className="text-andyou-body text-andyou-text-secondary mb-spacing-andyou-12">
+        <p className="text-andyou-body text-andyou-text-secondary mb-spacing-andyou-8">
           Select an action to begin
         </p>
         {error && (
@@ -152,7 +152,7 @@ export default function ClockInOut() {
             {error}
           </div>
         )}
-        <div className="flex gap-spacing-andyou-6">
+        <div className="flex gap-spacing-andyou-4">
           <button
             onClick={() => handleSelectAction("clock_in")}
             className="group w-56 h-56 rounded-andyou-lg shadow-andyou-card hover:shadow-andyou-card-md transition-all duration-andyou-normal ease-andyou-standard flex flex-col items-center justify-center gap-spacing-andyou-4 border-2"
@@ -180,9 +180,6 @@ export default function ClockInOut() {
             </span>
           </button>
         </div>
-        <p className="text-andyou-body-sm text-andyou-text-muted mt-spacing-andyou-12">
-          {employees.length} employees registered
-        </p>
       </div>
     );
   }

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HR Face Clock",
+  title: "&you HR System",
   description: "Face recognition time tracking system",
 };
 

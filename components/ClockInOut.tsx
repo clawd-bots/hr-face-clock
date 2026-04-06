@@ -6,8 +6,10 @@ import { findBestMatch } from "@/lib/face-recognition";
 import { formatTime } from "@/lib/utils";
 import type { Employee } from "@/lib/supabase";
 
+type ClockAction = "clock_in" | "clock_out";
+
 type ClockResult = {
-  action: "clock_in" | "clock_out";
+  action: ClockAction;
   employeeName: string;
   time: string;
   hoursWorked?: number;
@@ -15,10 +17,11 @@ type ClockResult = {
 
 export default function ClockInOut() {
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [selectedAction, setSelectedAction] = useState<ClockAction | null>(null);
   const [result, setResult] = useState<ClockResult | null>(null);
   const [error, setError] = useState<string>("");
   const [processing, setProcessing] = useState(false);
-  const [scanning, setScanning] = useState(true);
+  const [scanning, setScanning] = useState(false);
   const cooldownRef = useRef(false);
 
   useEffect(() => {
@@ -30,33 +33,23 @@ export default function ClockInOut() {
 
   const handleFaceDetected = useCallback(
     async (descriptor: Float32Array) => {
-      if (cooldownRef.current || processing || employees.length === 0) return;
+      if (cooldownRef.current || processing || employees.length === 0 || !selectedAction) return;
 
       const match = findBestMatch(descriptor, employees);
       if (!match.employee) return;
 
       cooldownRef.current = true;
       setProcessing(true);
+      setScanning(false);
       setError("");
 
       try {
-        // Determine action: check if they have an open clock-in today
-        const today = new Date().toISOString().split("T")[0];
-        const logsRes = await fetch(
-          `/api/time-logs?date=${today}&employee_id=${match.employee.id}`
-        );
-        const logs = await logsRes.json();
-        const openLog = Array.isArray(logs)
-          ? logs.find((l: { clock_out: string | null }) => !l.clock_out)
-          : null;
-        const action = openLog ? "clock_out" : "clock_in";
-
         const res = await fetch("/api/time-logs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             employee_id: match.employee.id,
-            action,
+            action: selectedAction,
           }),
         });
 
@@ -64,23 +57,23 @@ export default function ClockInOut() {
         if (!res.ok) throw new Error(data.error);
 
         setResult({
-          action,
+          action: selectedAction,
           employeeName: match.employee.name,
           time: formatTime(
-            action === "clock_in" ? data.log.clock_in : data.log.clock_out
+            selectedAction === "clock_in" ? data.log.clock_in : data.log.clock_out
           ),
           hoursWorked: data.log.hours_worked,
         });
-        setScanning(false);
 
         // Reset after 5 seconds
         setTimeout(() => {
           setResult(null);
-          setScanning(true);
+          setSelectedAction(null);
           cooldownRef.current = false;
         }, 5000);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
+        setScanning(true);
         setTimeout(() => {
           cooldownRef.current = false;
         }, 3000);
@@ -88,9 +81,22 @@ export default function ClockInOut() {
         setProcessing(false);
       }
     },
-    [employees, processing]
+    [employees, processing, selectedAction]
   );
 
+  const handleSelectAction = (action: ClockAction) => {
+    setSelectedAction(action);
+    setScanning(true);
+    setError("");
+  };
+
+  const handleBack = () => {
+    setSelectedAction(null);
+    setScanning(false);
+    setError("");
+  };
+
+  // Result screen
   if (result) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-950">
@@ -121,21 +127,70 @@ export default function ClockInOut() {
             </p>
           )}
           <div className="mt-6 text-gray-500 text-sm">
-            Returning to scanner...
+            Returning to home...
           </div>
         </div>
       </div>
     );
   }
 
+  // Action selection screen
+  if (!selectedAction) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 p-6">
+        <h1 className="text-4xl font-bold text-white mb-3">HR Face Clock</h1>
+        <p className="text-gray-400 mb-12">Select an action to begin</p>
+        {error && (
+          <div className="mb-6 px-4 py-2 bg-red-900/50 border border-red-500 rounded-lg text-red-300 text-sm">
+            {error}
+          </div>
+        )}
+        <div className="flex gap-6">
+          <button
+            onClick={() => handleSelectAction("clock_in")}
+            className="group w-56 h-56 rounded-2xl bg-green-900/30 border-2 border-green-700 hover:border-green-400 hover:bg-green-900/50 transition-all flex flex-col items-center justify-center gap-4"
+          >
+            <span className="text-5xl">👋</span>
+            <span className="text-2xl font-bold text-green-400 group-hover:text-green-300">
+              Clock In
+            </span>
+          </button>
+          <button
+            onClick={() => handleSelectAction("clock_out")}
+            className="group w-56 h-56 rounded-2xl bg-blue-900/30 border-2 border-blue-700 hover:border-blue-400 hover:bg-blue-900/50 transition-all flex flex-col items-center justify-center gap-4"
+          >
+            <span className="text-5xl">🏠</span>
+            <span className="text-2xl font-bold text-blue-400 group-hover:text-blue-300">
+              Clock Out
+            </span>
+          </button>
+        </div>
+        <p className="text-gray-600 text-sm mt-12">
+          {employees.length} employees registered
+        </p>
+      </div>
+    );
+  }
+
+  // Face scanning screen
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 p-6">
-      <h1 className="text-3xl font-bold text-white mb-2">
-        Face Clock In / Out
-      </h1>
-      <p className="text-gray-400 mb-8">
-        Look at the camera to clock in or out
-      </p>
+      <div className="flex items-center gap-4 mb-6">
+        <button
+          onClick={handleBack}
+          className="px-4 py-2 text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 rounded-lg transition-colors text-sm"
+        >
+          Back
+        </button>
+        <h1 className="text-3xl font-bold text-white">
+          {selectedAction === "clock_in" ? (
+            <span className="text-green-400">Clock In</span>
+          ) : (
+            <span className="text-blue-400">Clock Out</span>
+          )}
+        </h1>
+      </div>
+      <p className="text-gray-400 mb-6">Look at the camera to scan your face</p>
       {error && (
         <div className="mb-4 px-4 py-2 bg-red-900/50 border border-red-500 rounded-lg text-red-300 text-sm">
           {error}
@@ -154,9 +209,6 @@ export default function ClockInOut() {
           Processing...
         </div>
       )}
-      <p className="text-gray-600 text-sm mt-6">
-        {employees.length} employees registered
-      </p>
     </div>
   );
 }

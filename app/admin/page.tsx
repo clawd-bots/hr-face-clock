@@ -32,59 +32,45 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-andyou-accent" />
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+      <h1 className="text-andyou-heading-h1-primary text-andyou-text-primary mb-spacing-andyou-6">
+        Dashboard
+      </h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <StatCard
-          label="Total Employees"
-          value={employees.length}
-          color="blue"
-        />
-        <StatCard
-          label="Currently In"
-          value={clockedIn.length}
-          color="green"
-        />
-        <StatCard
-          label="Clocked Out"
-          value={clockedOut.length}
-          color="gray"
-        />
-        <StatCard
-          label="Total Hours Today"
-          value={formatHours(totalHours)}
-          color="purple"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-spacing-andyou-card-gap">
+        <StatCard label="Total Employees" value={employees.length} color="accent" />
+        <StatCard label="Currently In" value={clockedIn.length} color="green" />
+        <StatCard label="Clocked Out" value={clockedOut.length} color="muted" />
+        <StatCard label="Total Hours Today" value={formatHours(totalHours)} color="blue" />
       </div>
 
       {/* Currently clocked in */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-andyou-white rounded-andyou-lg shadow-andyou-card p-spacing-andyou-6 mt-spacing-andyou-6">
+        <h2 className="text-andyou-heading-h3-primary text-andyou-text-primary mb-spacing-andyou-4">
           Currently Clocked In ({clockedIn.length})
         </h2>
         {clockedIn.length === 0 ? (
-          <p className="text-gray-500 text-sm">No one is currently clocked in.</p>
+          <p className="text-andyou-body text-andyou-text-muted">No one is currently clocked in.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-spacing-andyou-3">
             {clockedIn.map((log) => (
               <div
                 key={log.id}
-                className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200"
+                className="flex items-center gap-spacing-andyou-3 p-spacing-andyou-3 bg-andyou-warm-light rounded-andyou-md border border-andyou-border-default"
               >
-                <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+                <div className="w-3 h-3 rounded-full animate-pulse" style={{ background: "#cf9358" }} />
                 <div>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-andyou-body-sm text-andyou-text-primary">
                     {(log.employee as unknown as Employee)?.name || "Unknown"}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-andyou-ui-badge text-andyou-text-muted">
                     In since {formatTime(log.clock_in)}
                   </p>
                 </div>
@@ -95,37 +81,39 @@ export default function AdminDashboard() {
       </div>
 
       {/* Today's activity */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-andyou-white rounded-andyou-lg shadow-andyou-card p-spacing-andyou-6 mt-spacing-andyou-6">
+        <h2 className="text-andyou-heading-h3-primary text-andyou-text-primary mb-spacing-andyou-4">
           Today&apos;s Activity
         </h2>
         {todayLogs.length === 0 ? (
-          <p className="text-gray-500 text-sm">No activity yet today.</p>
+          <p className="text-andyou-body text-andyou-text-muted">No activity yet today.</p>
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="text-left text-sm text-gray-500 border-b">
-                <th className="pb-2 font-medium">Employee</th>
-                <th className="pb-2 font-medium">Clock In</th>
-                <th className="pb-2 font-medium">Clock Out</th>
-                <th className="pb-2 font-medium">Hours</th>
+              <tr className="text-left border-b border-andyou-border-default">
+                <th className="pb-spacing-andyou-2 text-andyou-ui-label text-andyou-text-muted">Employee</th>
+                <th className="pb-spacing-andyou-2 text-andyou-ui-label text-andyou-text-muted">Clock In</th>
+                <th className="pb-spacing-andyou-2 text-andyou-ui-label text-andyou-text-muted">Clock Out</th>
+                <th className="pb-spacing-andyou-2 text-andyou-ui-label text-andyou-text-muted">Hours</th>
               </tr>
             </thead>
             <tbody>
               {todayLogs.map((log) => (
-                <tr key={log.id} className="border-b border-gray-100">
-                  <td className="py-3 font-medium text-gray-900">
+                <tr key={log.id} className="border-b border-andyou-border-default last:border-0">
+                  <td className="py-spacing-andyou-3 text-andyou-body-sm text-andyou-text-primary">
                     {(log.employee as unknown as Employee)?.name || "Unknown"}
                   </td>
-                  <td className="py-3 text-gray-600">
+                  <td className="py-spacing-andyou-3 text-andyou-body text-andyou-text-secondary">
                     {formatTime(log.clock_in)}
                   </td>
-                  <td className="py-3 text-gray-600">
+                  <td className="py-spacing-andyou-3 text-andyou-body text-andyou-text-secondary">
                     {log.clock_out ? formatTime(log.clock_out) : (
-                      <span className="text-green-600 font-medium">Active</span>
+                      <span className="text-andyou-ui-badge px-spacing-andyou-2 py-spacing-andyou-1 rounded-andyou-badge" style={{ background: "rgba(207, 147, 88, 0.15)", color: "#9a6d2a" }}>
+                        Active
+                      </span>
                     )}
                   </td>
-                  <td className="py-3 text-gray-600">
+                  <td className="py-spacing-andyou-3 text-andyou-body text-andyou-text-secondary">
                     {formatHours(log.hours_worked)}
                   </td>
                 </tr>
@@ -147,17 +135,23 @@ function StatCard({
   value: string | number;
   color: string;
 }) {
-  const colors: Record<string, string> = {
-    blue: "bg-blue-50 border-blue-200 text-blue-700",
-    green: "bg-green-50 border-green-200 text-green-700",
-    gray: "bg-gray-50 border-gray-200 text-gray-700",
-    purple: "bg-purple-50 border-purple-200 text-purple-700",
+  const styles: Record<string, { bg: string; border: string; text: string }> = {
+    accent: { bg: "rgba(255, 198, 113, 0.12)", border: "rgba(255, 198, 113, 0.3)", text: "#9a6d2a" },
+    green: { bg: "rgba(207, 147, 88, 0.08)", border: "rgba(207, 147, 88, 0.2)", text: "#cf9358" },
+    muted: { bg: "rgba(0, 0, 0, 0.03)", border: "rgba(0, 0, 0, 0.08)", text: "rgba(0,0,0,0.65)" },
+    blue: { bg: "rgba(92, 140, 181, 0.08)", border: "rgba(92, 140, 181, 0.2)", text: "#37556e" },
   };
+  const s = styles[color] || styles.muted;
 
   return (
-    <div className={`rounded-lg border p-4 ${colors[color]}`}>
-      <p className="text-sm opacity-75">{label}</p>
-      <p className="text-2xl font-bold mt-1">{value}</p>
+    <div
+      className="rounded-andyou-lg p-spacing-andyou-5 border"
+      style={{ background: s.bg, borderColor: s.border }}
+    >
+      <p className="text-andyou-ui-overline text-andyou-text-muted">{label}</p>
+      <p className="text-andyou-heading-h2-primary mt-spacing-andyou-2" style={{ color: s.text }}>
+        {value}
+      </p>
     </div>
   );
 }

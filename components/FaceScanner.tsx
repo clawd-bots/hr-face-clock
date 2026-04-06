@@ -71,7 +71,7 @@ export default function FaceScanner({
           const ctx = canvas.getContext("2d")!;
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           const { x, y, width, height } = result.detection.box;
-          ctx.strokeStyle = "#22c55e";
+          ctx.strokeStyle = "#ffc671";
           ctx.lineWidth = 3;
           ctx.strokeRect(x, y, width, height);
         }
@@ -95,10 +95,10 @@ export default function FaceScanner({
 
   return (
     <div className="relative">
-      <div className="relative rounded-xl overflow-hidden bg-black">
+      <div className="relative rounded-andyou-lg overflow-hidden bg-andyou-black shadow-andyou-card-md">
         <video
           ref={videoRef}
-          className="w-full max-w-[640px] mirror"
+          className="w-full max-w-[640px]"
           style={{ transform: "scaleX(-1)" }}
           playsInline
           muted
@@ -111,22 +111,21 @@ export default function FaceScanner({
           />
         )}
         {!ready && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.8)" }}>
             <div className="text-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white mx-auto mb-3" />
-              <p className="text-white text-sm">{status}</p>
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-andyou-accent mx-auto mb-spacing-andyou-3" />
+              <p className="text-andyou-body-sm text-andyou-text-inverse">{status}</p>
             </div>
           </div>
         )}
       </div>
       {ready && (
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-spacing-andyou-3 flex items-center gap-spacing-andyou-2">
           <div
-            className={`w-3 h-3 rounded-full ${
-              faceFound ? "bg-green-500" : "bg-gray-400"
-            }`}
+            className="w-3 h-3 rounded-full transition-colors duration-andyou-fast"
+            style={{ background: faceFound ? "#cf9358" : "rgba(0,0,0,0.15)" }}
           />
-          <span className="text-sm text-gray-600">
+          <span className="text-andyou-body-sm text-andyou-text-secondary">
             {faceFound ? "Face detected" : "No face detected"}
           </span>
         </div>

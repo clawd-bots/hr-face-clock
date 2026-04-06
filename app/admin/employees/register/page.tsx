@@ -54,31 +54,34 @@ export default function RegisterEmployeePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
+      <h1 className="text-andyou-heading-h1-primary text-andyou-text-primary mb-spacing-andyou-6">
         Register New Employee
       </h1>
 
       {/* Progress steps */}
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center gap-spacing-andyou-4 mb-spacing-andyou-8">
         <StepIndicator
           num={1}
           label="Details"
           active={step === "info"}
           done={step !== "info"}
         />
-        <div className="flex-1 h-px bg-gray-300" />
+        <div className="flex-1 h-px bg-andyou-border-default" />
         <StepIndicator
           num={2}
           label="Face Scan"
           active={step === "face"}
           done={step === "saving"}
         />
-        <div className="flex-1 h-px bg-gray-300" />
+        <div className="flex-1 h-px bg-andyou-border-default" />
         <StepIndicator num={3} label="Complete" active={step === "saving"} done={false} />
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+        <div
+          className="mb-spacing-andyou-4 p-spacing-andyou-3 bg-andyou-warm-light border rounded-andyou-md text-andyou-body-sm"
+          style={{ borderColor: "rgba(138, 58, 52, 0.2)", color: "#8a3a34" }}
+        >
           {error}
         </div>
       )}
@@ -86,47 +89,48 @@ export default function RegisterEmployeePage() {
       {step === "info" && (
         <form
           onSubmit={handleInfoSubmit}
-          className="bg-white rounded-lg border border-gray-200 p-6 space-y-4"
+          className="bg-andyou-white rounded-andyou-lg shadow-andyou-card p-spacing-andyou-6 space-y-spacing-andyou-4"
         >
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-andyou-ui-label text-andyou-text-secondary mb-spacing-andyou-1">
               Full Name *
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-spacing-andyou-4 py-spacing-andyou-3 border border-andyou-border-default rounded-andyou-md text-andyou-body text-andyou-text-primary bg-andyou-white focus:border-andyou-accent focus:ring-2 focus:ring-andyou-accent/20 outline-none transition-colors duration-andyou-fast"
               placeholder="John Smith"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-andyou-ui-label text-andyou-text-secondary mb-spacing-andyou-1">
               Role
             </label>
             <input
               type="text"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-spacing-andyou-4 py-spacing-andyou-3 border border-andyou-border-default rounded-andyou-md text-andyou-body text-andyou-text-primary bg-andyou-white focus:border-andyou-accent focus:ring-2 focus:ring-andyou-accent/20 outline-none transition-colors duration-andyou-fast"
               placeholder="Software Engineer"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-andyou-ui-label text-andyou-text-secondary mb-spacing-andyou-1">
               Department
             </label>
             <input
               type="text"
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-spacing-andyou-4 py-spacing-andyou-3 border border-andyou-border-default rounded-andyou-md text-andyou-body text-andyou-text-primary bg-andyou-white focus:border-andyou-accent focus:ring-2 focus:ring-andyou-accent/20 outline-none transition-colors duration-andyou-fast"
               placeholder="Engineering"
             />
           </div>
           <button
             type="submit"
-            className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+            className="w-full py-spacing-andyou-3 rounded-andyou-full text-andyou-ui-label text-andyou-accent-on transition-all duration-andyou-fast hover:shadow-andyou-card-md"
+            style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
           >
             Next: Capture Face
           </button>
@@ -134,11 +138,11 @@ export default function RegisterEmployeePage() {
       )}
 
       {step === "face" && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">
+        <div className="bg-andyou-white rounded-andyou-lg shadow-andyou-card p-spacing-andyou-6">
+          <h2 className="text-andyou-heading-h3-primary text-andyou-text-primary mb-spacing-andyou-1">
             Face Registration for {name}
           </h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-andyou-body text-andyou-text-muted mb-spacing-andyou-4">
             Capture 5 face images. Move your head slightly between each capture.
           </p>
           <FaceRegistration onComplete={handleFaceComplete} requiredCaptures={5} />
@@ -146,9 +150,9 @@ export default function RegisterEmployeePage() {
       )}
 
       {step === "saving" && (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Saving employee data...</p>
+        <div className="bg-andyou-white rounded-andyou-lg shadow-andyou-card p-spacing-andyou-16 text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-andyou-accent mx-auto mb-spacing-andyou-4" />
+          <p className="text-andyou-body text-andyou-text-secondary">Saving employee data...</p>
         </div>
       )}
     </div>
@@ -167,21 +171,22 @@ function StepIndicator({
   done: boolean;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-spacing-andyou-2">
       <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+        className="w-8 h-8 rounded-full flex items-center justify-center text-andyou-ui-badge transition-colors duration-andyou-fast"
+        style={
           done
-            ? "bg-green-500 text-white"
+            ? { background: "linear-gradient(to right, #ffc671, #cf9358)", color: "#61474c" }
             : active
-            ? "bg-blue-600 text-white"
-            : "bg-gray-200 text-gray-500"
-        }`}
+            ? { background: "#9a6d2a", color: "#ffffff" }
+            : { background: "rgba(0,0,0,0.06)", color: "rgba(0,0,0,0.4)" }
+        }
       >
-        {done ? "✓" : num}
+        {done ? "\u2713" : num}
       </div>
       <span
-        className={`text-sm ${
-          active ? "text-gray-900 font-medium" : "text-gray-500"
+        className={`text-andyou-ui-label ${
+          active ? "text-andyou-text-primary" : "text-andyou-text-muted"
         }`}
       >
         {label}

@@ -32,19 +32,19 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-andyou-accent" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ffc671]" />
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-andyou-heading-h1-primary text-andyou-text-primary mb-spacing-andyou-6">
+      <h1 className="text-[44px] font-medium tracking-[-2px] leading-[1.1] text-[rgba(0,0,0,0.88)] mb-8">
         Dashboard
       </h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-spacing-andyou-card-gap">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <StatCard label="Total Employees" value={employees.length} color="accent" />
         <StatCard label="Currently In" value={clockedIn.length} color="green" />
         <StatCard label="Clocked Out" value={clockedOut.length} color="muted" />
@@ -52,25 +52,25 @@ export default function AdminDashboard() {
       </div>
 
       {/* Currently clocked in */}
-      <div className="bg-andyou-white rounded-andyou-lg shadow-andyou-card p-spacing-andyou-6 mt-spacing-andyou-6">
-        <h2 className="text-andyou-heading-h3-primary text-andyou-text-primary mb-spacing-andyou-4">
+      <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-8 mb-6">
+        <h2 className="text-xl font-medium tracking-[-1px] leading-[1.2] text-[rgba(0,0,0,0.88)] mb-5">
           Currently Clocked In ({clockedIn.length})
         </h2>
         {clockedIn.length === 0 ? (
-          <p className="text-andyou-body text-andyou-text-muted">No one is currently clocked in.</p>
+          <p className="text-base text-[rgba(0,0,0,0.4)]">No one is currently clocked in.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-spacing-andyou-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {clockedIn.map((log) => (
               <div
                 key={log.id}
-                className="flex items-center gap-spacing-andyou-3 p-spacing-andyou-3 bg-andyou-warm-light rounded-andyou-md border border-andyou-border-default"
+                className="flex items-center gap-3 p-4 bg-[#fafaf2] rounded-2xl border border-[rgba(0,0,0,0.06)]"
               >
-                <div className="w-3 h-3 rounded-full animate-pulse" style={{ background: "#cf9358" }} />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#cf9358] animate-pulse shrink-0" />
                 <div>
-                  <p className="text-andyou-body-sm text-andyou-text-primary">
+                  <p className="text-sm font-medium text-[rgba(0,0,0,0.88)]">
                     {(log.employee as unknown as Employee)?.name || "Unknown"}
                   </p>
-                  <p className="text-andyou-ui-badge text-andyou-text-muted">
+                  <p className="text-xs font-medium text-[rgba(0,0,0,0.4)]">
                     In since {formatTime(log.clock_in)}
                   </p>
                 </div>
@@ -81,45 +81,47 @@ export default function AdminDashboard() {
       </div>
 
       {/* Today's activity */}
-      <div className="bg-andyou-white rounded-andyou-lg shadow-andyou-card p-spacing-andyou-6 mt-spacing-andyou-6">
-        <h2 className="text-andyou-heading-h3-primary text-andyou-text-primary mb-spacing-andyou-4">
+      <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-8">
+        <h2 className="text-xl font-medium tracking-[-1px] leading-[1.2] text-[rgba(0,0,0,0.88)] mb-5">
           Today&apos;s Activity
         </h2>
         {todayLogs.length === 0 ? (
-          <p className="text-andyou-body text-andyou-text-muted">No activity yet today.</p>
+          <p className="text-base text-[rgba(0,0,0,0.4)]">No activity yet today.</p>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="text-left border-b border-andyou-border-default">
-                <th className="pb-spacing-andyou-2 text-andyou-ui-label text-andyou-text-muted">Employee</th>
-                <th className="pb-spacing-andyou-2 text-andyou-ui-label text-andyou-text-muted">Clock In</th>
-                <th className="pb-spacing-andyou-2 text-andyou-ui-label text-andyou-text-muted">Clock Out</th>
-                <th className="pb-spacing-andyou-2 text-andyou-ui-label text-andyou-text-muted">Hours</th>
-              </tr>
-            </thead>
-            <tbody>
-              {todayLogs.map((log) => (
-                <tr key={log.id} className="border-b border-andyou-border-default last:border-0">
-                  <td className="py-spacing-andyou-3 text-andyou-body-sm text-andyou-text-primary">
-                    {(log.employee as unknown as Employee)?.name || "Unknown"}
-                  </td>
-                  <td className="py-spacing-andyou-3 text-andyou-body text-andyou-text-secondary">
-                    {formatTime(log.clock_in)}
-                  </td>
-                  <td className="py-spacing-andyou-3 text-andyou-body text-andyou-text-secondary">
-                    {log.clock_out ? formatTime(log.clock_out) : (
-                      <span className="text-andyou-ui-badge px-spacing-andyou-2 py-spacing-andyou-1 rounded-andyou-badge" style={{ background: "rgba(207, 147, 88, 0.15)", color: "#9a6d2a" }}>
-                        Active
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-spacing-andyou-3 text-andyou-body text-andyou-text-secondary">
-                    {formatHours(log.hours_worked)}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-left border-b border-[rgba(0,0,0,0.08)]">
+                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Employee</th>
+                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Clock In</th>
+                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Clock Out</th>
+                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)] text-right">Hours</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {todayLogs.map((log) => (
+                  <tr key={log.id} className="border-b border-[rgba(0,0,0,0.04)] last:border-0">
+                    <td className="py-4 text-sm font-medium text-[rgba(0,0,0,0.88)]">
+                      {(log.employee as unknown as Employee)?.name || "Unknown"}
+                    </td>
+                    <td className="py-4 text-sm text-[rgba(0,0,0,0.65)]">
+                      {formatTime(log.clock_in)}
+                    </td>
+                    <td className="py-4 text-sm text-[rgba(0,0,0,0.65)]">
+                      {log.clock_out ? formatTime(log.clock_out) : (
+                        <span className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-[rgba(207,147,88,0.12)] text-[#9a6d2a]">
+                          Active
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-4 text-sm text-[rgba(0,0,0,0.65)] text-right">
+                      {formatHours(log.hours_worked)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
@@ -136,20 +138,22 @@ function StatCard({
   color: string;
 }) {
   const styles: Record<string, { bg: string; border: string; text: string }> = {
-    accent: { bg: "rgba(255, 198, 113, 0.12)", border: "rgba(255, 198, 113, 0.3)", text: "#9a6d2a" },
-    green: { bg: "rgba(207, 147, 88, 0.08)", border: "rgba(207, 147, 88, 0.2)", text: "#cf9358" },
-    muted: { bg: "rgba(0, 0, 0, 0.03)", border: "rgba(0, 0, 0, 0.08)", text: "rgba(0,0,0,0.65)" },
-    blue: { bg: "rgba(92, 140, 181, 0.08)", border: "rgba(92, 140, 181, 0.2)", text: "#37556e" },
+    accent: { bg: "rgba(255,198,113,0.1)", border: "rgba(255,198,113,0.25)", text: "#9a6d2a" },
+    green: { bg: "rgba(207,147,88,0.08)", border: "rgba(207,147,88,0.2)", text: "#cf9358" },
+    muted: { bg: "rgba(0,0,0,0.02)", border: "rgba(0,0,0,0.06)", text: "rgba(0,0,0,0.65)" },
+    blue: { bg: "rgba(92,140,181,0.08)", border: "rgba(92,140,181,0.2)", text: "#37556e" },
   };
   const s = styles[color] || styles.muted;
 
   return (
     <div
-      className="rounded-andyou-lg p-spacing-andyou-5 border"
+      className="rounded-2xl p-5 border"
       style={{ background: s.bg, borderColor: s.border }}
     >
-      <p className="text-andyou-ui-overline text-andyou-text-muted">{label}</p>
-      <p className="text-andyou-heading-h2-primary mt-spacing-andyou-2" style={{ color: s.text }}>
+      <p className="text-[10px] font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
+        {label}
+      </p>
+      <p className="text-[28px] font-medium tracking-[-1.75px] leading-none mt-2" style={{ color: s.text }}>
         {value}
       </p>
     </div>

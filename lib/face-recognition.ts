@@ -5,18 +5,23 @@ let modelsLoaded = false;
 export async function loadModels() {
   if (modelsLoaded) return;
   await Promise.all([
-    faceapi.nets.ssdMobilenetv1.loadFromUri("/models"),
+    faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
     faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
     faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
   ]);
   modelsLoaded = true;
 }
 
+const tinyFaceOptions = new faceapi.TinyFaceDetectorOptions({
+  inputSize: 416,
+  scoreThreshold: 0.3,
+});
+
 export async function detectFace(
   video: HTMLVideoElement
 ): Promise<faceapi.WithFaceDescriptor<faceapi.WithFaceLandmarks<{ detection: faceapi.FaceDetection }>> | null> {
   const detection = await faceapi
-    .detectSingleFace(video)
+    .detectSingleFace(video, tinyFaceOptions)
     .withFaceLandmarks()
     .withFaceDescriptor();
   return detection || null;

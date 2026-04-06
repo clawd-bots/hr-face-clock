@@ -21,9 +21,11 @@ export default function FaceScanner({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
-  const [detecting, setDetecting] = useState(false);
   const [faceFound, setFaceFound] = useState(false);
   const [status, setStatus] = useState("Loading models...");
+  const detectingRef = useRef(false);
+  const onFaceDetectedRef = useRef(onFaceDetected);
+  onFaceDetectedRef.current = onFaceDetected;
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -53,15 +55,14 @@ export default function FaceScanner({
   }, []);
 
   const runDetection = useCallback(async () => {
-    if (!videoRef.current || detecting) return;
-    setDetecting(true);
+    if (!videoRef.current || detectingRef.current) return;
+    detectingRef.current = true;
     try {
       const result = await detectFace(videoRef.current);
       if (result) {
         setFaceFound(true);
-        onFaceDetected?.(result.descriptor);
+        onFaceDetectedRef.current?.(result.descriptor);
 
-        // Draw face box on canvas
         if (canvasRef.current && videoRef.current && showOverlay) {
           const canvas = canvasRef.current;
           const video = videoRef.current;
@@ -82,9 +83,9 @@ export default function FaceScanner({
         }
       }
     } finally {
-      setDetecting(false);
+      detectingRef.current = false;
     }
-  }, [detecting, onFaceDetected, showOverlay]);
+  }, [showOverlay]);
 
   useEffect(() => {
     if (!ready || !autoDetect) return;

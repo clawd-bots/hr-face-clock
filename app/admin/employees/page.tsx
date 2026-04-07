@@ -2,25 +2,47 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import type { Employee } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
+import type { Employee, Department } from "@/lib/types/database";
 import { formatDate } from "@/lib/utils";
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [deptFilter, setDeptFilter] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
-    fetch("/api/employees")
-      .then((r) => r.json())
-      .then(setEmployees)
+    Promise.all([
+      fetch("/api/employees").then((r) => r.json()),
+      fetch("/api/departments").then((r) => r.json()),
+    ])
+      .then(([emps, depts]) => {
+        setEmployees(emps);
+        setDepartments(depts);
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  const handleDeactivate = async (id: string) => {
+  const handleDeactivate = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
     if (!confirm("Deactivate this employee?")) return;
     await fetch(`/api/employees?id=${id}`, { method: "DELETE" });
-    setEmployees((prev) => prev.filter((e) => e.id !== id));
+    setEmployees((prev) => prev.filter((emp) => emp.id !== id));
   };
+
+  const filtered = employees.filter((emp) => {
+    const matchesSearch =
+      !search ||
+      emp.name.toLowerCase().includes(search.toLowerCase()) ||
+      (emp.position_title || "").toLowerCase().includes(search.toLowerCase()) ||
+      (emp.employee_number || "").toLowerCase().includes(search.toLowerCase());
+    const matchesDept =
+      !deptFilter || emp.department_id === deptFilter || emp.department === deptFilter;
+    return matchesSearch && matchesDept;
+  });
 
   if (loading) {
     return (
@@ -32,7 +54,7 @@ export default function EmployeesPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-[44px] font-medium tracking-[-2px] leading-[1.1] text-[rgba(0,0,0,0.88)]">
           Employees
         </h1>
@@ -45,51 +67,120 @@ export default function EmployeesPage() {
         </Link>
       </div>
 
-      {employees.length === 0 ? (
-        <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-16 text-center">
-          <p className="text-base text-[rgba(0,0,0,0.4)] mb-4">No employees registered yet.</p>
-          <Link
-            href="/admin/employees/register"
-            className="text-sm font-medium text-[#9a6d2a] hover:underline"
+      {/* Filters */}
+      <div className="flex gap-3 mb-6">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name, position, or ID..."
+          className="flex-1 h-10 px-4 bg-white border border-[rgba(0,0,0,0.1)] rounded-full text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.35)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+        />
+        {departments.length > 0 && (
+          <select
+            value={deptFilter}
+            onChange={(e) => setDeptFilter(e.target.value)}
+            className="h-10 px-4 bg-white border border-[rgba(0,0,0,0.1)] rounded-full text-sm text-[rgba(0,0,0,0.65)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
           >
-            Register your first employee
-          </Link>
+            <option value="">All Departments</option>
+            {departments.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-16 text-center">
+          <p className="text-base text-[rgba(0,0,0,0.4)] mb-4">
+            {employees.length === 0
+              ? "No employees registered yet."
+              : "No employees match your search."}
+          </p>
+          {employees.length === 0 && (
+            <Link
+              href="/admin/employees/register"
+              className="text-sm font-medium text-[#9a6d2a] hover:underline"
+            >
+              Register your first employee
+            </Link>
+          )}
         </div>
       ) : (
         <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="text-left bg-[#f4f1e6] border-b border-[rgba(0,0,0,0.06)]">
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Name</th>
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Role</th>
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Department</th>
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Face Data</th>
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Registered</th>
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Actions</th>
+                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
+                  Name
+                </th>
+                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
+                  Position
+                </th>
+                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
+                  Department
+                </th>
+                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
+                  Face Data
+                </th>
+                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
+                  Registered
+                </th>
+                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
-              {employees.map((emp) => (
+              {filtered.map((emp) => (
                 <tr
                   key={emp.id}
-                  className="border-b border-[rgba(0,0,0,0.04)] last:border-0 hover:bg-[#fafaf2] transition-colors duration-150"
+                  onClick={() => router.push(`/admin/employees/${emp.id}`)}
+                  className="border-b border-[rgba(0,0,0,0.04)] last:border-0 hover:bg-[#fafaf2] transition-colors duration-150 cursor-pointer"
                 >
-                  <td className="px-6 py-4 text-sm font-medium text-[rgba(0,0,0,0.88)]">
-                    {emp.name}
+                  <td className="px-6 py-4">
+                    <div>
+                      <span className="text-sm font-medium text-[rgba(0,0,0,0.88)]">
+                        {emp.name}
+                      </span>
+                      {emp.employee_number && (
+                        <span className="ml-2 text-xs text-[rgba(0,0,0,0.35)]">
+                          #{emp.employee_number}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-[rgba(0,0,0,0.65)]">
-                    {emp.role}
+                    {emp.position_title || emp.role || "—"}
                   </td>
                   <td className="px-6 py-4 text-sm text-[rgba(0,0,0,0.65)]">
-                    {emp.department}
+                    {emp.department || "—"}
+                  </td>
+                  <td className="px-6 py-4">
+                    {emp.employment_status && (
+                      <span className="inline-block text-xs font-medium px-2.5 py-0.5 rounded-full bg-[rgba(207,147,88,0.12)] text-[#9a6d2a] capitalize">
+                        {emp.employment_status}
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <span
                       className="inline-block text-xs font-medium px-3 py-1 rounded-full"
                       style={
                         emp.face_descriptors?.length > 0
-                          ? { background: "rgba(207,147,88,0.12)", color: "#9a6d2a" }
-                          : { background: "rgba(138,58,52,0.08)", color: "#8a3a34" }
+                          ? {
+                              background: "rgba(207,147,88,0.12)",
+                              color: "#9a6d2a",
+                            }
+                          : {
+                              background: "rgba(138,58,52,0.08)",
+                              color: "#8a3a34",
+                            }
                       }
                     >
                       {emp.face_descriptors?.length || 0} captures
@@ -100,7 +191,7 @@ export default function EmployeesPage() {
                   </td>
                   <td className="px-6 py-4">
                     <button
-                      onClick={() => handleDeactivate(emp.id)}
+                      onClick={(e) => handleDeactivate(e, emp.id)}
                       className="text-sm font-medium text-[#8a3a34] hover:underline transition-colors duration-150"
                     >
                       Deactivate

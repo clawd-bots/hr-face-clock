@@ -1,0 +1,539 @@
+"use client";
+
+import { useState, useEffect, useCallback, use } from "react";
+import { useRouter } from "next/navigation";
+import TabNav from "@/components/TabNav";
+import DocumentUpload from "@/components/DocumentUpload";
+import type {
+  Employee,
+  EmergencyContact,
+  Dependent,
+  Education,
+  WorkHistory,
+  EmployeeDocument,
+  Department,
+} from "@/lib/types/database";
+
+const TABS = [
+  { key: "personal", label: "Personal" },
+  { key: "employment", label: "Employment" },
+  { key: "government", label: "Gov IDs" },
+  { key: "contacts", label: "Emergency" },
+  { key: "dependents", label: "Dependents" },
+  { key: "education", label: "Education" },
+  { key: "history", label: "Work History" },
+  { key: "documents", label: "Documents" },
+];
+
+const inputClass =
+  "w-full h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150";
+
+const labelClass = "block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1";
+
+export default function EmployeeDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const router = useRouter();
+  const [employee, setEmployee] = useState<Employee | null>(null);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [activeTab, setActiveTab] = useState("personal");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [contacts, setContacts] = useState<EmergencyContact[]>([]);
+  const [dependents, setDependents] = useState<Dependent[]>([]);
+  const [education, setEducation] = useState<Education[]>([]);
+  const [workHistory, setWorkHistory] = useState<WorkHistory[]>([]);
+  const [documents, setDocuments] = useState<EmployeeDocument[]>([]);
+
+  const fetchEmployee = useCallback(async () => {
+    const res = await fetch(`/api/employees/${id}`);
+    if (res.ok) setEmployee(await res.json());
+  }, [id]);
+
+  const fetchDepartments = useCallback(async () => {
+    const res = await fetch("/api/departments");
+    if (res.ok) setDepartments(await res.json());
+  }, []);
+
+  const fetchSubData = useCallback(async () => {
+    const [c, d, e, w, doc] = await Promise.all([
+      fetch(`/api/employees/${id}/contacts`).then((r) => r.json()),
+      fetch(`/api/employees/${id}/dependents`).then((r) => r.json()),
+      fetch(`/api/employees/${id}/education`).then((r) => r.json()),
+      fetch(`/api/employees/${id}/work-history`).then((r) => r.json()),
+      fetch(`/api/employees/${id}/documents`).then((r) => r.json()),
+    ]);
+    setContacts(c);
+    setDependents(d);
+    setEducation(e);
+    setWorkHistory(w);
+    setDocuments(doc);
+  }, [id]);
+
+  useEffect(() => {
+    fetchEmployee();
+    fetchDepartments();
+    fetchSubData();
+  }, [fetchEmployee, fetchDepartments, fetchSubData]);
+
+  const updateField = (field: string, value: string | null) => {
+    if (!employee) return;
+    setEmployee({ ...employee, [field]: value });
+  };
+
+  const saveEmployee = async () => {
+    if (!employee) return;
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const res = await fetch(`/api/employees/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(employee),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error);
+      }
+      setSuccess("Saved successfully");
+      setTimeout(() => setSuccess(""), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!employee) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#cf9358]" />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push("/admin/employees")}
+            className="text-sm font-medium text-[rgba(0,0,0,0.5)] hover:text-[rgba(0,0,0,0.88)]"
+          >
+            ← Employees
+          </button>
+          <div>
+            <h1 className="text-[28px] font-medium tracking-[-1.75px] text-[rgba(0,0,0,0.88)]">
+              {employee.name}
+            </h1>
+            <p className="text-sm text-[rgba(0,0,0,0.5)]">
+              {employee.position_title || employee.role || "No position"} ·{" "}
+              {employee.employee_number || "No ID"}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {success && (
+            <span className="text-sm font-medium text-[#9a6d2a]">{success}</span>
+          )}
+          {error && (
+            <span className="text-sm font-medium text-[#8a3a34]">{error}</span>
+          )}
+          <button
+            onClick={saveEmployee}
+            disabled={saving}
+            className="h-10 px-6 rounded-full text-sm font-medium text-[#61474c] disabled:opacity-50"
+            style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </div>
+
+      <TabNav tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* Personal Info */}
+      {activeTab === "personal" && (
+        <div className="grid grid-cols-3 gap-4">
+          <Field label="First Name" value={employee.first_name} onChange={(v) => updateField("first_name", v)} />
+          <Field label="Middle Name" value={employee.middle_name} onChange={(v) => updateField("middle_name", v)} />
+          <Field label="Last Name" value={employee.last_name} onChange={(v) => updateField("last_name", v)} />
+          <Field label="Suffix" value={employee.suffix} onChange={(v) => updateField("suffix", v)} />
+          <SelectField label="Gender" value={employee.gender} onChange={(v) => updateField("gender", v)} options={["", "Male", "Female", "Other"]} />
+          <Field label="Date of Birth" value={employee.date_of_birth} onChange={(v) => updateField("date_of_birth", v)} type="date" />
+          <SelectField label="Civil Status" value={employee.civil_status} onChange={(v) => updateField("civil_status", v)} options={["", "Single", "Married", "Widowed", "Separated"]} />
+          <Field label="Nationality" value={employee.nationality} onChange={(v) => updateField("nationality", v)} />
+          <Field label="Phone" value={employee.phone} onChange={(v) => updateField("phone", v)} />
+          <Field label="Personal Email" value={employee.personal_email} onChange={(v) => updateField("personal_email", v)} type="email" />
+          <Field label="Work Email" value={employee.work_email} onChange={(v) => updateField("work_email", v)} type="email" />
+          <div className="col-span-3 border-t border-[rgba(0,0,0,0.06)] pt-4 mt-2">
+            <p className="text-sm font-medium text-[rgba(0,0,0,0.65)] mb-3">Address</p>
+          </div>
+          <Field label="Address Line 1" value={employee.address_line1} onChange={(v) => updateField("address_line1", v)} />
+          <Field label="Address Line 2" value={employee.address_line2} onChange={(v) => updateField("address_line2", v)} />
+          <Field label="City" value={employee.city} onChange={(v) => updateField("city", v)} />
+          <Field label="Province" value={employee.province} onChange={(v) => updateField("province", v)} />
+          <Field label="Zip Code" value={employee.zip_code} onChange={(v) => updateField("zip_code", v)} />
+        </div>
+      )}
+
+      {/* Employment */}
+      {activeTab === "employment" && (
+        <div className="grid grid-cols-3 gap-4">
+          <Field label="Employee Number" value={employee.employee_number} onChange={(v) => updateField("employee_number", v)} />
+          <Field label="Position Title" value={employee.position_title} onChange={(v) => updateField("position_title", v)} />
+          <SelectField
+            label="Department"
+            value={employee.department_id}
+            onChange={(v) => updateField("department_id", v)}
+            options={[{ value: "", label: "None" }, ...departments.map((d) => ({ value: d.id, label: d.name }))]}
+          />
+          <SelectField
+            label="Employment Status"
+            value={employee.employment_status}
+            onChange={(v) => updateField("employment_status", v)}
+            options={["", "probationary", "regular", "contractual", "consultant", "intern"]}
+          />
+          <SelectField
+            label="Pay Frequency"
+            value={employee.pay_frequency}
+            onChange={(v) => updateField("pay_frequency", v)}
+            options={["", "monthly", "semi_monthly", "weekly", "daily"]}
+          />
+          <Field label="Work Location" value={employee.work_location} onChange={(v) => updateField("work_location", v)} />
+          <Field label="Hire Date" value={employee.hire_date} onChange={(v) => updateField("hire_date", v)} type="date" />
+          <Field label="Regularization Date" value={employee.regularization_date} onChange={(v) => updateField("regularization_date", v)} type="date" />
+        </div>
+      )}
+
+      {/* Government IDs */}
+      {activeTab === "government" && (
+        <div className="grid grid-cols-2 gap-4 max-w-2xl">
+          <Field label="SSS Number" value={employee.sss_number} onChange={(v) => updateField("sss_number", v)} placeholder="00-0000000-0" />
+          <Field label="TIN" value={employee.tin_number} onChange={(v) => updateField("tin_number", v)} placeholder="000-000-000-000" />
+          <Field label="PhilHealth Number" value={employee.philhealth_number} onChange={(v) => updateField("philhealth_number", v)} placeholder="00-000000000-0" />
+          <Field label="Pag-IBIG / HDMF" value={employee.pagibig_number} onChange={(v) => updateField("pagibig_number", v)} placeholder="0000-0000-0000" />
+        </div>
+      )}
+
+      {/* Emergency Contacts */}
+      {activeTab === "contacts" && (
+        <SubTableSection
+          items={contacts}
+          fields={[
+            { key: "name", label: "Name", required: true },
+            { key: "relationship", label: "Relationship", required: true },
+            { key: "phone", label: "Phone", required: true },
+            { key: "address", label: "Address" },
+          ]}
+          onAdd={async (item) => {
+            await fetch(`/api/employees/${id}/contacts`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(item),
+            });
+            fetchSubData();
+          }}
+          onDelete={async (itemId) => {
+            await fetch(`/api/employees/${id}/contacts?contactId=${itemId}`, { method: "DELETE" });
+            fetchSubData();
+          }}
+          emptyText="No emergency contacts"
+        />
+      )}
+
+      {/* Dependents */}
+      {activeTab === "dependents" && (
+        <SubTableSection
+          items={dependents}
+          fields={[
+            { key: "name", label: "Name", required: true },
+            { key: "relationship", label: "Relationship", required: true, options: ["Spouse", "Child", "Parent", "Sibling", "Other"] },
+            { key: "date_of_birth", label: "Date of Birth", type: "date" },
+          ]}
+          onAdd={async (item) => {
+            await fetch(`/api/employees/${id}/dependents`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(item),
+            });
+            fetchSubData();
+          }}
+          onDelete={async (itemId) => {
+            await fetch(`/api/employees/${id}/dependents?dependentId=${itemId}`, { method: "DELETE" });
+            fetchSubData();
+          }}
+          emptyText="No dependents"
+        />
+      )}
+
+      {/* Education */}
+      {activeTab === "education" && (
+        <SubTableSection
+          items={education}
+          fields={[
+            { key: "level", label: "Level", required: true, options: ["Elementary", "High School", "Vocational", "College", "Post Graduate"] },
+            { key: "school_name", label: "School", required: true },
+            { key: "degree", label: "Degree" },
+            { key: "field_of_study", label: "Field of Study" },
+            { key: "year_graduated", label: "Year Graduated", type: "number" },
+          ]}
+          onAdd={async (item) => {
+            await fetch(`/api/employees/${id}/education`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(item),
+            });
+            fetchSubData();
+          }}
+          onDelete={async (itemId) => {
+            await fetch(`/api/employees/${id}/education?educationId=${itemId}`, { method: "DELETE" });
+            fetchSubData();
+          }}
+          emptyText="No education records"
+        />
+      )}
+
+      {/* Work History */}
+      {activeTab === "history" && (
+        <SubTableSection
+          items={workHistory}
+          fields={[
+            { key: "company_name", label: "Company", required: true },
+            { key: "position", label: "Position", required: true },
+            { key: "start_date", label: "Start Date", type: "date" },
+            { key: "end_date", label: "End Date", type: "date" },
+            { key: "reason_for_leaving", label: "Reason for Leaving" },
+          ]}
+          onAdd={async (item) => {
+            await fetch(`/api/employees/${id}/work-history`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(item),
+            });
+            fetchSubData();
+          }}
+          onDelete={async (itemId) => {
+            await fetch(`/api/employees/${id}/work-history?historyId=${itemId}`, { method: "DELETE" });
+            fetchSubData();
+          }}
+          emptyText="No work history"
+        />
+      )}
+
+      {/* Documents */}
+      {activeTab === "documents" && (
+        <div className="space-y-6">
+          <DocumentUpload employeeId={id} onUploadComplete={fetchSubData} />
+          {documents.length === 0 ? (
+            <p className="text-sm text-[rgba(0,0,0,0.4)] text-center py-8">No documents uploaded</p>
+          ) : (
+            <div className="space-y-2">
+              {documents.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="flex items-center justify-between p-3 rounded-xl bg-white border border-[rgba(0,0,0,0.06)]"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-[rgba(0,0,0,0.88)]">{doc.document_name}</p>
+                    <p className="text-xs text-[rgba(0,0,0,0.4)]">
+                      {doc.document_type.replace("_", " ")} · {doc.file_size ? `${(doc.file_size / 1024).toFixed(0)} KB` : ""} · {new Date(doc.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      await fetch(`/api/employees/${id}/documents?docId=${doc.id}`, { method: "DELETE" });
+                      fetchSubData();
+                    }}
+                    className="text-xs font-medium text-[#8a3a34] hover:text-[rgba(138,58,52,0.7)]"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- Reusable field components ---
+
+function Field({
+  label, value, onChange, type = "text", placeholder,
+}: {
+  label: string; value: string | null | undefined; onChange: (v: string) => void; type?: string; placeholder?: string;
+}) {
+  return (
+    <div>
+      <label className={labelClass}>{label}</label>
+      <input
+        type={type}
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={inputClass}
+      />
+    </div>
+  );
+}
+
+function SelectField({
+  label, value, onChange, options,
+}: {
+  label: string;
+  value: string | null | undefined;
+  onChange: (v: string) => void;
+  options: (string | { value: string; label: string })[];
+}) {
+  return (
+    <div>
+      <label className={labelClass}>{label}</label>
+      <select
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputClass}
+      >
+        {options.map((opt) => {
+          const v = typeof opt === "string" ? opt : opt.value;
+          const l = typeof opt === "string" ? (opt || "—") : opt.label;
+          return <option key={v} value={v}>{l}</option>;
+        })}
+      </select>
+    </div>
+  );
+}
+
+// --- Generic sub-table section (contacts, dependents, education, work history) ---
+
+type FieldDef = {
+  key: string;
+  label: string;
+  required?: boolean;
+  type?: string;
+  options?: string[];
+};
+
+function SubTableSection({
+  items,
+  fields,
+  onAdd,
+  onDelete,
+  emptyText,
+}: {
+  items: Record<string, unknown>[];
+  fields: FieldDef[];
+  onAdd: (item: Record<string, string>) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+  emptyText: string;
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+
+  const handleAdd = async () => {
+    setSaving(true);
+    await onAdd(formData);
+    setFormData({});
+    setShowForm(false);
+    setSaving(false);
+  };
+
+  return (
+    <div>
+      {items.length === 0 && !showForm && (
+        <p className="text-sm text-[rgba(0,0,0,0.4)] text-center py-8">{emptyText}</p>
+      )}
+
+      {items.map((item) => (
+        <div
+          key={item.id as string}
+          className="flex items-center justify-between p-3 rounded-xl bg-white border border-[rgba(0,0,0,0.06)] mb-2"
+        >
+          <div className="flex flex-wrap gap-x-6 gap-y-1">
+            {fields.map((f) => (
+              <div key={f.key}>
+                <span className="text-xs text-[rgba(0,0,0,0.4)]">{f.label}: </span>
+                <span className="text-sm text-[rgba(0,0,0,0.88)]">
+                  {(item[f.key] as string) || "—"}
+                </span>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => onDelete(item.id as string)}
+            className="text-xs font-medium text-[#8a3a34] hover:text-[rgba(138,58,52,0.7)] ml-4 shrink-0"
+          >
+            Delete
+          </button>
+        </div>
+      ))}
+
+      {showForm ? (
+        <div className="p-4 rounded-2xl bg-white border border-[rgba(0,0,0,0.1)] mt-3">
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            {fields.map((f) =>
+              f.options ? (
+                <div key={f.key}>
+                  <label className={labelClass}>{f.label}</label>
+                  <select
+                    value={formData[f.key] || ""}
+                    onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
+                    className={inputClass}
+                  >
+                    <option value="">Select...</option>
+                    {f.options.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div key={f.key}>
+                  <label className={labelClass}>{f.label}</label>
+                  <input
+                    type={f.type || "text"}
+                    value={formData[f.key] || ""}
+                    onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+              )
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleAdd}
+              disabled={saving}
+              className="h-9 px-4 rounded-lg text-sm font-medium text-[#61474c] disabled:opacity-50"
+              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+            >
+              {saving ? "Adding..." : "Add"}
+            </button>
+            <button
+              onClick={() => { setShowForm(false); setFormData({}); }}
+              className="h-9 px-4 rounded-lg text-sm font-medium text-[rgba(0,0,0,0.5)] border border-[rgba(0,0,0,0.1)]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowForm(true)}
+          className="mt-3 h-9 px-4 rounded-lg text-sm font-medium text-[#9a6d2a] border border-[rgba(207,147,88,0.3)] hover:bg-[rgba(255,198,113,0.1)] transition-colors duration-150"
+        >
+          + Add
+        </button>
+      )}
+    </div>
+  );
+}

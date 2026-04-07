@@ -9,6 +9,7 @@ import { ADMIN_ROLES } from "@/lib/types/database";
 const navItems = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/employees", label: "Employees" },
+  { href: "/admin/departments", label: "Departments" },
   { href: "/admin/reports", label: "Reports" },
 ];
 
@@ -70,7 +71,7 @@ export default function AdminLayout({
                     key={item.href}
                     href={item.href}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-150 ${
-                      pathname === item.href
+                      (item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href))
                         ? "bg-[rgba(255,198,113,0.2)] text-[#9a6d2a]"
                         : "text-[rgba(0,0,0,0.65)] hover:text-[rgba(0,0,0,0.88)] hover:bg-[#f4f1e6]"
                     }`}

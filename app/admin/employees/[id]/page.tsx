@@ -347,15 +347,29 @@ export default function EmployeeDetailPage({
                       {doc.document_type.replace("_", " ")} · {doc.file_size ? `${(doc.file_size / 1024).toFixed(0)} KB` : ""} · {new Date(doc.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <button
-                    onClick={async () => {
-                      await fetch(`/api/employees/${id}/documents?docId=${doc.id}`, { method: "DELETE" });
-                      fetchSubData();
-                    }}
-                    className="text-xs font-medium text-[#8a3a34] hover:text-[rgba(138,58,52,0.7)]"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <button
+                      onClick={async () => {
+                        const res = await fetch(`/api/employees/${id}/documents/download?path=${encodeURIComponent(doc.file_path)}`);
+                        if (res.ok) {
+                          const { url } = await res.json();
+                          window.open(url, "_blank");
+                        }
+                      }}
+                      className="text-xs font-medium text-[#9a6d2a] hover:text-[rgba(154,109,42,0.7)]"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await fetch(`/api/employees/${id}/documents?docId=${doc.id}`, { method: "DELETE" });
+                        fetchSubData();
+                      }}
+                      className="text-xs font-medium text-[#8a3a34] hover:text-[rgba(138,58,52,0.7)]"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

@@ -1,7 +1,45 @@
-import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
+import { getSupabaseService } from "@/lib/supabase-service";
+import { getSupabaseServer } from "@/lib/supabase-server";
+
+/**
+ * Time logs API — used by both the kiosk (unauthenticated) and admin dashboard.
+ * Always uses service client for kiosk clock operations;
+ * uses server client for authenticated admin queries.
+ */
+async function getClientAndContext() {
+  try {
+    const serverClient = await getSupabaseServer();
+    const {
+      data: { user },
+    } = await serverClient.auth.getUser();
+
+    if (user) {
+      const { data: profile } = await serverClient
+        .from("user_profiles")
+        .select("company_id")
+        .eq("id", user.id)
+        .single();
+
+      return {
+        supabase: serverClient,
+        isAuthenticated: true,
+        companyId: profile?.company_id ?? null,
+      };
+    }
+  } catch {
+    // Not authenticated
+  }
+
+  return {
+    supabase: getSupabaseService(),
+    isAuthenticated: false,
+    companyId: null,
+  };
+}
 
 export async function GET(req: NextRequest) {
+  const { supabase } = await getClientAndContext();
   const { searchParams } = new URL(req.url);
   const date = searchParams.get("date");
   const employeeId = searchParams.get("employee_id");
@@ -19,16 +57,18 @@ export async function GET(req: NextRequest) {
   if (to) query = query.lte("date", to);
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error)
+    return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
 }
 
 export async function POST(req: NextRequest) {
+  // Clock in/out always uses service client (kiosk has no auth)
+  const supabase = getSupabaseService();
   const body = await req.json();
   const { employee_id, action } = body;
 
   if (action === "clock_in") {
-    // Check if already clocked in today
     const today = new Date().toISOString().split("T")[0];
     const { data: existing } = await supabase
       .from("time_logs")
@@ -45,6 +85,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Get employee's company_id for the new log
+    const { data: employee } = await supabase
+      .from("employees")
+      .select("company_id")
+      .eq("id", employee_id)
+      .single();
+
     const now = new Date().toISOString();
     const { data, error } = await supabase
       .from("time_logs")
@@ -52,11 +99,13 @@ export async function POST(req: NextRequest) {
         employee_id,
         clock_in: now,
         date: today,
+        company_id: employee?.company_id ?? null,
       })
       .select("*, employee:employees(id, name, department, role)")
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ action: "clock_in", log: data });
   }
 
@@ -89,7 +138,8 @@ export async function POST(req: NextRequest) {
       .select("*, employee:employees(id, name, department, role)")
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ action: "clock_out", log: data });
   }
 

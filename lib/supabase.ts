@@ -1,13 +1,30 @@
+/**
+ * Backward-compatible Supabase client export.
+ * New code should use:
+ *   - getSupabaseBrowser() for client components
+ *   - getSupabaseServer() for server components / route handlers
+ *   - getSupabaseService() for service-role operations (kiosk, admin setup)
+ *
+ * This file re-exports the browser client for existing client components
+ * and keeps the old type exports.
+ */
+
+import { getSupabaseBrowser } from "./supabase-browser";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
+// Lazy proxy for backward compat — existing client components import `supabase`
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 function getClient(): SupabaseClient {
+  // In browser context, use the SSR-aware browser client
+  if (typeof window !== "undefined") {
+    return getSupabaseBrowser() as unknown as SupabaseClient;
+  }
+  // In server context (shouldn't be used — prefer getSupabaseServer), fallback
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. " +
-      "Set them in .env.local"
+      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY"
     );
   }
   return createClient(supabaseUrl, supabaseAnonKey);
@@ -24,24 +41,5 @@ export const supabase = new Proxy({} as SupabaseClient, {
   },
 });
 
-export type Employee = {
-  id: string;
-  name: string;
-  role: string;
-  department: string;
-  face_descriptors: number[][];
-  photo_url: string | null;
-  created_at: string;
-  active: boolean;
-};
-
-export type TimeLog = {
-  id: string;
-  employee_id: string;
-  clock_in: string;
-  clock_out: string | null;
-  hours_worked: number | null;
-  date: string;
-  created_at: string;
-  employee?: Employee;
-};
+// Re-export types from the new types file
+export type { Employee, TimeLog } from "./types/database";

@@ -19,8 +19,9 @@ interface Schedule {
 
 interface Employee {
   id: string;
-  first_name: string;
-  last_name: string;
+  name: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 interface Assignment {
@@ -231,7 +232,7 @@ export default function SchedulesPage() {
         {
           ...data,
           employeeName: emp
-            ? `${emp.first_name} ${emp.last_name}`
+            ? (emp.first_name && emp.last_name ? `${emp.first_name} ${emp.last_name}` : emp.name)
             : assignEmployee,
         },
         ...prev,
@@ -546,7 +547,7 @@ export default function SchedulesPage() {
                 <option value="">Select employee</option>
                 {employees.map((e) => (
                   <option key={e.id} value={e.id}>
-                    {e.first_name} {e.last_name}
+                    {e.first_name && e.last_name ? `${e.first_name} ${e.last_name}` : e.name}
                   </option>
                 ))}
               </select>

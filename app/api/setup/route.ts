@@ -17,13 +17,59 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { company_name, user_id, email, display_name } = body;
+  const { company_name, email, password, display_name, user_id } = body;
 
-  if (!company_name || !user_id || !email || !display_name) {
+  if (!company_name || !email || !display_name) {
     return NextResponse.json(
       { error: "Missing required fields" },
       { status: 400 }
     );
+  }
+
+  let authUserId = user_id;
+
+  // If no user_id provided, create the auth user server-side using admin API
+  // This auto-confirms the email (no confirmation email needed)
+  if (!authUserId) {
+    if (!password) {
+      return NextResponse.json(
+        { error: "Password is required for new account" },
+        { status: 400 }
+      );
+    }
+
+    // Check if user already exists (from a previous failed setup attempt)
+    const { data: existingUsers } = await supabase.auth.admin.listUsers();
+    const existingUser = existingUsers?.users?.find(
+      (u) => u.email === email
+    );
+
+    if (existingUser) {
+      // User exists from a previous attempt — reuse and ensure confirmed
+      authUserId = existingUser.id;
+      // Update the password in case it changed, and confirm email
+      await supabase.auth.admin.updateUserById(authUserId, {
+        password,
+        email_confirm: true,
+      });
+    } else {
+      const { data: authData, error: authError } =
+        await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true, // Auto-confirm the email
+          user_metadata: { display_name },
+        });
+
+      if (authError) {
+        return NextResponse.json(
+          { error: "Failed to create auth user: " + authError.message },
+          { status: 500 }
+        );
+      }
+
+      authUserId = authData.user.id;
+    }
   }
 
   // Create slug from company name
@@ -57,7 +103,7 @@ export async function POST(req: NextRequest) {
   const { error: profileError } = await supabase
     .from("user_profiles")
     .insert({
-      id: user_id,
+      id: authUserId,
       company_id: company.id,
       system_role: "super_admin",
       email,

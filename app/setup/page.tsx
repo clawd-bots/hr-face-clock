@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
@@ -12,7 +12,20 @@ export default function SetupPage() {
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [alreadySetup, setAlreadySetup] = useState(false);
   const router = useRouter();
+
+  // Check if setup is already done
+  useEffect(() => {
+    fetch("/api/setup/check")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.needsSetup) {
+          setAlreadySetup(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSetup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,36 +33,15 @@ export default function SetupPage() {
     setLoading(true);
 
     try {
-      // Step 1: Create auth user via Supabase Auth
-      const supabase = getSupabaseBrowser();
-      const { data: authData, error: signUpError } = await supabase.auth.signUp(
-        {
-          email,
-          password,
-          options: {
-            data: { display_name: displayName },
-          },
-        }
-      );
-
-      if (signUpError) {
-        setError(signUpError.message);
-        return;
-      }
-
-      if (!authData.user) {
-        setError("Failed to create user account");
-        return;
-      }
-
-      // Step 2: Create company + user profile via API (uses service role)
+      // Use the server-side setup endpoint which creates both the auth user
+      // (auto-confirmed via service role) and the company + profile
       const res = await fetch("/api/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           company_name: companyName,
-          user_id: authData.user.id,
           email,
+          password,
           display_name: displayName,
         }),
       });
@@ -60,8 +52,19 @@ export default function SetupPage() {
         return;
       }
 
-      // Step 3: Sign in
-      await supabase.auth.signInWithPassword({ email, password });
+      // Sign in with the newly created account
+      const supabase = getSupabaseBrowser();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError(
+          "Account created but sign-in failed: " + signInError.message
+        );
+        return;
+      }
 
       setStep("done");
       setTimeout(() => {
@@ -74,6 +77,24 @@ export default function SetupPage() {
       setLoading(false);
     }
   };
+
+  if (alreadySetup) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fafaf2]">
+        <div className="text-center">
+          <p className="text-base text-[rgba(0,0,0,0.65)] mb-4">
+            System is already set up.
+          </p>
+          <a
+            href="/login"
+            className="text-sm font-medium text-[#9a6d2a] hover:underline"
+          >
+            Go to Sign In
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   if (step === "done") {
     return (

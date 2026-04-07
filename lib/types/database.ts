@@ -264,3 +264,68 @@ export type Holiday = {
 };
 
 export type DTRStatus = 'computed' | 'adjusted' | 'approved';
+
+// ---------------------------------------------------------------------------
+// Phase 4: Leave Management
+// ---------------------------------------------------------------------------
+
+export type LeaveType = {
+  id: string;
+  company_id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  days_per_year: number;
+  is_paid: boolean;
+  is_convertible: boolean;
+  requires_attachment: boolean;
+  gender_specific: 'male' | 'female' | null;
+  min_service_months: number;
+  allow_half_day: boolean;
+  carry_over_max: number;
+  prorate_on_hire: boolean;
+  active: boolean;
+  created_at: string;
+};
+
+export type LeaveBalance = {
+  id: string;
+  company_id: string;
+  employee_id: string;
+  leave_type_id: string;
+  year: number;
+  entitled_days: number;
+  used_days: number;
+  pending_days: number;
+  carried_over: number;
+  adjusted_days: number;
+  created_at: string;
+  updated_at: string;
+  leave_type?: LeaveType;
+  employee?: Employee;
+};
+
+export type LeaveRequest = {
+  id: string;
+  company_id: string;
+  employee_id: string;
+  leave_type_id: string;
+  start_date: string;
+  end_date: string;
+  total_days: number;
+  is_half_day: boolean;
+  half_day_period: 'morning' | 'afternoon' | null;
+  reason: string | null;
+  attachment_path: string | null;
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  filed_by: string;
+  approved_by: string | null;
+  approved_at: string | null;
+  rejection_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  leave_type?: LeaveType;
+  employee?: Employee;
+};
+
+export type LeaveRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';

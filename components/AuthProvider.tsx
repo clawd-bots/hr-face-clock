@@ -57,22 +57,36 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Fetch profile — called outside of auth lock via separate useEffect
   const fetchProfile = useCallback(
     async (userId: string) => {
       const client = getClient();
       if (!client) return;
-      const { data } = await client
-        .from("user_profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      try {
+        const { data } = await client
+          .from("user_profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
 
-      if (data) {
-        setProfile(data as UserProfile);
+        if (data) {
+          setProfile(data as UserProfile);
+        }
+      } catch (err) {
+        console.error("[auth] Failed to fetch profile:", err);
       }
     },
     [getClient]
   );
+
+  // When user changes, fetch their profile (outside of auth lock)
+  useEffect(() => {
+    if (user) {
+      fetchProfile(user.id);
+    } else {
+      setProfile(null);
+    }
+  }, [user, fetchProfile]);
 
   const refreshProfile = useCallback(async () => {
     if (user) {
@@ -87,44 +101,31 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const initAuth = async () => {
-      try {
-        const {
-          data: { session: currentSession },
-        } = await client.auth.getSession();
+    // Get initial session
+    client.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      setLoading(false);
+    }).catch((err) => {
+      console.error("[auth] getSession failed:", err);
+      setLoading(false);
+    });
 
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-
-        if (currentSession?.user) {
-          await fetchProfile(currentSession.user.id);
-        }
-      } catch (err) {
-        console.error("Auth init failed:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initAuth();
-
+    // Listen for auth changes — keep this callback SYNCHRONOUS
+    // Do NOT do async work (like fetchProfile) here — it holds the auth lock
+    // and blocks signInWithPassword from completing
     const {
       data: { subscription },
     } = client.auth.onAuthStateChange(
-      async (_event: string, newSession: Session | null) => {
+      (_event: string, newSession: Session | null) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
-
-        if (newSession?.user) {
-          await fetchProfile(newSession.user.id);
-        } else {
-          setProfile(null);
-        }
+        // Profile fetch is triggered by the useEffect watching `user` above
       }
     );
 
     return () => subscription.unsubscribe();
-  }, [getClient, fetchProfile]);
+  }, [getClient]);
 
   const signOut = useCallback(async () => {
     const client = getClient();

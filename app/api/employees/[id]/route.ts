@@ -26,13 +26,29 @@ export async function GET(
   const { id } = await params;
   const supabase = getSupabaseService();
 
-  const { data, error } = await supabase
+  // Try with department join first, fall back to without
+  let { data, error } = await supabase
     .from("employees")
     .select("*, department:departments(id, name, code)")
     .eq("id", id)
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 404 });
+  if (error) {
+    // If join fails (e.g., FK not set up yet), try without department join
+    const fallback = await supabase
+      .from("employees")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    data = fallback.data;
+    error = fallback.error;
+  }
+
+  if (error) {
+    const status = error.code === "PGRST116" ? 404 : 500;
+    return NextResponse.json({ error: error.message }, { status });
+  }
   return NextResponse.json(data);
 }
 

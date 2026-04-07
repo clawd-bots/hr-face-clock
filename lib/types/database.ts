@@ -199,3 +199,68 @@ export const PAYROLL_ROLES: SystemRole[] = [
   "company_admin",
   "payroll_officer",
 ];
+
+// ---------------------------------------------------------------------------
+// Phase 3: Time & Attendance
+// ---------------------------------------------------------------------------
+
+export type WorkSchedule = {
+  id: string;
+  company_id: string;
+  name: string;
+  start_time: string; // HH:MM format
+  end_time: string;
+  break_minutes: number;
+  is_flexible: boolean;
+  grace_period_minutes: number;
+  work_days: number[]; // ISO weekday 1=Mon..7=Sun
+  is_night_diff: boolean;
+  created_at: string;
+  active: boolean;
+};
+
+export type EmployeeSchedule = {
+  id: string;
+  company_id: string;
+  employee_id: string;
+  schedule_id: string;
+  effective_from: string;
+  effective_to: string | null;
+  created_at: string;
+  schedule?: WorkSchedule;
+};
+
+export type DailyTimeRecord = {
+  id: string;
+  company_id: string;
+  employee_id: string;
+  date: string;
+  schedule_id: string | null;
+  first_in: string | null;
+  last_out: string | null;
+  total_hours_worked: number | null;
+  regular_hours: number | null;
+  night_diff_hours: number | null;
+  late_minutes: number;
+  undertime_minutes: number;
+  is_rest_day: boolean;
+  is_holiday: boolean;
+  holiday_type: string | null;
+  status: 'computed' | 'adjusted' | 'approved';
+  remarks: string | null;
+  computed_at: string;
+  approved_by: string | null;
+  approved_at: string | null;
+  employee?: Employee;
+};
+
+export type Holiday = {
+  id: string;
+  company_id: string;
+  date: string;
+  name: string;
+  type: 'regular' | 'special_non_working' | 'special_working';
+  created_at: string;
+};
+
+export type DTRStatus = 'computed' | 'adjusted' | 'approved';

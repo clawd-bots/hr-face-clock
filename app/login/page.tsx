@@ -50,10 +50,20 @@ function LoginForm() {
     setLoading(true);
 
     try {
+      console.log("[login] Starting sign-in for:", email);
       const supabase = getSupabaseBrowser();
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      console.log("[login] Supabase client created, calling signInWithPassword...");
+
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
+      });
+
+      console.log("[login] signInWithPassword returned:", {
+        hasData: !!data,
+        hasSession: !!data?.session,
+        hasUser: !!data?.user,
+        error: authError?.message || null
       });
 
       if (authError) {
@@ -72,10 +82,12 @@ function LoginForm() {
         return;
       }
 
+      console.log("[login] Sign-in successful, redirecting to:", redirect);
       router.push(redirect);
       router.refresh();
-    } catch {
-      setError("An unexpected error occurred");
+    } catch (err) {
+      console.error("[login] Unexpected error:", err);
+      setError("An unexpected error occurred: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }

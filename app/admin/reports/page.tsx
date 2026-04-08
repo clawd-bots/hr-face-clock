@@ -1,232 +1,335 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { formatTime, formatHours, formatDate } from "@/lib/utils";
-import type { Employee, TimeLog } from "@/lib/supabase";
+import { useState, useEffect, useCallback } from "react";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+type ReportType = {
+  slug: string;
+  name: string;
+  category: string;
+  description: string;
+  params: string[];
+};
+
+type ReportData = {
+  title: string;
+  subtitle?: string;
+  headers: string[];
+  rows: (string | number)[][];
+  summary?: Record<string, string | number>;
+};
+
+type Employee = {
+  id: string;
+  name?: string;
+  first_name?: string;
+  last_name?: string;
+  employee_number?: string;
+};
+
+function empName(e?: Employee): string {
+  if (!e) return "—";
+  if (e.first_name) return `${e.first_name} ${e.last_name ?? ""}`.trim();
+  return e.name ?? "—";
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 export default function ReportsPage() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [logs, setLogs] = useState<TimeLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [dateFrom, setDateFrom] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 7);
-    return d.toISOString().split("T")[0];
-  });
-  const [dateTo, setDateTo] = useState(
-    () => new Date().toISOString().split("T")[0]
-  );
-  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [reportTypes, setReportTypes] = useState<ReportType[]>([]);
+  const [selectedReport, setSelectedReport] = useState<ReportType | null>(null);
+  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
+  // Config state
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employeeId, setEmployeeId] = useState("");
+
+  // Load report types
+  useEffect(() => {
+    fetch("/api/reports")
+      .then((r) => r.json())
+      .then(setReportTypes)
+      .catch(() => {});
+  }, []);
+
+  // Load employees (for BIR 2316)
   useEffect(() => {
     fetch("/api/employees")
       .then((r) => r.json())
-      .then(setEmployees);
+      .then(setEmployees)
+      .catch(() => {});
   }, []);
 
-  useEffect(() => {
+  const generateReport = useCallback(async () => {
+    if (!selectedReport) return;
     setLoading(true);
-    let url = `/api/time-logs?from=${dateFrom}&to=${dateTo}`;
-    if (selectedEmployee) url += `&employee_id=${selectedEmployee}`;
-    fetch(url)
-      .then((r) => r.json())
-      .then((data) => setLogs(Array.isArray(data) ? data : []))
-      .finally(() => setLoading(false));
-  }, [dateFrom, dateTo, selectedEmployee]);
+    setError("");
+    setReportData(null);
+    try {
+      const params = new URLSearchParams();
+      params.set("year", String(year));
+      if (selectedReport.params.includes("month")) params.set("month", String(month));
+      if (selectedReport.slug === "bir-2316" && employeeId) params.set("employee_id", employeeId);
 
-  const summaryMap = new Map<
-    string,
-    { name: string; totalHours: number; daysWorked: Set<string> }
-  >();
-  for (const log of logs) {
-    const emp = log.employee as unknown as Employee;
-    const name = emp?.name || "Unknown";
-    const id = log.employee_id;
-    if (!summaryMap.has(id)) {
-      summaryMap.set(id, { name, totalHours: 0, daysWorked: new Set() });
+      const res = await fetch(`/api/reports/${selectedReport.slug}?${params}`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to generate report");
+      }
+      setReportData(await res.json());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error");
+    } finally {
+      setLoading(false);
     }
-    const entry = summaryMap.get(id)!;
-    entry.totalHours += log.hours_worked || 0;
-    entry.daysWorked.add(log.date);
-  }
-  const summary = Array.from(summaryMap.entries())
-    .map(([id, data]) => ({
-      id,
-      name: data.name,
-      totalHours: data.totalHours,
-      daysWorked: data.daysWorked.size,
-      avgHoursPerDay:
-        data.daysWorked.size > 0 ? data.totalHours / data.daysWorked.size : 0,
-    }))
-    .sort((a, b) => b.totalHours - a.totalHours);
+  }, [selectedReport, year, month, employeeId]);
 
-  const handleExport = () => {
-    const rows = [
-      ["Employee", "Date", "Clock In", "Clock Out", "Hours Worked"],
-      ...logs.map((log) => [
-        (log.employee as unknown as Employee)?.name || "Unknown",
-        log.date,
-        new Date(log.clock_in).toLocaleTimeString(),
-        log.clock_out ? new Date(log.clock_out).toLocaleTimeString() : "\u2014",
-        log.hours_worked?.toFixed(2) || "\u2014",
-      ]),
-    ];
-    const csv = rows.map((r) => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `attendance-${dateFrom}-to-${dateTo}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  function handleExportCSV() {
+    if (!selectedReport) return;
+    const params = new URLSearchParams();
+    params.set("year", String(year));
+    params.set("format", "csv");
+    if (selectedReport.params.includes("month")) params.set("month", String(month));
+    if (selectedReport.slug === "bir-2316" && employeeId) params.set("employee_id", employeeId);
+    window.open(`/api/reports/${selectedReport.slug}?${params}`, "_blank");
+  }
+
+  function handleExportPDF() {
+    if (!selectedReport) return;
+    const params = new URLSearchParams();
+    params.set("year", String(year));
+    params.set("format", "html");
+    if (selectedReport.params.includes("month")) params.set("month", String(month));
+    if (selectedReport.slug === "bir-2316" && employeeId) params.set("employee_id", employeeId);
+    window.open(`/api/reports/${selectedReport.slug}?${params}`, "_blank");
+  }
+
+  const govReports = reportTypes.filter((r) => r.category === "government");
+  const hrReports = reportTypes.filter((r) => r.category === "hr" || r.category === "payroll");
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-[44px] font-medium tracking-[-2px] leading-[1.1] text-[rgba(0,0,0,0.88)]">
-          Reports
-        </h1>
-        <button
-          onClick={handleExport}
-          className="px-5 py-3 bg-[#000] text-white rounded-full text-sm font-medium transition-all duration-150 hover:shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
-        >
-          Export CSV
-        </button>
-      </div>
+      <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)] mb-8">
+        Reports
+      </h1>
 
-      {/* Filters */}
-      <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-6 mb-6">
-        <div className="flex flex-wrap gap-5 items-end">
-          <div>
-            <label className="block text-[10px] font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)] mb-2">
-              From
-            </label>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="h-10 px-3 border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] bg-[#fafaf2]"
-            />
+      {/* Report Selection */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Government Compliance */}
+        <div>
+          <h2 className="text-sm font-semibold text-[rgba(0,0,0,0.5)] uppercase tracking-wider mb-3">
+            Government Compliance
+          </h2>
+          <div className="space-y-2">
+            {govReports.map((r) => (
+              <button
+                key={r.slug}
+                onClick={() => { setSelectedReport(r); setReportData(null); setError(""); }}
+                className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${
+                  selectedReport?.slug === r.slug
+                    ? "border-[#cf9358] bg-[rgba(255,198,113,0.08)]"
+                    : "border-[rgba(0,0,0,0.08)] bg-white hover:border-[rgba(0,0,0,0.15)]"
+                }`}
+              >
+                <div className="text-sm font-medium text-[rgba(0,0,0,0.88)]">{r.name}</div>
+                <div className="text-xs text-[rgba(0,0,0,0.4)] mt-0.5">{r.description}</div>
+              </button>
+            ))}
           </div>
-          <div>
-            <label className="block text-[10px] font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)] mb-2">
-              To
-            </label>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="h-10 px-3 border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] bg-[#fafaf2]"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)] mb-2">
-              Employee
-            </label>
-            <select
-              value={selectedEmployee}
-              onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="h-10 px-3 border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] bg-[#fafaf2]"
-            >
-              <option value="">All Employees</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name}
-                </option>
-              ))}
-            </select>
+        </div>
+
+        {/* HR & Analytics */}
+        <div>
+          <h2 className="text-sm font-semibold text-[rgba(0,0,0,0.5)] uppercase tracking-wider mb-3">
+            HR &amp; Analytics
+          </h2>
+          <div className="space-y-2">
+            {hrReports.map((r) => (
+              <button
+                key={r.slug}
+                onClick={() => { setSelectedReport(r); setReportData(null); setError(""); }}
+                className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${
+                  selectedReport?.slug === r.slug
+                    ? "border-[#cf9358] bg-[rgba(255,198,113,0.08)]"
+                    : "border-[rgba(0,0,0,0.08)] bg-white hover:border-[rgba(0,0,0,0.15)]"
+                }`}
+              >
+                <div className="text-sm font-medium text-[rgba(0,0,0,0.88)]">{r.name}</div>
+                <div className="text-xs text-[rgba(0,0,0,0.4)] mt-0.5">{r.description}</div>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Summary */}
-      {!loading && summary.length > 0 && (
-        <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-8 mb-6">
-          <h2 className="text-xl font-medium tracking-[-1px] leading-[1.2] text-[rgba(0,0,0,0.88)] mb-5">
-            Summary
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left border-b border-[rgba(0,0,0,0.08)]">
-                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Employee</th>
-                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Days Worked</th>
-                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Total Hours</th>
-                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Avg Hours/Day</th>
-                </tr>
-              </thead>
-              <tbody>
-                {summary.map((s) => (
-                  <tr key={s.id} className="border-b border-[rgba(0,0,0,0.04)] last:border-0">
-                    <td className="py-4 text-sm font-medium text-[rgba(0,0,0,0.88)]">{s.name}</td>
-                    <td className="py-4 text-sm text-[rgba(0,0,0,0.65)]">{s.daysWorked}</td>
-                    <td className="py-4 text-sm text-[rgba(0,0,0,0.65)]">{formatHours(s.totalHours)}</td>
-                    <td className="py-4 text-sm text-[rgba(0,0,0,0.65)]">{formatHours(s.avgHoursPerDay)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Configuration Panel */}
+      {selectedReport && (
+        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] p-6 mb-6">
+          <h3 className="text-sm font-semibold text-[rgba(0,0,0,0.88)] mb-4">
+            {selectedReport.name}
+          </h3>
+
+          <div className="flex flex-wrap gap-4 items-end">
+            {selectedReport.params.includes("year") && (
+              <div>
+                <label className="block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1">Year</label>
+                <input
+                  type="number"
+                  value={year}
+                  onChange={(e) => setYear(parseInt(e.target.value, 10))}
+                  className="h-10 w-24 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                />
+              </div>
+            )}
+
+            {selectedReport.params.includes("month") && (
+              <div>
+                <label className="block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1">Month</label>
+                <select
+                  value={month}
+                  onChange={(e) => setMonth(parseInt(e.target.value, 10))}
+                  className="h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                >
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {new Date(2000, i).toLocaleDateString("en-PH", { month: "long" })}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {selectedReport.slug === "bir-2316" && (
+              <div>
+                <label className="block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1">Employee</label>
+                <select
+                  value={employeeId}
+                  onChange={(e) => setEmployeeId(e.target.value)}
+                  className="h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                >
+                  <option value="">Select employee...</option>
+                  {employees.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {empName(e)} {e.employee_number ? `(${e.employee_number})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <button
+              onClick={generateReport}
+              disabled={loading || (selectedReport.slug === "bir-2316" && !employeeId)}
+              className="px-5 py-2.5 rounded-full text-sm font-medium text-white disabled:opacity-50"
+              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+            >
+              {loading ? "Generating..." : "Generate"}
+            </button>
+
+            {reportData && (
+              <>
+                <button
+                  onClick={handleExportCSV}
+                  className="px-4 py-2.5 rounded-full text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.12)] hover:bg-[#f4f1e6] transition-colors"
+                >
+                  Download CSV
+                </button>
+                <button
+                  onClick={handleExportPDF}
+                  className="px-4 py-2.5 rounded-full text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.12)] hover:bg-[#f4f1e6] transition-colors"
+                >
+                  Print / PDF
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
 
-      {/* Detailed logs */}
-      <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-8">
-        <h2 className="text-xl font-medium tracking-[-1px] leading-[1.2] text-[rgba(0,0,0,0.88)] mb-5">
-          Detailed Logs ({logs.length} entries)
-        </h2>
-        {loading ? (
-          <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ffc671]" />
+      {/* Error */}
+      {error && (
+        <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</div>
+      )}
+
+      {/* Report Preview */}
+      {reportData && (
+        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] overflow-hidden">
+          <div className="px-5 py-4 border-b border-[rgba(0,0,0,0.06)]">
+            <h3 className="text-sm font-semibold text-[rgba(0,0,0,0.88)]">{reportData.title}</h3>
+            {reportData.subtitle && (
+              <p className="text-xs text-[rgba(0,0,0,0.4)] mt-0.5">{reportData.subtitle}</p>
+            )}
           </div>
-        ) : logs.length === 0 ? (
-          <p className="text-base text-[rgba(0,0,0,0.4)]">
-            No attendance records for this period.
-          </p>
-        ) : (
+
+          {/* Summary */}
+          {reportData.summary && (
+            <div className="px-5 py-3 bg-[#f9f8f3] border-b border-[rgba(0,0,0,0.06)] flex flex-wrap gap-6">
+              {Object.entries(reportData.summary).map(([key, val]) => (
+                <div key={key} className="text-xs">
+                  <span className="text-[rgba(0,0,0,0.4)]">{key}: </span>
+                  <span className="font-semibold text-[rgba(0,0,0,0.88)]">{val}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="text-left border-b border-[rgba(0,0,0,0.08)]">
-                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Employee</th>
-                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Date</th>
-                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Clock In</th>
-                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">Clock Out</th>
-                  <th className="pb-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)] text-right">Hours</th>
+                <tr className="bg-[#f9f8f3] border-b border-[rgba(0,0,0,0.06)]">
+                  {reportData.headers.map((h, i) => (
+                    <th
+                      key={i}
+                      className="text-left px-4 py-3 font-medium text-[rgba(0,0,0,0.5)] whitespace-nowrap"
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {logs.map((log) => (
-                  <tr key={log.id} className="border-b border-[rgba(0,0,0,0.04)] last:border-0">
-                    <td className="py-4 text-sm font-medium text-[rgba(0,0,0,0.88)]">
-                      {(log.employee as unknown as Employee)?.name || "Unknown"}
-                    </td>
-                    <td className="py-4 text-sm text-[rgba(0,0,0,0.65)]">
-                      {formatDate(log.date)}
-                    </td>
-                    <td className="py-4 text-sm text-[rgba(0,0,0,0.65)]">
-                      {formatTime(log.clock_in)}
-                    </td>
-                    <td className="py-4 text-sm text-[rgba(0,0,0,0.65)]">
-                      {log.clock_out ? (
-                        formatTime(log.clock_out)
-                      ) : (
-                        <span className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-[rgba(207,147,88,0.12)] text-[#9a6d2a]">
-                          Active
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-4 text-sm text-[rgba(0,0,0,0.65)] text-right">
-                      {formatHours(log.hours_worked)}
-                    </td>
+                {reportData.rows.map((row, ri) => (
+                  <tr
+                    key={ri}
+                    className="border-b border-[rgba(0,0,0,0.04)] hover:bg-[#f9f8f3] transition-colors"
+                  >
+                    {row.map((cell, ci) => (
+                      <td
+                        key={ci}
+                        className={`px-4 py-3 whitespace-nowrap ${
+                          typeof cell === "number" || /^[\d,]+\.\d{2}$/.test(String(cell))
+                            ? "text-right tabular-nums text-[rgba(0,0,0,0.88)]"
+                            : String(cell).startsWith("—")
+                            ? "font-semibold text-[rgba(0,0,0,0.5)] pt-5"
+                            : "text-[rgba(0,0,0,0.65)]"
+                        }`}
+                      >
+                        {cell}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+
+          {reportData.rows.length === 0 && (
+            <div className="px-5 py-8 text-center text-sm text-[rgba(0,0,0,0.4)]">
+              No data found for the selected period.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

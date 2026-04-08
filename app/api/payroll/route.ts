@@ -139,13 +139,14 @@ export async function POST(req: NextRequest) {
       .eq("active", true);
 
     const allowances: AllowanceInput[] = (allowanceData ?? []).map((a) => {
-      const at = a.allowance_type as Record<string, unknown> | null;
+      // Supabase join returns object for 1:1, but TS infers array — cast via unknown
+      const at = a.allowance_type as unknown as { is_taxable: boolean; is_de_minimis: boolean; de_minimis_limit: number | null } | null;
       return {
         amount: a.amount,
         frequency: a.frequency as "per_cutoff" | "monthly",
-        is_taxable: (at?.is_taxable as boolean) ?? false,
-        is_de_minimis: (at?.is_de_minimis as boolean) ?? false,
-        de_minimis_limit: (at?.de_minimis_limit as number) ?? null,
+        is_taxable: at?.is_taxable ?? false,
+        is_de_minimis: at?.is_de_minimis ?? false,
+        de_minimis_limit: at?.de_minimis_limit ?? null,
       };
     });
 

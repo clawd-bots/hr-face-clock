@@ -12,6 +12,7 @@ const navItems = [
   { href: "/admin/departments", label: "Departments" },
   { href: "/admin/attendance", label: "Attendance" },
   { href: "/admin/leaves", label: "Leaves" },
+  { href: "/admin/payroll", label: "Payroll" },
   { href: "/admin/schedules", label: "Schedules" },
   { href: "/admin/holidays", label: "Holidays" },
   { href: "/admin/reports", label: "Reports" },

@@ -329,3 +329,125 @@ export type LeaveRequest = {
 };
 
 export type LeaveRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+
+// ---------------------------------------------------------------------------
+// Phase 5: Payroll Engine
+// ---------------------------------------------------------------------------
+
+export type PayrollRunStatus = 'draft' | 'computed' | 'approved' | 'paid';
+export type PayrollCycle = 'semi_monthly_1' | 'semi_monthly_2' | 'monthly';
+export type PayBasis = 'monthly' | 'daily';
+export type AllowanceFrequency = 'per_cutoff' | 'monthly';
+
+export type SalaryRecord = {
+  id: string;
+  company_id: string;
+  employee_id: string;
+  basic_salary: number;
+  daily_rate: number;
+  hourly_rate: number;
+  effective_from: string;
+  effective_to: string | null;
+  pay_basis: PayBasis;
+  days_per_month: number;
+  created_at: string;
+  employee?: Employee;
+};
+
+export type AllowanceType = {
+  id: string;
+  company_id: string;
+  name: string;
+  code: string;
+  is_taxable: boolean;
+  is_de_minimis: boolean;
+  de_minimis_limit: number | null;
+  active: boolean;
+  created_at: string;
+};
+
+export type EmployeeAllowance = {
+  id: string;
+  company_id: string;
+  employee_id: string;
+  allowance_type_id: string;
+  amount: number;
+  frequency: AllowanceFrequency;
+  active: boolean;
+  created_at: string;
+  allowance_type?: AllowanceType;
+};
+
+export type LoanType = {
+  id: string;
+  company_id: string;
+  name: string;
+  code: string;
+  created_at: string;
+};
+
+export type EmployeeLoan = {
+  id: string;
+  company_id: string;
+  employee_id: string;
+  loan_type_id: string;
+  total_amount: number;
+  monthly_deduction: number;
+  remaining_balance: number;
+  start_date: string;
+  active: boolean;
+  created_at: string;
+  loan_type?: LoanType;
+};
+
+export type PayrollRun = {
+  id: string;
+  company_id: string;
+  period_start: string;
+  period_end: string;
+  pay_date: string;
+  cycle: PayrollCycle;
+  status: PayrollRunStatus;
+  total_gross: number;
+  total_deductions: number;
+  total_net: number;
+  employee_count: number;
+  computed_by: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  created_at: string;
+  items?: PayrollItem[];
+};
+
+export type PayrollItem = {
+  id: string;
+  company_id: string;
+  payroll_run_id: string;
+  employee_id: string;
+  basic_pay: number;
+  days_worked: number;
+  hours_worked: number;
+  regular_pay: number;
+  holiday_pay: number;
+  rest_day_pay: number;
+  night_diff_pay: number;
+  overtime_pay: number;
+  gross_pay: number;
+  sss_employee: number;
+  sss_employer: number;
+  philhealth_employee: number;
+  philhealth_employer: number;
+  pagibig_employee: number;
+  pagibig_employer: number;
+  withholding_tax: number;
+  total_allowances: number;
+  total_deductions: number;
+  loan_deductions: number;
+  other_deductions: number;
+  late_undertime_deductions: number;
+  net_pay: number;
+  adjustments: Record<string, unknown>;
+  breakdown: Record<string, unknown>;
+  created_at: string;
+  employee?: Employee;
+};

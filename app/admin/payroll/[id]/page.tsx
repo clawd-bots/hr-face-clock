@@ -154,6 +154,44 @@ export default function PayrollDetailPage() {
     }
   }
 
+  async function handleRecompute() {
+    if (!confirm("This will delete all current payslip items and recompute from scratch. Continue?")) return;
+    setActionLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/payroll/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "recompute" }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to recompute");
+      }
+      fetchRun();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm("Delete this payroll run and all its items? This cannot be undone.")) return;
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/payroll/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to delete");
+      }
+      router.push("/admin/payroll");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error");
+      setActionLoading(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="text-center py-20 text-[rgba(0,0,0,0.4)] text-sm">Loading payroll run...</div>
@@ -199,6 +237,16 @@ export default function PayrollDetailPage() {
         </div>
 
         <div className="flex gap-2">
+          {(run.status === "draft" || run.status === "computed") && (
+            <button
+              onClick={handleRecompute}
+              disabled={actionLoading}
+              className="px-5 py-2.5 rounded-full text-sm font-medium text-white disabled:opacity-50"
+              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+            >
+              {actionLoading ? "..." : "Recompute"}
+            </button>
+          )}
           {run.status === "computed" && (
             <button
               onClick={handleApprove}
@@ -216,6 +264,15 @@ export default function PayrollDetailPage() {
               className="px-5 py-2.5 rounded-full text-sm font-medium text-white bg-[#1565c0] disabled:opacity-50"
             >
               {actionLoading ? "..." : "Mark as Paid"}
+            </button>
+          )}
+          {(run.status === "draft" || run.status === "computed") && (
+            <button
+              onClick={handleDelete}
+              disabled={actionLoading}
+              className="px-5 py-2.5 rounded-full text-sm font-medium text-[#8a3a34] border border-[rgba(138,58,52,0.3)] hover:bg-red-50 disabled:opacity-50 transition-colors"
+            >
+              {actionLoading ? "..." : "Delete"}
             </button>
           )}
         </div>

@@ -17,6 +17,17 @@ type Employee = {
 type LeaveType = {
   id: string;
   name: string;
+  code?: string;
+  days_per_year?: number;
+  is_paid?: boolean;
+  is_convertible?: boolean;
+  requires_attachment?: boolean;
+  allow_half_day?: boolean;
+  gender_specific?: string;
+  min_service_months?: number;
+  carry_over_max?: number;
+  prorate_on_hire?: boolean;
+  active?: boolean;
 };
 
 type LeaveRequest = {
@@ -38,13 +49,41 @@ type LeaveBalance = {
   employee_id: string;
   leave_type_id: string;
   year: number;
-  entitled: number;
+  entitled_days: number;
   carried_over: number;
-  adjusted: number;
-  used: number;
-  pending: number;
+  adjusted_days: number;
+  used_days: number;
+  pending_days: number;
   employee?: Employee;
   leave_type?: LeaveType;
+};
+
+type LeaveTypeForm = {
+  name: string;
+  code: string;
+  days_per_year: number;
+  is_paid: boolean;
+  is_convertible: boolean;
+  requires_attachment: boolean;
+  allow_half_day: boolean;
+  gender_specific: string;
+  min_service_months: number;
+  carry_over_max: number;
+  prorate_on_hire: boolean;
+};
+
+const EMPTY_LT_FORM: LeaveTypeForm = {
+  name: "",
+  code: "",
+  days_per_year: 0,
+  is_paid: true,
+  is_convertible: false,
+  requires_attachment: false,
+  allow_half_day: false,
+  gender_specific: "both",
+  min_service_months: 0,
+  carry_over_max: 0,
+  prorate_on_hire: false,
 };
 
 // ---------------------------------------------------------------------------
@@ -52,10 +91,10 @@ type LeaveBalance = {
 // ---------------------------------------------------------------------------
 
 function employeeName(e?: Employee | null): string {
-  if (!e) return "—";
+  if (!e) return "\u2014";
   return e.first_name && e.last_name
     ? `${e.first_name} ${e.last_name}`
-    : e.name ?? "—";
+    : e.name ?? "\u2014";
 }
 
 function dateFmt(d: string) {
@@ -84,6 +123,26 @@ const TABS = [
   { key: "requests", label: "Requests" },
   { key: "balances", label: "Balances" },
 ];
+
+// ---------------------------------------------------------------------------
+// Toggle component
+// ---------------------------------------------------------------------------
+
+function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={value}
+      onClick={() => onChange(!value)}
+      className={`relative w-10 h-6 rounded-full transition-colors duration-150 ${value ? "bg-[#ffc671]" : "bg-[rgba(0,0,0,0.1)]"}`}
+    >
+      <span
+        className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-150 ${value ? "translate-x-4" : ""}`}
+      />
+    </button>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -136,6 +195,18 @@ export default function LeaveManagementPage() {
   const [initLoading, setInitLoading] = useState(false);
   const [initResult, setInitResult] = useState("");
 
+  // ---- Leave Types popup state ----
+  const [showLTPopup, setShowLTPopup] = useState(false);
+  const [allLeaveTypes, setAllLeaveTypes] = useState<LeaveType[]>([]);
+  const [ltLoading, setLtLoading] = useState(false);
+  const [ltError, setLtError] = useState("");
+  const [ltSeedLoading, setLtSeedLoading] = useState(false);
+  const [ltFormMode, setLtFormMode] = useState<"none" | "add" | "edit">("none");
+  const [ltEditId, setLtEditId] = useState<string | null>(null);
+  const [ltForm, setLtForm] = useState<LeaveTypeForm>(EMPTY_LT_FORM);
+  const [ltFormSubmitting, setLtFormSubmitting] = useState(false);
+  const [ltFormError, setLtFormError] = useState("");
+
   // -----------------------------------------------------------------------
   // Fetch helpers
   // -----------------------------------------------------------------------
@@ -155,6 +226,20 @@ export default function LeaveManagementPage() {
       if (res.ok) setLeaveTypes(await res.json());
     } catch {
       /* silent */
+    }
+  }, []);
+
+  const fetchAllLeaveTypes = useCallback(async () => {
+    setLtLoading(true);
+    setLtError("");
+    try {
+      const res = await fetch("/api/leave-types?all=true");
+      if (!res.ok) throw new Error("Failed to fetch leave types");
+      setAllLeaveTypes(await res.json());
+    } catch (err: unknown) {
+      setLtError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLtLoading(false);
     }
   }, []);
 
@@ -210,6 +295,11 @@ export default function LeaveManagementPage() {
     if (activeTab === "balances") fetchBalances();
   }, [activeTab, fetchBalances]);
 
+  // Fetch all leave types when popup opens
+  useEffect(() => {
+    if (showLTPopup) fetchAllLeaveTypes();
+  }, [showLTPopup, fetchAllLeaveTypes]);
+
   // Fetch balance for file-leave modal when employee + leave type selected
   useEffect(() => {
     if (!fileForm.employee_id || !fileForm.leave_type_id) {
@@ -230,11 +320,11 @@ export default function LeaveManagementPage() {
         );
         if (match) {
           setFileBalance(
-            match.entitled +
+            match.entitled_days +
               match.carried_over +
-              match.adjusted -
-              match.used -
-              match.pending
+              match.adjusted_days -
+              match.used_days -
+              match.pending_days
           );
         } else {
           setFileBalance(null);
@@ -310,7 +400,7 @@ export default function LeaveManagementPage() {
       const res = await fetch(`/api/leave-requests/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "approved" }),
+        body: JSON.stringify({ action: "approve" }),
       });
       if (!res.ok) throw new Error();
       fetchRequests();
@@ -327,7 +417,7 @@ export default function LeaveManagementPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status: "rejected",
+          action: "reject",
           rejection_reason: rejectReason,
         }),
       });
@@ -363,6 +453,108 @@ export default function LeaveManagementPage() {
       );
     } finally {
       setInitLoading(false);
+    }
+  }
+
+  // ---- Leave Types popup actions ----
+
+  async function handleSeedDefaults() {
+    setLtSeedLoading(true);
+    setLtError("");
+    try {
+      const res = await fetch("/api/leave-types/seed", { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to seed defaults");
+      }
+      await fetchAllLeaveTypes();
+      fetchLeaveTypes();
+    } catch (err: unknown) {
+      setLtError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLtSeedLoading(false);
+    }
+  }
+
+  function openLtAdd() {
+    setLtFormMode("add");
+    setLtEditId(null);
+    setLtForm(EMPTY_LT_FORM);
+    setLtFormError("");
+  }
+
+  function openLtEdit(lt: LeaveType) {
+    setLtFormMode("edit");
+    setLtEditId(lt.id);
+    setLtForm({
+      name: lt.name ?? "",
+      code: lt.code ?? "",
+      days_per_year: lt.days_per_year ?? 0,
+      is_paid: lt.is_paid ?? true,
+      is_convertible: lt.is_convertible ?? false,
+      requires_attachment: lt.requires_attachment ?? false,
+      allow_half_day: lt.allow_half_day ?? false,
+      gender_specific: lt.gender_specific ?? "both",
+      min_service_months: lt.min_service_months ?? 0,
+      carry_over_max: lt.carry_over_max ?? 0,
+      prorate_on_hire: lt.prorate_on_hire ?? false,
+    });
+    setLtFormError("");
+  }
+
+  function cancelLtForm() {
+    setLtFormMode("none");
+    setLtEditId(null);
+    setLtForm(EMPTY_LT_FORM);
+    setLtFormError("");
+  }
+
+  async function handleLtFormSubmit() {
+    setLtFormSubmitting(true);
+    setLtFormError("");
+    try {
+      if (!ltForm.name || !ltForm.code || !ltForm.days_per_year) {
+        throw new Error("Name, Code, and Days Per Year are required");
+      }
+      if (ltFormMode === "add") {
+        const res = await fetch("/api/leave-types", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(ltForm),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          throw new Error(data?.error ?? "Failed to create leave type");
+        }
+      } else if (ltFormMode === "edit" && ltEditId) {
+        const res = await fetch(`/api/leave-types/${ltEditId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(ltForm),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          throw new Error(data?.error ?? "Failed to update leave type");
+        }
+      }
+      cancelLtForm();
+      await fetchAllLeaveTypes();
+      fetchLeaveTypes();
+    } catch (err: unknown) {
+      setLtFormError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLtFormSubmitting(false);
+    }
+  }
+
+  async function handleLtDeactivate(id: string) {
+    try {
+      const res = await fetch(`/api/leave-types/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      await fetchAllLeaveTypes();
+      fetchLeaveTypes();
+    } catch {
+      /* silent */
     }
   }
 
@@ -423,25 +615,170 @@ export default function LeaveManagementPage() {
   }
 
   // -----------------------------------------------------------------------
+  // Leave type inline form (rendered inside popup)
+  // -----------------------------------------------------------------------
+
+  function renderLtForm() {
+    return (
+      <div className="bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-2xl p-4 mb-4">
+        <h3 className="text-sm font-semibold text-[rgba(0,0,0,0.88)] mb-3">
+          {ltFormMode === "add" ? "Add Leave Type" : "Edit Leave Type"}
+        </h3>
+
+        {ltFormError && (
+          <div className="bg-white border border-[rgba(138,58,52,0.2)] rounded-xl text-sm font-medium text-[#8a3a34] p-3 mb-3">
+            {ltFormError}
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {/* Row: Name, Code, Days */}
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className={LABEL_CLASS}>Name *</label>
+              <input
+                type="text"
+                value={ltForm.name}
+                onChange={(e) => setLtForm((p) => ({ ...p, name: e.target.value }))}
+                placeholder="Vacation Leave"
+                className={INPUT_CLASS}
+              />
+            </div>
+            <div>
+              <label className={LABEL_CLASS}>Code *</label>
+              <input
+                type="text"
+                value={ltForm.code}
+                onChange={(e) => setLtForm((p) => ({ ...p, code: e.target.value }))}
+                placeholder="VL"
+                className={INPUT_CLASS}
+              />
+            </div>
+            <div>
+              <label className={LABEL_CLASS}>Days Per Year *</label>
+              <input
+                type="number"
+                min="0"
+                step="0.5"
+                value={ltForm.days_per_year}
+                onChange={(e) => setLtForm((p) => ({ ...p, days_per_year: parseFloat(e.target.value) || 0 }))}
+                className={INPUT_CLASS}
+              />
+            </div>
+          </div>
+
+          {/* Toggle row 1 */}
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <label className="flex items-center gap-2 text-sm text-[rgba(0,0,0,0.65)]">
+              <Toggle value={ltForm.is_paid} onChange={(v) => setLtForm((p) => ({ ...p, is_paid: v }))} />
+              Is Paid
+            </label>
+            <label className="flex items-center gap-2 text-sm text-[rgba(0,0,0,0.65)]">
+              <Toggle value={ltForm.is_convertible} onChange={(v) => setLtForm((p) => ({ ...p, is_convertible: v }))} />
+              Is Convertible
+            </label>
+            <label className="flex items-center gap-2 text-sm text-[rgba(0,0,0,0.65)]">
+              <Toggle value={ltForm.requires_attachment} onChange={(v) => setLtForm((p) => ({ ...p, requires_attachment: v }))} />
+              Requires Attachment
+            </label>
+            <label className="flex items-center gap-2 text-sm text-[rgba(0,0,0,0.65)]">
+              <Toggle value={ltForm.allow_half_day} onChange={(v) => setLtForm((p) => ({ ...p, allow_half_day: v }))} />
+              Allow Half Day
+            </label>
+          </div>
+
+          {/* Row: Gender, Min Service, Carry Over, Prorate */}
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className={LABEL_CLASS}>Gender Specific</label>
+              <select
+                value={ltForm.gender_specific}
+                onChange={(e) => setLtForm((p) => ({ ...p, gender_specific: e.target.value }))}
+                className={INPUT_CLASS}
+              >
+                <option value="both">Both</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+            <div>
+              <label className={LABEL_CLASS}>Min Service Months</label>
+              <input
+                type="number"
+                min="0"
+                value={ltForm.min_service_months}
+                onChange={(e) => setLtForm((p) => ({ ...p, min_service_months: parseInt(e.target.value) || 0 }))}
+                className={INPUT_CLASS}
+              />
+            </div>
+            <div>
+              <label className={LABEL_CLASS}>Carry Over Max</label>
+              <input
+                type="number"
+                min="0"
+                value={ltForm.carry_over_max}
+                onChange={(e) => setLtForm((p) => ({ ...p, carry_over_max: parseInt(e.target.value) || 0 }))}
+                className={INPUT_CLASS}
+              />
+            </div>
+          </div>
+
+          {/* Prorate toggle */}
+          <label className="flex items-center gap-2 text-sm text-[rgba(0,0,0,0.65)]">
+            <Toggle value={ltForm.prorate_on_hire} onChange={(v) => setLtForm((p) => ({ ...p, prorate_on_hire: v }))} />
+            Pro-rate on Hire
+          </label>
+
+          {/* Save / Cancel */}
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={handleLtFormSubmit}
+              disabled={ltFormSubmitting}
+              className="h-9 px-4 rounded-xl text-sm font-medium text-[#61474c] transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+            >
+              {ltFormSubmitting ? "Saving..." : "Save"}
+            </button>
+            <button
+              onClick={cancelLtForm}
+              className="h-9 px-4 rounded-xl text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.1)] hover:bg-[rgba(0,0,0,0.03)] transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // -----------------------------------------------------------------------
   // Render
   // -----------------------------------------------------------------------
 
   return (
-    <div className="min-h-screen bg-[#fafaf2] p-6 md:p-10">
+    <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-[rgba(0,0,0,0.88)]">
+        <h1 className="text-[28px] font-medium tracking-[-1.75px] text-[rgba(0,0,0,0.88)]">
           Leave Management
         </h1>
-        {activeTab === "requests" && (
+        <div className="flex gap-3">
           <button
-            onClick={() => setShowFileModal(true)}
-            className="h-10 px-5 rounded-xl text-sm font-medium text-[#61474c] transition-opacity hover:opacity-90"
-            style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+            onClick={() => setShowLTPopup(true)}
+            className="h-10 px-5 rounded-xl text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.1)] hover:bg-[rgba(0,0,0,0.03)] transition-colors"
           >
-            File Leave
+            Leave Types
           </button>
-        )}
+          {activeTab === "requests" && (
+            <button
+              onClick={() => setShowFileModal(true)}
+              className="h-10 px-5 rounded-xl text-sm font-medium text-[#61474c] transition-opacity hover:opacity-90"
+              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+            >
+              File Leave
+            </button>
+          )}
+        </div>
       </div>
 
       <TabNav tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
@@ -558,16 +895,16 @@ export default function LeaveManagementPage() {
                           {employeeName(r.employee)}
                         </td>
                         <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
-                          {r.leave_type?.name ?? "—"}
+                          {r.leave_type?.name ?? "\u2014"}
                         </td>
                         <td className="px-4 py-3 text-[rgba(0,0,0,0.65)] whitespace-nowrap">
-                          {dateFmt(r.start_date)} — {dateFmt(r.end_date)}
+                          {dateFmt(r.start_date)} \u2014 {dateFmt(r.end_date)}
                         </td>
                         <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
                           {r.total_days}
                         </td>
                         <td className="px-4 py-3 text-[rgba(0,0,0,0.65)] max-w-[200px] truncate">
-                          {r.reason || "—"}
+                          {r.reason || "\u2014"}
                         </td>
                         <td className="px-4 py-3">{statusBadge(r.status)}</td>
                         <td className="px-4 py-3">
@@ -700,11 +1037,11 @@ export default function LeaveManagementPage() {
                     groupedBalances.map(([empId, rows]) =>
                       rows.map((b, idx) => {
                         const available =
-                          b.entitled +
+                          b.entitled_days +
                           b.carried_over +
-                          b.adjusted -
-                          b.used -
-                          b.pending;
+                          b.adjusted_days -
+                          b.used_days -
+                          b.pending_days;
                         return (
                           <tr
                             key={b.id}
@@ -716,22 +1053,22 @@ export default function LeaveManagementPage() {
                               {idx === 0 ? employeeName(b.employee) : ""}
                             </td>
                             <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
-                              {b.leave_type?.name ?? "—"}
+                              {b.leave_type?.name ?? "\u2014"}
                             </td>
                             <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
-                              {b.entitled}
+                              {b.entitled_days}
                             </td>
                             <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
                               {b.carried_over}
                             </td>
                             <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
-                              {b.adjusted}
+                              {b.adjusted_days}
                             </td>
                             <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
-                              {b.used}
+                              {b.used_days}
                             </td>
                             <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
-                              {b.pending}
+                              {b.pending_days}
                             </td>
                             <td
                               className={`px-4 py-3 font-medium ${
@@ -1011,6 +1348,152 @@ export default function LeaveManagementPage() {
               >
                 {rejectSubmitting ? "Rejecting..." : "Confirm Reject"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================= */}
+      {/* Modal: Leave Types Popup                                           */}
+      {/* ================================================================= */}
+      {showLTPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col">
+            {/* Popup header */}
+            <div className="flex items-center justify-between p-6 pb-4 border-b border-[rgba(0,0,0,0.06)]">
+              <h2 className="text-lg font-semibold text-[rgba(0,0,0,0.88)]">
+                Leave Types
+              </h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSeedDefaults}
+                  disabled={ltSeedLoading}
+                  className="h-9 px-4 rounded-xl text-xs font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.1)] hover:bg-[rgba(0,0,0,0.03)] transition-colors disabled:opacity-50"
+                >
+                  {ltSeedLoading ? "Seeding..." : "Seed PH Defaults"}
+                </button>
+                {ltFormMode === "none" && (
+                  <button
+                    onClick={openLtAdd}
+                    className="h-9 px-4 rounded-xl text-xs font-medium text-[#61474c] transition-opacity hover:opacity-90"
+                    style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+                  >
+                    + Add
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setShowLTPopup(false);
+                    cancelLtForm();
+                  }}
+                  className="h-9 w-9 flex items-center justify-center rounded-xl text-[rgba(0,0,0,0.4)] hover:text-[rgba(0,0,0,0.88)] hover:bg-[rgba(0,0,0,0.04)] transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Popup body - scrollable */}
+            <div className="flex-1 overflow-y-auto p-6 pt-4">
+              {ltError && (
+                <div className="bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34] p-3 mb-4">
+                  {ltError}
+                </div>
+              )}
+
+              {/* Inline add/edit form */}
+              {ltFormMode !== "none" && renderLtForm()}
+
+              {/* Leave types list */}
+              {ltLoading ? (
+                <p className="text-center text-[rgba(0,0,0,0.4)] py-8">Loading...</p>
+              ) : allLeaveTypes.length === 0 ? (
+                <p className="text-center text-[rgba(0,0,0,0.4)] py-8">
+                  No leave types found. Seed defaults or add one.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {allLeaveTypes.map((lt) => (
+                    <div
+                      key={lt.id}
+                      className={`bg-white border border-[rgba(0,0,0,0.06)] rounded-2xl p-4 flex items-center justify-between gap-3 ${
+                        lt.active === false ? "opacity-50" : ""
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium text-[rgba(0,0,0,0.88)]">
+                            {lt.name}
+                          </span>
+                          {lt.code && (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-[rgba(255,198,113,0.2)] text-[#9a6d2a]">
+                              {lt.code}
+                            </span>
+                          )}
+                          {lt.days_per_year != null && (
+                            <span className="text-xs text-[rgba(0,0,0,0.4)]">
+                              {lt.days_per_year}d/yr
+                            </span>
+                          )}
+                          {lt.active === false && (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(0,0,0,0.06)] text-[rgba(0,0,0,0.4)]">
+                              Inactive
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                          {lt.is_paid && (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(34,139,34,0.08)] text-[#1a7a1a]">
+                              Paid
+                            </span>
+                          )}
+                          {lt.is_convertible && (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(0,0,0,0.04)] text-[rgba(0,0,0,0.5)]">
+                              Convertible
+                            </span>
+                          )}
+                          {lt.requires_attachment && (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(0,0,0,0.04)] text-[rgba(0,0,0,0.5)]">
+                              Attachment Required
+                            </span>
+                          )}
+                          {lt.allow_half_day && (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(0,0,0,0.04)] text-[rgba(0,0,0,0.5)]">
+                              Half Day
+                            </span>
+                          )}
+                          {lt.gender_specific && lt.gender_specific !== "both" && (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(0,0,0,0.04)] text-[rgba(0,0,0,0.5)]">
+                              {lt.gender_specific === "male" ? "Male Only" : "Female Only"}
+                            </span>
+                          )}
+                          {lt.prorate_on_hire && (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(0,0,0,0.04)] text-[rgba(0,0,0,0.5)]">
+                              Pro-rated
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <button
+                          onClick={() => openLtEdit(lt)}
+                          className="text-xs font-medium text-[#9a6d2a] hover:underline"
+                        >
+                          Edit
+                        </button>
+                        {lt.active !== false && (
+                          <button
+                            onClick={() => handleLtDeactivate(lt.id)}
+                            className="text-xs font-medium text-[#8a3a34] hover:underline"
+                          >
+                            Deactivate
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

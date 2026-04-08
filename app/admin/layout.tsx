@@ -14,7 +14,6 @@ const navItems = [
   { href: "/admin/leaves", label: "Leaves" },
   { href: "/admin/schedules", label: "Schedules" },
   { href: "/admin/holidays", label: "Holidays" },
-  { href: "/admin/leave-types", label: "Leave Types" },
   { href: "/admin/reports", label: "Reports" },
 ];
 

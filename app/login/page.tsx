@@ -82,8 +82,26 @@ function LoginForm() {
         return;
       }
 
-      console.log("[login] Sign-in successful, redirecting to:", redirect);
-      router.push(redirect);
+      // Check user role to determine redirect
+      let targetRedirect = redirect;
+      try {
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("system_role")
+          .eq("id", data.user.id)
+          .single();
+
+        const adminRoles = ["super_admin", "company_admin", "hr_manager", "payroll_officer", "department_manager"];
+        if (profile?.system_role && !adminRoles.includes(profile.system_role)) {
+          // Employee role — redirect to employee portal
+          targetRedirect = "/employee";
+        }
+      } catch {
+        // If profile check fails, use default redirect
+      }
+
+      console.log("[login] Sign-in successful, redirecting to:", targetRedirect);
+      router.push(targetRedirect);
       router.refresh();
     } catch (err) {
       console.error("[login] Unexpected error:", err);

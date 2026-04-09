@@ -35,7 +35,12 @@ export default function ClockInOut() {
     async (descriptor: Float32Array) => {
       if (cooldownRef.current || processing || employees.length === 0 || !selectedAction) return;
 
-      const match = findBestMatch(descriptor, employees);
+      // Map employees to include name fallback for face matching
+      const mappedEmployees = employees.map((emp) => ({
+        ...emp,
+        name: emp.name || [emp.first_name, emp.last_name].filter(Boolean).join(" ") || "Unknown",
+      }));
+      const match = findBestMatch(descriptor, mappedEmployees as { id: string; name: string; face_descriptors: number[][] }[]);
       if (!match.employee) return;
 
       cooldownRef.current = true;

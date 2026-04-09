@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabase
     .from("employees")
     .select("*")
-    .eq("active", true)
+    .or("active.eq.true,active.is.null")
     .order("name");
 
   if (error)

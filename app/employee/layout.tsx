@@ -73,7 +73,7 @@ export default function EmployeeLayout({
     router.push("/login");
   };
 
-  if (loading || !user) {
+  if (loading || !user || !profile) {
     return (
       <div className="min-h-screen bg-[#fafaf2] flex items-center justify-center">
         <div className="flex items-center gap-2 text-[rgba(0,0,0,0.4)]">

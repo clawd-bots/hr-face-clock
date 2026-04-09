@@ -79,9 +79,10 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     [getClient]
   );
 
-  // When user changes, fetch their profile (outside of auth lock)
+  // When user changes, clear stale profile immediately, then fetch new one
   useEffect(() => {
     if (user) {
+      setProfile(null); // clear stale profile before fetching new one
       fetchProfile(user.id);
     } else {
       setProfile(null);

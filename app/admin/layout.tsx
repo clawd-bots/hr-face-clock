@@ -154,10 +154,10 @@ export default function AdminLayout({
               key={item.href}
               href={item.href}
               title={collapsed ? item.label : undefined}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                 isActive(item.href)
-                  ? "bg-[rgba(255,198,113,0.15)] text-[#9a6d2a]"
-                  : "text-[rgba(0,0,0,0.55)] hover:text-[rgba(0,0,0,0.88)] hover:bg-[rgba(0,0,0,0.03)]"
+                  ? "glass-nav-active text-[#9a6d2a]"
+                  : "text-[rgba(0,0,0,0.88)] hover:bg-[rgba(0,0,0,0.04)]"
               }`}
             >
               <NavIcon

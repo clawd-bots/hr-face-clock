@@ -79,11 +79,16 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     [getClient]
   );
 
-  // When user changes, clear stale profile immediately, then fetch new one
+  // When user changes (e.g., login/logout after initial load), fetch new profile
+  const prevUserRef = useRef<string | null>(null);
   useEffect(() => {
-    if (user) {
+    const uid = user?.id ?? null;
+    // Skip if this is the initial load (already fetched above) or same user
+    if (uid === prevUserRef.current) return;
+    prevUserRef.current = uid;
+    if (uid) {
       setProfile(null); // clear stale profile before fetching new one
-      fetchProfile(user.id);
+      fetchProfile(uid);
     } else {
       setProfile(null);
     }
@@ -102,10 +107,15 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Get initial session
-    client.auth.getSession().then(({ data: { session: currentSession } }) => {
+    // Get session and profile in parallel where possible
+    client.auth.getSession().then(async ({ data: { session: currentSession } }) => {
       setSession(currentSession);
-      setUser(currentSession?.user ?? null);
+      const currentUser = currentSession?.user ?? null;
+      setUser(currentUser);
+      // Eagerly fetch profile before setting loading=false to avoid layout flash
+      if (currentUser) {
+        await fetchProfile(currentUser.id);
+      }
       setLoading(false);
     }).catch((err) => {
       console.error("[auth] getSession failed:", err);

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatTime, formatHours } from "@/lib/utils";
+import { cachedFetch } from "@/lib/swr-fetcher";
 import type { Employee, TimeLog } from "@/lib/supabase";
 
 export default function AdminDashboard() {
@@ -12,11 +13,11 @@ export default function AdminDashboard() {
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
     Promise.all([
-      fetch("/api/employees").then((r) => r.json()),
-      fetch(`/api/time-logs?date=${today}`).then((r) => r.json()),
+      cachedFetch<Employee[]>("/api/employees", { ttl: 120_000 }),
+      cachedFetch<TimeLog[]>(`/api/time-logs?date=${today}`, { ttl: 30_000 }),
     ])
       .then(([emps, logs]) => {
-        setEmployees(emps);
+        setEmployees(Array.isArray(emps) ? emps : []);
         setTodayLogs(Array.isArray(logs) ? logs : []);
       })
       .finally(() => setLoading(false));

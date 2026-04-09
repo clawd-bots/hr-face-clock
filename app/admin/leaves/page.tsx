@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import TabNav from "@/components/TabNav";
+import { cachedFetch, invalidateCachePrefix } from "@/lib/swr-fetcher";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -218,8 +219,8 @@ export default function LeaveManagementPage() {
 
   const fetchEmployees = useCallback(async () => {
     try {
-      const res = await fetch("/api/employees");
-      if (res.ok) setEmployees(await res.json());
+      const data = await cachedFetch<Employee[]>("/api/employees", { ttl: 120_000 });
+      setEmployees(Array.isArray(data) ? data : []);
     } catch {
       /* silent */
     }
@@ -227,8 +228,8 @@ export default function LeaveManagementPage() {
 
   const fetchLeaveTypes = useCallback(async () => {
     try {
-      const res = await fetch("/api/leave-types");
-      if (res.ok) setLeaveTypes(await res.json());
+      const data = await cachedFetch<LeaveType[]>("/api/leave-types", { ttl: 120_000 });
+      setLeaveTypes(Array.isArray(data) ? data : []);
     } catch {
       /* silent */
     }

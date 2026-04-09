@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import TabNav from "@/components/TabNav";
 import DocumentUpload from "@/components/DocumentUpload";
+import { cachedFetch } from "@/lib/swr-fetcher";
 import type {
   Employee,
   EmergencyContact,
@@ -70,8 +71,10 @@ export default function EmployeeDetailPage({
   }, [id]);
 
   const fetchDepartments = useCallback(async () => {
-    const res = await fetch("/api/departments");
-    if (res.ok) setDepartments(await res.json());
+    try {
+      const data = await cachedFetch<Department[]>("/api/departments", { ttl: 300_000 });
+      setDepartments(Array.isArray(data) ? data : []);
+    } catch { /* silent */ }
   }, []);
 
   const fetchSubData = useCallback(async () => {

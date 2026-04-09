@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Employee, Department } from "@/lib/types/database";
 import { formatDate } from "@/lib/utils";
+import { cachedFetch } from "@/lib/swr-fetcher";
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -16,12 +17,12 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/employees").then((r) => r.json()),
-      fetch("/api/departments").then((r) => r.json()),
+      cachedFetch<Employee[]>("/api/employees", { ttl: 120_000 }),
+      cachedFetch<Department[]>("/api/departments", { ttl: 300_000 }),
     ])
       .then(([emps, depts]) => {
-        setEmployees(emps);
-        setDepartments(depts);
+        setEmployees(Array.isArray(emps) ? emps : []);
+        setDepartments(Array.isArray(depts) ? depts : []);
       })
       .finally(() => setLoading(false));
   }, []);

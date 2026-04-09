@@ -483,7 +483,7 @@ export default function EmployeeDetailPage({
       {/* Create Account Modal */}
       {showCreateAccount && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6">
+          <div className="glass-modal rounded-2xl w-full max-w-md p-6">
             <h3 className="text-lg font-semibold text-[rgba(0,0,0,0.88)] mb-1">Create Login Account</h3>
             <p className="text-sm text-[rgba(0,0,0,0.4)] mb-5">
               Create a login for {employee.first_name ? `${employee.first_name} ${employee.last_name ?? ""}`.trim() : employee.name}

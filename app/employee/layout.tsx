@@ -91,7 +91,7 @@ export default function EmployeeLayout({
     <div className="min-h-screen bg-[#fafaf2] flex">
       {/* Side Navigation */}
       <aside
-        className={`fixed top-0 left-0 h-screen bg-white border-r border-[rgba(0,0,0,0.08)] flex flex-col transition-all duration-200 z-30 ${
+        className={`fixed top-0 left-0 h-screen glass-sidebar flex flex-col transition-all duration-200 z-30 ${
           collapsed ? "w-[68px]" : "w-[240px]"
         }`}
       >

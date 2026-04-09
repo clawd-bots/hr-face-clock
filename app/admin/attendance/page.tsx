@@ -342,7 +342,7 @@ export default function AttendancePage() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-white border border-[rgba(0,0,0,0.06)] rounded-2xl px-5 py-4"
+            className="glass-card rounded-2xl px-5 py-4"
           >
             <p className="text-xs text-[rgba(0,0,0,0.4)] uppercase tracking-wide mb-1">
               {stat.label}

@@ -53,7 +53,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Currently clocked in */}
-      <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-8 mb-6">
+      <div className="glass-card rounded-3xl p-8 mb-6">
         <h2 className="text-xl font-medium tracking-[-1px] leading-[1.2] text-[rgba(0,0,0,0.88)] mb-5">
           Currently Clocked In ({clockedIn.length})
         </h2>
@@ -82,7 +82,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Today's activity */}
-      <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-8">
+      <div className="glass-card rounded-3xl p-8">
         <h2 className="text-xl font-medium tracking-[-1px] leading-[1.2] text-[rgba(0,0,0,0.88)] mb-5">
           Today&apos;s Activity
         </h2>
@@ -138,23 +138,20 @@ function StatCard({
   value: string | number;
   color: string;
 }) {
-  const styles: Record<string, { bg: string; border: string; text: string }> = {
-    accent: { bg: "rgba(255,198,113,0.1)", border: "rgba(255,198,113,0.25)", text: "#9a6d2a" },
-    green: { bg: "rgba(207,147,88,0.08)", border: "rgba(207,147,88,0.2)", text: "#cf9358" },
-    muted: { bg: "rgba(0,0,0,0.02)", border: "rgba(0,0,0,0.06)", text: "rgba(0,0,0,0.65)" },
-    blue: { bg: "rgba(92,140,181,0.08)", border: "rgba(92,140,181,0.2)", text: "#37556e" },
+  const textColors: Record<string, string> = {
+    accent: "#9a6d2a",
+    green: "#cf9358",
+    muted: "rgba(0,0,0,0.65)",
+    blue: "#37556e",
   };
-  const s = styles[color] || styles.muted;
 
   return (
-    <div
-      className="rounded-2xl p-5 border"
-      style={{ background: s.bg, borderColor: s.border }}
-    >
+    <div className="glass-stat rounded-2xl p-5">
+
       <p className="text-[10px] font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
         {label}
       </p>
-      <p className="text-[28px] font-medium tracking-[-1.75px] leading-none mt-2" style={{ color: s.text }}>
+      <p className="text-[28px] font-medium tracking-[-1.75px] leading-none mt-2" style={{ color: textColors[color] || textColors.muted }}>
         {value}
       </p>
     </div>

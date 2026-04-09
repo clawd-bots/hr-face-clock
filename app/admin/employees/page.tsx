@@ -94,7 +94,7 @@ export default function EmployeesPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-16 text-center">
+        <div className="glass-card rounded-3xl p-16 text-center">
           <p className="text-base text-[rgba(0,0,0,0.4)] mb-4">
             {employees.length === 0
               ? "No employees registered yet."
@@ -110,7 +110,7 @@ export default function EmployeesPage() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
+        <div className="glass-card rounded-3xl overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="text-left bg-[#f4f1e6] border-b border-[rgba(0,0,0,0.06)]">

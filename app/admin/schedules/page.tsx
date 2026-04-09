@@ -460,7 +460,7 @@ export default function SchedulesPage() {
           {schedules.map((s) => (
             <div
               key={s.id}
-              className="bg-white border border-[rgba(0,0,0,0.06)] rounded-2xl p-4"
+              className="glass-card rounded-2xl p-4"
             >
               {/* name */}
               <div className="flex items-start justify-between mb-2">
@@ -532,7 +532,7 @@ export default function SchedulesPage() {
           Assign Schedule
         </h2>
 
-        <div className="bg-white border border-[rgba(0,0,0,0.06)] rounded-2xl p-5">
+        <div className="glass-card rounded-2xl p-5">
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
             {/* employee */}
             <div>

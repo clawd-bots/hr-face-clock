@@ -826,7 +826,7 @@ export default function LeaveManagementPage() {
       {activeTab === "requests" && (
         <>
           {/* Filters */}
-          <div className="bg-white border border-[rgba(0,0,0,0.06)] rounded-2xl p-4 mb-6">
+          <div className="glass-card rounded-2xl p-4 mb-6">
             <div className="flex flex-wrap gap-3 items-end">
               {/* Status */}
               <div className="w-44">
@@ -886,7 +886,7 @@ export default function LeaveManagementPage() {
           )}
 
           {/* Table */}
-          <div className="bg-white border border-[rgba(0,0,0,0.06)] rounded-2xl overflow-hidden">
+          <div className="glass-table rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -978,7 +978,7 @@ export default function LeaveManagementPage() {
       {activeTab === "balances" && (
         <>
           {/* Filters + Initialize */}
-          <div className="bg-white border border-[rgba(0,0,0,0.06)] rounded-2xl p-4 mb-6">
+          <div className="glass-card rounded-2xl p-4 mb-6">
             <div className="flex flex-wrap gap-3 items-end">
               <div className="w-32">
                 <label className={LABEL_CLASS}>Year</label>
@@ -1032,7 +1032,7 @@ export default function LeaveManagementPage() {
           )}
 
           {/* Table */}
-          <div className="bg-white border border-[rgba(0,0,0,0.06)] rounded-2xl overflow-hidden">
+          <div className="glass-table rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -1199,7 +1199,7 @@ export default function LeaveManagementPage() {
       {/* ================================================================= */}
       {showFileModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6">
+          <div className="glass-modal rounded-2xl w-full max-w-lg mx-4 p-6">
             <h2 className="text-lg font-semibold text-[rgba(0,0,0,0.88)] mb-5">
               File Leave
             </h2>
@@ -1420,7 +1420,7 @@ export default function LeaveManagementPage() {
       {/* ================================================================= */}
       {rejectTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+          <div className="glass-modal rounded-2xl w-full max-w-md mx-4 p-6">
             <h2 className="text-lg font-semibold text-[rgba(0,0,0,0.88)] mb-4">
               Reject Leave Request
             </h2>
@@ -1461,7 +1461,7 @@ export default function LeaveManagementPage() {
       {/* ================================================================= */}
       {showLTPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col">
+          <div className="glass-modal rounded-2xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col">
             {/* Popup header */}
             <div className="flex items-center justify-between p-6 pb-4 border-b border-[rgba(0,0,0,0.06)]">
               <h2 className="text-lg font-semibold text-[rgba(0,0,0,0.88)]">

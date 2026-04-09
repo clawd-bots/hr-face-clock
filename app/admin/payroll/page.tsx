@@ -348,7 +348,7 @@ export default function PayrollPage() {
             <>
               <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setShowRunModal(false)} />
               <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+                <div className="glass-modal rounded-2xl w-full max-w-md p-6">
                   <h2 className="text-lg font-semibold text-[rgba(0,0,0,0.88)] mb-4">Run Payroll</h2>
 
                   <div className="space-y-4">
@@ -491,7 +491,7 @@ export default function PayrollPage() {
             <>
               <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setShowSalaryModal(false)} />
               <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+                <div className="glass-modal rounded-2xl w-full max-w-md p-6">
                   <h2 className="text-lg font-semibold text-[rgba(0,0,0,0.88)] mb-4">Set Salary</h2>
 
                   <div className="space-y-4">

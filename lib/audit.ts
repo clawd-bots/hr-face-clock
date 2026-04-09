@@ -7,7 +7,8 @@ type AuditAction =
   | "login"
   | "logout"
   | "approve"
-  | "reject";
+  | "reject"
+  | "create_account";
 
 type AuditParams = {
   companyId: string;

@@ -18,10 +18,6 @@ const TABS = [
   { key: "personal", label: "Personal" },
   { key: "employment", label: "Employment" },
   { key: "government", label: "Gov IDs" },
-  { key: "contacts", label: "Emergency" },
-  { key: "dependents", label: "Dependents" },
-  { key: "education", label: "Education" },
-  { key: "history", label: "Work History" },
   { key: "documents", label: "Documents" },
 ];
 
@@ -49,13 +45,24 @@ export default function EmployeeDetailPage({
   const [workHistory, setWorkHistory] = useState<WorkHistory[]>([]);
   const [documents, setDocuments] = useState<EmployeeDocument[]>([]);
   const [accountChecked, setAccountChecked] = useState(false);
-  const [hasAccount, setHasAccount] = useState<string | null>(null); // email if has account
+  const [hasAccount, setHasAccount] = useState<string | null>(null);
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   const [accountEmail, setAccountEmail] = useState("");
   const [accountPassword, setAccountPassword] = useState("");
   const [accountRole, setAccountRole] = useState("employee");
   const [accountLoading, setAccountLoading] = useState(false);
   const [accountMsg, setAccountMsg] = useState("");
+
+  // Expandable sections state
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({
+    contacts: false,
+    dependents: false,
+    education: false,
+    history: false,
+  });
+
+  const toggleSection = (key: string) =>
+    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const fetchEmployee = useCallback(async () => {
     const res = await fetch(`/api/employees/${id}`);
@@ -90,7 +97,7 @@ export default function EmployeeDetailPage({
         setHasAccount(data.email || null);
       }
     } catch {
-      // silently fail — button will still show
+      // silently fail
     } finally {
       setAccountChecked(true);
     }
@@ -178,7 +185,7 @@ export default function EmployeeDetailPage({
           </button>
           <div>
             <h1 className="text-[28px] font-medium tracking-[-1.75px] text-[rgba(0,0,0,0.88)]">
-              {employee.name}
+              {employee.first_name ? `${employee.first_name} ${employee.last_name ?? ""}`.trim() : employee.name}
             </h1>
             <p className="text-sm text-[rgba(0,0,0,0.5)]">
               {employee.position_title || employee.role || "No position"} ·{" "}
@@ -228,26 +235,157 @@ export default function EmployeeDetailPage({
 
       {/* Personal Info */}
       {activeTab === "personal" && (
-        <div className="grid grid-cols-3 gap-4">
-          <Field label="First Name" value={employee.first_name} onChange={(v) => updateField("first_name", v)} />
-          <Field label="Middle Name" value={employee.middle_name} onChange={(v) => updateField("middle_name", v)} />
-          <Field label="Last Name" value={employee.last_name} onChange={(v) => updateField("last_name", v)} />
-          <Field label="Suffix" value={employee.suffix} onChange={(v) => updateField("suffix", v)} />
-          <SelectField label="Gender" value={employee.gender} onChange={(v) => updateField("gender", v)} options={["", "Male", "Female", "Other"]} />
-          <Field label="Date of Birth" value={employee.date_of_birth} onChange={(v) => updateField("date_of_birth", v)} type="date" />
-          <SelectField label="Civil Status" value={employee.civil_status} onChange={(v) => updateField("civil_status", v)} options={["", "Single", "Married", "Widowed", "Separated"]} />
-          <Field label="Nationality" value={employee.nationality} onChange={(v) => updateField("nationality", v)} />
-          <Field label="Phone" value={employee.phone} onChange={(v) => updateField("phone", v)} />
-          <Field label="Personal Email" value={employee.personal_email} onChange={(v) => updateField("personal_email", v)} type="email" />
-          <Field label="Work Email" value={employee.work_email} onChange={(v) => updateField("work_email", v)} type="email" />
-          <div className="col-span-3 border-t border-[rgba(0,0,0,0.06)] pt-4 mt-2">
-            <p className="text-sm font-medium text-[rgba(0,0,0,0.65)] mb-3">Address</p>
+        <div className="space-y-6">
+          {/* Basic Info */}
+          <div className="grid grid-cols-3 gap-4">
+            <Field label="First Name" value={employee.first_name} onChange={(v) => updateField("first_name", v)} />
+            <Field label="Middle Name" value={employee.middle_name} onChange={(v) => updateField("middle_name", v)} />
+            <Field label="Last Name" value={employee.last_name} onChange={(v) => updateField("last_name", v)} />
+            <Field label="Suffix" value={employee.suffix} onChange={(v) => updateField("suffix", v)} />
+            <SelectField label="Gender" value={employee.gender} onChange={(v) => updateField("gender", v)} options={["", "Male", "Female", "Other"]} />
+            <Field label="Date of Birth" value={employee.date_of_birth} onChange={(v) => updateField("date_of_birth", v)} type="date" />
+            <SelectField label="Civil Status" value={employee.civil_status} onChange={(v) => updateField("civil_status", v)} options={["", "Single", "Married", "Widowed", "Separated"]} />
+            <Field label="Nationality" value={employee.nationality} onChange={(v) => updateField("nationality", v)} />
+            <Field label="Phone" value={employee.phone} onChange={(v) => updateField("phone", v)} />
+            <Field label="Personal Email" value={employee.personal_email} onChange={(v) => updateField("personal_email", v)} type="email" />
+            <Field label="Work Email" value={employee.work_email} onChange={(v) => updateField("work_email", v)} type="email" />
           </div>
-          <Field label="Address Line 1" value={employee.address_line1} onChange={(v) => updateField("address_line1", v)} />
-          <Field label="Address Line 2" value={employee.address_line2} onChange={(v) => updateField("address_line2", v)} />
-          <Field label="City" value={employee.city} onChange={(v) => updateField("city", v)} />
-          <Field label="Province" value={employee.province} onChange={(v) => updateField("province", v)} />
-          <Field label="Zip Code" value={employee.zip_code} onChange={(v) => updateField("zip_code", v)} />
+
+          {/* Address */}
+          <ExpandableSection title="Address" defaultOpen>
+            <div className="grid grid-cols-3 gap-4">
+              <Field label="Address Line 1" value={employee.address_line1} onChange={(v) => updateField("address_line1", v)} />
+              <Field label="Address Line 2" value={employee.address_line2} onChange={(v) => updateField("address_line2", v)} />
+              <Field label="City" value={employee.city} onChange={(v) => updateField("city", v)} />
+              <Field label="Province" value={employee.province} onChange={(v) => updateField("province", v)} />
+              <Field label="Zip Code" value={employee.zip_code} onChange={(v) => updateField("zip_code", v)} />
+            </div>
+          </ExpandableSection>
+
+          {/* Emergency Contacts */}
+          <ExpandableSection
+            title="Emergency Contacts"
+            count={contacts.length}
+            open={expanded.contacts}
+            onToggle={() => toggleSection("contacts")}
+          >
+            <SubTableSection
+              items={contacts}
+              fields={[
+                { key: "name", label: "Name", required: true },
+                { key: "relationship", label: "Relationship", required: true },
+                { key: "phone", label: "Phone", required: true },
+                { key: "address", label: "Address" },
+              ]}
+              onAdd={async (item) => {
+                await fetch(`/api/employees/${id}/contacts`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(item),
+                });
+                fetchSubData();
+              }}
+              onDelete={async (itemId) => {
+                await fetch(`/api/employees/${id}/contacts?contactId=${itemId}`, { method: "DELETE" });
+                fetchSubData();
+              }}
+              emptyText="No emergency contacts"
+            />
+          </ExpandableSection>
+
+          {/* Dependents */}
+          <ExpandableSection
+            title="Dependents"
+            count={dependents.length}
+            open={expanded.dependents}
+            onToggle={() => toggleSection("dependents")}
+          >
+            <SubTableSection
+              items={dependents}
+              fields={[
+                { key: "name", label: "Name", required: true },
+                { key: "relationship", label: "Relationship", required: true, options: ["Spouse", "Child", "Parent", "Sibling", "Other"] },
+                { key: "date_of_birth", label: "Date of Birth", type: "date" },
+              ]}
+              onAdd={async (item) => {
+                await fetch(`/api/employees/${id}/dependents`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(item),
+                });
+                fetchSubData();
+              }}
+              onDelete={async (itemId) => {
+                await fetch(`/api/employees/${id}/dependents?dependentId=${itemId}`, { method: "DELETE" });
+                fetchSubData();
+              }}
+              emptyText="No dependents"
+            />
+          </ExpandableSection>
+
+          {/* Education */}
+          <ExpandableSection
+            title="Education"
+            count={education.length}
+            open={expanded.education}
+            onToggle={() => toggleSection("education")}
+          >
+            <SubTableSection
+              items={education}
+              fields={[
+                { key: "level", label: "Level", required: true, options: ["Elementary", "High School", "Vocational", "College", "Post Graduate"] },
+                { key: "school_name", label: "School", required: true },
+                { key: "degree", label: "Degree" },
+                { key: "field_of_study", label: "Field of Study" },
+                { key: "year_graduated", label: "Year Graduated", type: "number" },
+              ]}
+              onAdd={async (item) => {
+                await fetch(`/api/employees/${id}/education`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(item),
+                });
+                fetchSubData();
+              }}
+              onDelete={async (itemId) => {
+                await fetch(`/api/employees/${id}/education?educationId=${itemId}`, { method: "DELETE" });
+                fetchSubData();
+              }}
+              emptyText="No education records"
+            />
+          </ExpandableSection>
+
+          {/* Work History */}
+          <ExpandableSection
+            title="Work History"
+            count={workHistory.length}
+            open={expanded.history}
+            onToggle={() => toggleSection("history")}
+          >
+            <SubTableSection
+              items={workHistory}
+              fields={[
+                { key: "company_name", label: "Company", required: true },
+                { key: "position", label: "Position", required: true },
+                { key: "start_date", label: "Start Date", type: "date" },
+                { key: "end_date", label: "End Date", type: "date" },
+                { key: "reason_for_leaving", label: "Reason for Leaving" },
+              ]}
+              onAdd={async (item) => {
+                await fetch(`/api/employees/${id}/work-history`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(item),
+                });
+                fetchSubData();
+              }}
+              onDelete={async (itemId) => {
+                await fetch(`/api/employees/${id}/work-history?historyId=${itemId}`, { method: "DELETE" });
+                fetchSubData();
+              }}
+              emptyText="No work history"
+            />
+          </ExpandableSection>
         </div>
       )}
 
@@ -288,111 +426,6 @@ export default function EmployeeDetailPage({
           <Field label="PhilHealth Number" value={employee.philhealth_number} onChange={(v) => updateField("philhealth_number", v)} placeholder="00-000000000-0" />
           <Field label="Pag-IBIG / HDMF" value={employee.pagibig_number} onChange={(v) => updateField("pagibig_number", v)} placeholder="0000-0000-0000" />
         </div>
-      )}
-
-      {/* Emergency Contacts */}
-      {activeTab === "contacts" && (
-        <SubTableSection
-          items={contacts}
-          fields={[
-            { key: "name", label: "Name", required: true },
-            { key: "relationship", label: "Relationship", required: true },
-            { key: "phone", label: "Phone", required: true },
-            { key: "address", label: "Address" },
-          ]}
-          onAdd={async (item) => {
-            await fetch(`/api/employees/${id}/contacts`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item),
-            });
-            fetchSubData();
-          }}
-          onDelete={async (itemId) => {
-            await fetch(`/api/employees/${id}/contacts?contactId=${itemId}`, { method: "DELETE" });
-            fetchSubData();
-          }}
-          emptyText="No emergency contacts"
-        />
-      )}
-
-      {/* Dependents */}
-      {activeTab === "dependents" && (
-        <SubTableSection
-          items={dependents}
-          fields={[
-            { key: "name", label: "Name", required: true },
-            { key: "relationship", label: "Relationship", required: true, options: ["Spouse", "Child", "Parent", "Sibling", "Other"] },
-            { key: "date_of_birth", label: "Date of Birth", type: "date" },
-          ]}
-          onAdd={async (item) => {
-            await fetch(`/api/employees/${id}/dependents`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item),
-            });
-            fetchSubData();
-          }}
-          onDelete={async (itemId) => {
-            await fetch(`/api/employees/${id}/dependents?dependentId=${itemId}`, { method: "DELETE" });
-            fetchSubData();
-          }}
-          emptyText="No dependents"
-        />
-      )}
-
-      {/* Education */}
-      {activeTab === "education" && (
-        <SubTableSection
-          items={education}
-          fields={[
-            { key: "level", label: "Level", required: true, options: ["Elementary", "High School", "Vocational", "College", "Post Graduate"] },
-            { key: "school_name", label: "School", required: true },
-            { key: "degree", label: "Degree" },
-            { key: "field_of_study", label: "Field of Study" },
-            { key: "year_graduated", label: "Year Graduated", type: "number" },
-          ]}
-          onAdd={async (item) => {
-            await fetch(`/api/employees/${id}/education`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item),
-            });
-            fetchSubData();
-          }}
-          onDelete={async (itemId) => {
-            await fetch(`/api/employees/${id}/education?educationId=${itemId}`, { method: "DELETE" });
-            fetchSubData();
-          }}
-          emptyText="No education records"
-        />
-      )}
-
-      {/* Work History */}
-      {activeTab === "history" && (
-        <SubTableSection
-          items={workHistory}
-          fields={[
-            { key: "company_name", label: "Company", required: true },
-            { key: "position", label: "Position", required: true },
-            { key: "start_date", label: "Start Date", type: "date" },
-            { key: "end_date", label: "End Date", type: "date" },
-            { key: "reason_for_leaving", label: "Reason for Leaving" },
-          ]}
-          onAdd={async (item) => {
-            await fetch(`/api/employees/${id}/work-history`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item),
-            });
-            fetchSubData();
-          }}
-          onDelete={async (itemId) => {
-            await fetch(`/api/employees/${id}/work-history?historyId=${itemId}`, { method: "DELETE" });
-            fetchSubData();
-          }}
-          emptyText="No work history"
-        />
       )}
 
       {/* Documents */}
@@ -513,6 +546,60 @@ export default function EmployeeDetailPage({
   );
 }
 
+// --- Expandable Section ---
+
+function ExpandableSection({
+  title,
+  count,
+  open,
+  onToggle,
+  defaultOpen,
+  children,
+}: {
+  title: string;
+  count?: number;
+  open?: boolean;
+  onToggle?: () => void;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [internalOpen, setInternalOpen] = useState(defaultOpen ?? false);
+  const isOpen = open !== undefined ? open : internalOpen;
+  const toggle = onToggle ?? (() => setInternalOpen((p) => !p));
+
+  return (
+    <div className="border border-[rgba(0,0,0,0.08)] rounded-2xl bg-white overflow-hidden">
+      <button
+        onClick={toggle}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-[rgba(0,0,0,0.01)] transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold text-[rgba(0,0,0,0.88)]">{title}</span>
+          {count !== undefined && (
+            <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full text-[11px] font-semibold bg-[rgba(255,198,113,0.2)] text-[#9a6d2a]">
+              {count}
+            </span>
+          )}
+        </div>
+        <svg
+          className={`w-4 h-4 text-[rgba(0,0,0,0.35)] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      {isOpen && (
+        <div className="px-5 pb-5 border-t border-[rgba(0,0,0,0.06)]">
+          <div className="pt-4">{children}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // --- Reusable field components ---
 
 function Field({
@@ -552,7 +639,7 @@ function SelectField({
       >
         {options.map((opt) => {
           const v = typeof opt === "string" ? opt : opt.value;
-          const l = typeof opt === "string" ? (opt || "—") : opt.label;
+          const l = typeof opt === "string" ? (opt || "\u2014") : opt.label;
           return <option key={v} value={v}>{l}</option>;
         })}
       </select>
@@ -560,7 +647,7 @@ function SelectField({
   );
 }
 
-// --- Generic sub-table section (contacts, dependents, education, work history) ---
+// --- Generic sub-table section ---
 
 type FieldDef = {
   key: string;
@@ -598,20 +685,20 @@ function SubTableSection({
   return (
     <div>
       {items.length === 0 && !showForm && (
-        <p className="text-sm text-[rgba(0,0,0,0.4)] text-center py-8">{emptyText}</p>
+        <p className="text-sm text-[rgba(0,0,0,0.4)] text-center py-4">{emptyText}</p>
       )}
 
       {items.map((item) => (
         <div
           key={item.id as string}
-          className="flex items-center justify-between p-3 rounded-xl bg-white border border-[rgba(0,0,0,0.06)] mb-2"
+          className="flex items-center justify-between p-3 rounded-xl bg-[#fafaf2] border border-[rgba(0,0,0,0.04)] mb-2"
         >
           <div className="flex flex-wrap gap-x-6 gap-y-1">
             {fields.map((f) => (
               <div key={f.key}>
                 <span className="text-xs text-[rgba(0,0,0,0.4)]">{f.label}: </span>
                 <span className="text-sm text-[rgba(0,0,0,0.88)]">
-                  {(item[f.key] as string) || "—"}
+                  {(item[f.key] as string) || "\u2014"}
                 </span>
               </div>
             ))}
@@ -626,7 +713,7 @@ function SubTableSection({
       ))}
 
       {showForm ? (
-        <div className="p-4 rounded-2xl bg-white border border-[rgba(0,0,0,0.1)] mt-3">
+        <div className="p-4 rounded-2xl bg-[#fafaf2] border border-[rgba(0,0,0,0.08)] mt-3">
           <div className="grid grid-cols-2 gap-3 mb-3">
             {fields.map((f) =>
               f.options ? (

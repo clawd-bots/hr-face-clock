@@ -54,7 +54,7 @@ export default function EmployeesPage() {
   }
 
   return (
-    <div className="bg-mesh-employees">
+    <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-[44px] font-medium tracking-[-2px] leading-[1.1] text-[rgba(0,0,0,0.88)]">
           Employees

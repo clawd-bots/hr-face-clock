@@ -113,7 +113,7 @@ export default function EmployeeDashboard() {
   );
 
   return (
-    <div className="bg-mesh-dashboard">
+    <div>
       <div className="mb-8">
         <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)]">
           Welcome, {empName(employee) || "Employee"}

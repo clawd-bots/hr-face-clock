@@ -100,7 +100,7 @@ export default function EmployeeProfilePage() {
   }
 
   return (
-    <div>
+    <div className="bg-mesh-profile">
       <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)] mb-8">
         My Profile
       </h1>

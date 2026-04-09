@@ -258,7 +258,7 @@ export default function SchedulesPage() {
   }
 
   return (
-    <div>
+    <div className="bg-mesh-schedules">
       {/* ---- header ---- */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-[28px] font-medium tracking-[-1.75px] text-[rgba(0,0,0,0.88)]">

@@ -39,7 +39,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div>
+    <div className="bg-mesh-dashboard">
       <h1 className="text-[44px] font-medium tracking-[-2px] leading-[1.1] text-[rgba(0,0,0,0.88)] mb-8">
         Dashboard
       </h1>

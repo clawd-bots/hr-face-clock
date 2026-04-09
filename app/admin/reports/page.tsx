@@ -117,7 +117,7 @@ export default function ReportsPage() {
   const hrReports = reportTypes.filter((r) => r.category === "hr" || r.category === "payroll");
 
   return (
-    <div>
+    <div className="bg-mesh-reports">
       <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)] mb-8">
         Reports
       </h1>

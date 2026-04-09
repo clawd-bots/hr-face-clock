@@ -245,7 +245,7 @@ export default function AttendancePage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div>
+    <div className="bg-mesh-attendance">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-[28px] font-medium tracking-[-1.75px] text-[rgba(0,0,0,0.88)]">

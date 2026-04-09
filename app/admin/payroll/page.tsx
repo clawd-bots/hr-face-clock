@@ -253,7 +253,7 @@ export default function PayrollPage() {
   }
 
   return (
-    <div>
+    <div className="bg-mesh-payroll">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)]">
           Payroll

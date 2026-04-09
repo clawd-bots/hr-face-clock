@@ -63,7 +63,7 @@ export default function EmployeePayslipsPage() {
   }
 
   return (
-    <div>
+    <div className="bg-mesh-payslips">
       <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)] mb-8">
         My Payslips
       </h1>

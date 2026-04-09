@@ -63,7 +63,7 @@ export default function EmployeeAttendancePage() {
   const totalUndertime = records.reduce((s, r) => s + (r.undertime_minutes ?? 0), 0);
 
   return (
-    <div>
+    <div className="bg-mesh-attendance">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)]">
           My Attendance

@@ -48,6 +48,14 @@ export default function EmployeeDetailPage({
   const [education, setEducation] = useState<Education[]>([]);
   const [workHistory, setWorkHistory] = useState<WorkHistory[]>([]);
   const [documents, setDocuments] = useState<EmployeeDocument[]>([]);
+  const [accountChecked, setAccountChecked] = useState(false);
+  const [hasAccount, setHasAccount] = useState<string | null>(null); // email if has account
+  const [showCreateAccount, setShowCreateAccount] = useState(false);
+  const [accountEmail, setAccountEmail] = useState("");
+  const [accountPassword, setAccountPassword] = useState("");
+  const [accountRole, setAccountRole] = useState("employee");
+  const [accountLoading, setAccountLoading] = useState(false);
+  const [accountMsg, setAccountMsg] = useState("");
 
   const fetchEmployee = useCallback(async () => {
     const res = await fetch(`/api/employees/${id}`);
@@ -74,11 +82,50 @@ export default function EmployeeDetailPage({
     setDocuments(doc);
   }, [id]);
 
+  const checkAccount = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/employees/${id}/account-status`);
+      if (res.ok) {
+        const data = await res.json();
+        setHasAccount(data.email || null);
+      }
+    } catch {
+      // silently fail — button will still show
+    } finally {
+      setAccountChecked(true);
+    }
+  }, [id]);
+
+  const createAccount = async () => {
+    setAccountLoading(true);
+    setAccountMsg("");
+    try {
+      const res = await fetch(`/api/employees/${id}/create-account`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: accountEmail, password: accountPassword, role: accountRole }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setAccountMsg(`Account created for ${data.email}`);
+      setShowCreateAccount(false);
+      setHasAccount(data.email);
+      setAccountEmail("");
+      setAccountPassword("");
+      setAccountRole("employee");
+    } catch (err) {
+      setAccountMsg(err instanceof Error ? err.message : "Failed to create account");
+    } finally {
+      setAccountLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchEmployee();
     fetchDepartments();
     fetchSubData();
-  }, [fetchEmployee, fetchDepartments, fetchSubData]);
+    checkAccount();
+  }, [fetchEmployee, fetchDepartments, fetchSubData, checkAccount]);
 
   const updateField = (field: string, value: string | null) => {
     if (!employee) return;
@@ -140,11 +187,31 @@ export default function EmployeeDetailPage({
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {accountMsg && (
+            <span className={`text-sm font-medium ${accountMsg.startsWith("Account created") ? "text-[#9a6d2a]" : "text-[#8a3a34]"}`}>{accountMsg}</span>
+          )}
           {success && (
             <span className="text-sm font-medium text-[#9a6d2a]">{success}</span>
           )}
           {error && (
             <span className="text-sm font-medium text-[#8a3a34]">{error}</span>
+          )}
+          {accountChecked && (
+            hasAccount ? (
+              <span className="text-xs text-[rgba(0,0,0,0.4)] border border-[rgba(0,0,0,0.08)] rounded-full px-3 py-1.5">
+                Login: {hasAccount}
+              </span>
+            ) : (
+              <button
+                onClick={() => {
+                  setShowCreateAccount(true);
+                  setAccountEmail(employee.work_email || employee.personal_email || "");
+                }}
+                className="h-10 px-4 rounded-full text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.12)] hover:bg-[#f4f1e6] transition-colors"
+              >
+                Create Account
+              </button>
+            )
           )}
           <button
             onClick={saveEmployee}
@@ -374,6 +441,72 @@ export default function EmployeeDetailPage({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Create Account Modal */}
+      {showCreateAccount && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-[rgba(0,0,0,0.88)] mb-1">Create Login Account</h3>
+            <p className="text-sm text-[rgba(0,0,0,0.4)] mb-5">
+              Create a login for {employee.first_name ? `${employee.first_name} ${employee.last_name ?? ""}`.trim() : employee.name}
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className={labelClass}>Email</label>
+                <input
+                  type="email"
+                  value={accountEmail}
+                  onChange={(e) => setAccountEmail(e.target.value)}
+                  placeholder="employee@company.com"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Password</label>
+                <input
+                  type="text"
+                  value={accountPassword}
+                  onChange={(e) => setAccountPassword(e.target.value)}
+                  placeholder="Minimum 6 characters"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Role</label>
+                <select
+                  value={accountRole}
+                  onChange={(e) => setAccountRole(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="employee">Employee</option>
+                  <option value="department_manager">Department Manager</option>
+                  <option value="payroll_officer">Payroll Officer</option>
+                  <option value="hr_manager">HR Manager</option>
+                  <option value="company_admin">Company Admin</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => { setShowCreateAccount(false); setAccountMsg(""); }}
+                className="h-10 px-4 rounded-full text-sm font-medium text-[rgba(0,0,0,0.5)] border border-[rgba(0,0,0,0.1)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={createAccount}
+                disabled={accountLoading || !accountEmail || !accountPassword}
+                className="h-10 px-5 rounded-full text-sm font-medium text-[#61474c] disabled:opacity-50"
+                style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+              >
+                {accountLoading ? "Creating..." : "Create Account"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

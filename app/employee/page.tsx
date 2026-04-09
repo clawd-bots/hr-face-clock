@@ -41,7 +41,7 @@ type Payslip = {
   };
 };
 
-function empName(e?: Employee): string {
+function empName(e?: Employee | null): string {
   if (!e) return "";
   if (e.first_name) return `${e.first_name} ${e.last_name ?? ""}`.trim();
   return e.name ?? "";

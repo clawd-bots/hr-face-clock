@@ -195,6 +195,11 @@ export default function LeaveManagementPage() {
   const [initLoading, setInitLoading] = useState(false);
   const [initResult, setInitResult] = useState("");
 
+  // ---- Balance edit state ----
+  const [editingBalance, setEditingBalance] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState({ entitled_days: 0, carried_over: 0, adjusted_days: 0 });
+  const [editSaving, setEditSaving] = useState(false);
+
   // ---- Leave Types popup state ----
   const [showLTPopup, setShowLTPopup] = useState(false);
   const [allLeaveTypes, setAllLeaveTypes] = useState<LeaveType[]>([]);
@@ -453,6 +458,37 @@ export default function LeaveManagementPage() {
       );
     } finally {
       setInitLoading(false);
+    }
+  }
+
+  function startEditBalance(b: LeaveBalance) {
+    setEditingBalance(b.id);
+    setEditValues({
+      entitled_days: b.entitled_days,
+      carried_over: b.carried_over,
+      adjusted_days: b.adjusted_days,
+    });
+  }
+
+  async function saveEditBalance() {
+    if (!editingBalance) return;
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/leave-balances/${editingBalance}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editValues),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to update balance");
+      }
+      setEditingBalance(null);
+      fetchBalances();
+    } catch {
+      /* silent */
+    } finally {
+      setEditSaving(false);
     }
   }
 
@@ -959,13 +995,18 @@ export default function LeaveManagementPage() {
               </div>
               <div className="w-56">
                 <label className={LABEL_CLASS}>Employee</label>
-                <input
-                  type="text"
-                  placeholder="Search employee..."
+                <select
                   value={balEmpSearch}
                   onChange={(e) => setBalEmpSearch(e.target.value)}
                   className={INPUT_CLASS}
-                />
+                >
+                  <option value="">All Employees</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {employeeName(emp)}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="flex-1" />
               <button
@@ -1004,9 +1045,10 @@ export default function LeaveManagementPage() {
                       "Used",
                       "Pending",
                       "Available",
+                      "",
                     ].map((h) => (
                       <th
-                        key={h}
+                        key={h || "actions"}
                         className="text-left px-4 py-3 text-xs font-medium text-[rgba(0,0,0,0.5)] uppercase tracking-wide"
                       >
                         {h}
@@ -1018,7 +1060,7 @@ export default function LeaveManagementPage() {
                   {balLoading ? (
                     <tr>
                       <td
-                        colSpan={8}
+                        colSpan={9}
                         className="px-4 py-10 text-center text-[rgba(0,0,0,0.4)]"
                       >
                         Loading...
@@ -1027,7 +1069,7 @@ export default function LeaveManagementPage() {
                   ) : groupedBalances.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={8}
+                        colSpan={9}
                         className="px-4 py-10 text-center text-[rgba(0,0,0,0.4)]"
                       >
                         No balance records found.
@@ -1036,10 +1078,12 @@ export default function LeaveManagementPage() {
                   ) : (
                     groupedBalances.map(([empId, rows]) =>
                       rows.map((b, idx) => {
+                        const isEditing = editingBalance === b.id;
+                        const ed = isEditing ? editValues : { entitled_days: b.entitled_days, carried_over: b.carried_over, adjusted_days: b.adjusted_days };
                         const available =
-                          b.entitled_days +
-                          b.carried_over +
-                          b.adjusted_days -
+                          ed.entitled_days +
+                          ed.carried_over +
+                          ed.adjusted_days -
                           b.used_days -
                           b.pending_days;
                         return (
@@ -1055,14 +1099,46 @@ export default function LeaveManagementPage() {
                             <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
                               {b.leave_type?.name ?? "\u2014"}
                             </td>
-                            <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
-                              {b.entitled_days}
+                            <td className="px-4 py-2">
+                              {isEditing ? (
+                                <input
+                                  type="number"
+                                  step="0.5"
+                                  min="0"
+                                  value={editValues.entitled_days}
+                                  onChange={(e) => setEditValues((p) => ({ ...p, entitled_days: parseFloat(e.target.value) || 0 }))}
+                                  className="w-20 h-8 px-2 bg-[#fafaf2] border border-[rgba(255,198,113,0.5)] rounded-lg text-sm text-[rgba(0,0,0,0.88)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+                                />
+                              ) : (
+                                <span className="text-[rgba(0,0,0,0.65)]">{b.entitled_days}</span>
+                              )}
                             </td>
-                            <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
-                              {b.carried_over}
+                            <td className="px-4 py-2">
+                              {isEditing ? (
+                                <input
+                                  type="number"
+                                  step="0.5"
+                                  min="0"
+                                  value={editValues.carried_over}
+                                  onChange={(e) => setEditValues((p) => ({ ...p, carried_over: parseFloat(e.target.value) || 0 }))}
+                                  className="w-20 h-8 px-2 bg-[#fafaf2] border border-[rgba(255,198,113,0.5)] rounded-lg text-sm text-[rgba(0,0,0,0.88)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+                                />
+                              ) : (
+                                <span className="text-[rgba(0,0,0,0.65)]">{b.carried_over}</span>
+                              )}
                             </td>
-                            <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
-                              {b.adjusted_days}
+                            <td className="px-4 py-2">
+                              {isEditing ? (
+                                <input
+                                  type="number"
+                                  step="0.5"
+                                  value={editValues.adjusted_days}
+                                  onChange={(e) => setEditValues((p) => ({ ...p, adjusted_days: parseFloat(e.target.value) || 0 }))}
+                                  className="w-20 h-8 px-2 bg-[#fafaf2] border border-[rgba(255,198,113,0.5)] rounded-lg text-sm text-[rgba(0,0,0,0.88)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+                                />
+                              ) : (
+                                <span className="text-[rgba(0,0,0,0.65)]">{b.adjusted_days}</span>
+                              )}
                             </td>
                             <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
                               {b.used_days}
@@ -1078,6 +1154,32 @@ export default function LeaveManagementPage() {
                               }`}
                             >
                               {available}
+                            </td>
+                            <td className="px-4 py-3">
+                              {isEditing ? (
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={saveEditBalance}
+                                    disabled={editSaving}
+                                    className="text-xs font-medium text-[#1a7a1a] hover:underline disabled:opacity-50"
+                                  >
+                                    {editSaving ? "..." : "Save"}
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingBalance(null)}
+                                    className="text-xs font-medium text-[rgba(0,0,0,0.4)] hover:underline"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => startEditBalance(b)}
+                                  className="text-xs font-medium text-[#9a6d2a] hover:underline"
+                                >
+                                  Edit
+                                </button>
+                              )}
                             </td>
                           </tr>
                         );

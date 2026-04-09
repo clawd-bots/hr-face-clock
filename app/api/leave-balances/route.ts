@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from("leave_balances")
-    .select("*, leave_type:leave_types(id, name, code)");
+    .select("*, leave_type:leave_types(id, name, code), employee:employees(id, name, first_name, last_name)");
 
   if (ctx.companyId) {
     query = query.eq("company_id", ctx.companyId);

@@ -9,6 +9,7 @@ const navItems = [
   { href: "/employee", label: "Dashboard", icon: "grid" },
   { href: "/employee/profile", label: "Profile", icon: "user" },
   { href: "/employee/leaves", label: "Leaves", icon: "calendar" },
+  { href: "/employee/overtime", label: "Overtime", icon: "clock" },
   { href: "/employee/payslips", label: "Payslips", icon: "wallet" },
   { href: "/employee/attendance", label: "Attendance", icon: "clock" },
 ];

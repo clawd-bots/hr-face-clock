@@ -8,6 +8,11 @@ import {
   generateBIR1601C,
   generateBIR2316,
   generate13thMonthReport,
+  generateBIR1604CF,
+  generateSSSR5,
+  generatePhilHealthER2,
+  generatePagibigMCRF,
+  generatePagibigLoan,
   generateHeadcountReport,
   generateAttendanceSummary,
   generateLeaveUtilization,
@@ -102,6 +107,17 @@ export async function GET(
         .in("payroll_run_id", runs.map((r) => r.id));
 
       return items ?? [];
+    }
+
+    // Helper: fetch active loans for a period
+    async function getActiveLoansForPeriod(companyId: string, m: number, y: number) {
+      const { data } = await supabase
+        .from("employee_loans")
+        .select("*, loan_type:loan_types(name, code), employee:employees(id, employee_number, first_name, last_name, name, sss_number, pagibig_number)")
+        .eq("company_id", companyId)
+        .eq("active", true)
+        .gt("remaining_balance", 0);
+      return data ?? [];
     }
 
     let report;
@@ -203,6 +219,46 @@ export async function GET(
           .eq("active", true)
           .order("last_name");
         report = generateEmployeeDirectory(employees ?? []);
+        break;
+      }
+      case "bir-1604cf": {
+        const items = await getPayrollItemsForYear(year);
+        report = generateBIR1604CF(items, year);
+        break;
+      }
+      case "sss-r5": {
+        const loans = await getActiveLoansForPeriod(ctx.companyId!, m, year);
+        const filteredLoans = loans.filter(
+          (l: any) =>
+            l.loan_type?.code?.toUpperCase().startsWith("SSS") ||
+            l.loan_type?.name?.toLowerCase().includes("sss")
+        );
+        report = generateSSSR5(filteredLoans, periodLabel);
+        break;
+      }
+      case "philhealth-er2": {
+        const { data: employees } = await supabase
+          .from("employees")
+          .select("id, employee_number, first_name, last_name, name, philhealth_number, date_of_birth, gender, civil_status, employment_status, hire_date")
+          .eq("company_id", ctx.companyId!)
+          .eq("active", true);
+        report = generatePhilHealthER2(employees ?? [], year);
+        break;
+      }
+      case "pagibig-mcrf": {
+        const items = await getPayrollItemsForMonth(m, year);
+        report = generatePagibigMCRF(items, periodLabel);
+        break;
+      }
+      case "pagibig-loan": {
+        const loans = await getActiveLoansForPeriod(ctx.companyId!, m, year);
+        const filteredLoans = loans.filter(
+          (l: any) =>
+            l.loan_type?.code?.toUpperCase().startsWith("PAGIBIG") ||
+            l.loan_type?.code?.toUpperCase().startsWith("HDMF") ||
+            l.loan_type?.name?.toLowerCase().includes("pag-ibig")
+        );
+        report = generatePagibigLoan(filteredLoans, periodLabel);
         break;
       }
       default:

@@ -451,3 +451,28 @@ export type PayrollItem = {
   created_at: string;
   employee?: Employee;
 };
+
+// ---------------------------------------------------------------------------
+// Phase 6: Overtime Requests
+// ---------------------------------------------------------------------------
+
+export type OvertimeRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+
+export type OvertimeRequest = {
+  id: string;
+  company_id: string;
+  employee_id: string;
+  date: string;
+  start_time: string;       // HH:MM
+  end_time: string;          // HH:MM
+  ot_hours: number;
+  reason: string | null;
+  status: OvertimeRequestStatus;
+  filed_by: string;
+  approved_by: string | null;
+  approved_at: string | null;
+  rejection_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  employee?: Employee;
+};

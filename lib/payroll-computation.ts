@@ -35,6 +35,14 @@ export type LoanInput = {
   monthly_deduction: number;
 };
 
+export type OvertimeInput = {
+  date: string;
+  ot_hours: number;
+  is_rest_day: boolean;
+  is_holiday: boolean;
+  holiday_type: string | null;
+};
+
 export type ComputePayrollItemParams = {
   basicSalary: number; // monthly
   dailyRate: number;
@@ -42,6 +50,7 @@ export type ComputePayrollItemParams = {
   dtrRecords: DTRRecord[];
   allowances: AllowanceInput[];
   loans: LoanInput[];
+  overtimeRecords?: OvertimeInput[];
   otherDeductions: number;
   cycle: "semi_monthly_1" | "semi_monthly_2" | "monthly";
   payBasis: "monthly" | "daily";
@@ -367,6 +376,25 @@ export function computePayrollItem(
   restDayPay = round2(restDayPay);
   nightDiffPay = round2(nightDiffPay);
 
+  // ── 1b. Compute overtime pay from approved OT ─────────────────────
+  const overtimeRecords = params.overtimeRecords ?? [];
+  let overtimePay = 0;
+  for (const ot of overtimeRecords) {
+    // DOLE OT rules: base multiplier * 1.25 (25% OT premium)
+    // Regular day OT = 1.0 * 1.25 = 1.25x
+    // Rest day OT = 1.30 * 1.30 = 1.69x
+    // Regular holiday OT = 2.0 * 1.30 = 2.60x
+    // Special holiday OT = 1.30 * 1.30 = 1.69x
+    const baseMultiplier = getPayMultiplier({
+      isRestDay: ot.is_rest_day,
+      isHoliday: ot.is_holiday,
+      holidayType: ot.holiday_type,
+    });
+    const otMultiplier = baseMultiplier * 1.25;
+    overtimePay += round2(ot.ot_hours * hourlyRate * otMultiplier);
+  }
+  overtimePay = round2(overtimePay);
+
   // ── 2. Determine basic pay for the period ─────────────────────────────
   // For monthly-paid: basic pay is monthly / divisor (regardless of DTR)
   // For daily-paid: basic pay is based on days worked
@@ -425,6 +453,7 @@ export function computePayrollItem(
       holidayPay +
       restDayPay +
       nightDiffPay +
+      overtimePay +
       totalAllowances -
       lateUndertimeDeductions
   );
@@ -470,7 +499,7 @@ export function computePayrollItem(
     holiday_pay: holidayPay,
     rest_day_pay: restDayPay,
     night_diff_pay: nightDiffPay,
-    overtime_pay: 0, // deferred
+    overtime_pay: overtimePay,
     gross_pay: grossPay,
     sss_employee: deductions.sss_employee,
     sss_employer: deductions.sss_employer,
@@ -494,6 +523,7 @@ export function computePayrollItem(
       non_taxable_allowances: nonTaxableAllowances,
       monthly_taxable_income: monthlyTaxableIncome,
       night_diff_hours: totalNightDiffHours,
+      overtime_hours: overtimeRecords.reduce((s, o) => s + o.ot_hours, 0),
     },
   };
 }

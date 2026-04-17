@@ -50,8 +50,18 @@ type EmployeeRow = {
   tin_number?: string;
   philhealth_number?: string;
   pagibig_number?: string;
+  date_of_birth?: string;
+  civil_status?: string;
   department?: { name: string } | null;
   department_id?: string;
+};
+
+type LoanRow = {
+  employee_id: string;
+  monthly_deduction: number;
+  remaining_balance: number;
+  loan_type?: { name: string; code: string } | null;
+  employee?: EmployeeRow | null;
 };
 
 type DTRRow = {
@@ -300,6 +310,186 @@ export function generate13thMonthReport(
     summary: {
       "Grand Total": fmt(round2(grandTotal)),
       Employees: empMap.size,
+    },
+  };
+}
+
+export function generateBIR1604CF(items: PayrollItemRow[], year: number): ReportData {
+  // Group items by employee_id and sum across all periods
+  const empMap = new Map<
+    string,
+    {
+      employee: EmployeeRow | undefined;
+      gross: number;
+      sss: number;
+      philhealth: number;
+      pagibig: number;
+      tax: number;
+    }
+  >();
+
+  for (const item of items) {
+    const existing = empMap.get(item.employee_id);
+    if (existing) {
+      existing.gross += item.gross_pay;
+      existing.sss += item.sss_employee;
+      existing.philhealth += item.philhealth_employee;
+      existing.pagibig += item.pagibig_employee;
+      existing.tax += item.withholding_tax;
+    } else {
+      empMap.set(item.employee_id, {
+        employee: item.employee,
+        gross: item.gross_pay,
+        sss: item.sss_employee,
+        philhealth: item.philhealth_employee,
+        pagibig: item.pagibig_employee,
+        tax: item.withholding_tax,
+      });
+    }
+  }
+
+  const rows: (string | number)[][] = [];
+  let totalGross = 0;
+  let totalNonTaxable = 0;
+  let totalTaxable = 0;
+  let totalTax = 0;
+
+  for (const [, data] of empMap) {
+    const gross = round2(data.gross);
+    const nonTaxable = round2(data.sss + data.philhealth + data.pagibig);
+    const taxable = round2(gross - nonTaxable);
+    const tax = round2(data.tax);
+
+    totalGross += gross;
+    totalNonTaxable += nonTaxable;
+    totalTaxable += taxable;
+    totalTax += tax;
+
+    rows.push([
+      data.employee?.employee_number ?? "—",
+      empName(data.employee),
+      data.employee?.tin_number ?? "—",
+      fmt(gross),
+      fmt(nonTaxable),
+      fmt(taxable),
+      fmt(tax),
+    ]);
+  }
+
+  return {
+    title: "BIR Form 1604-CF — Annual Information Return",
+    subtitle: `Year ${year}`,
+    headers: ["Emp No.", "Name", "TIN", "Gross Compensation", "Non-Taxable (SSS+Phil+Pag)", "Taxable Compensation", "Tax Withheld"],
+    rows,
+    summary: {
+      "Total Gross": fmt(round2(totalGross)),
+      "Total Non-Taxable": fmt(round2(totalNonTaxable)),
+      "Total Taxable": fmt(round2(totalTaxable)),
+      "Total Tax": fmt(round2(totalTax)),
+      Employees: empMap.size,
+    },
+  };
+}
+
+export function generateSSSR5(loans: LoanRow[], period: string): ReportData {
+  const rows = loans.map((l) => [
+    l.employee?.employee_number ?? "—",
+    empName(l.employee),
+    l.employee?.sss_number ?? "—",
+    l.loan_type?.name ?? "—",
+    fmt(l.monthly_deduction),
+    fmt(l.remaining_balance),
+  ]);
+
+  const totalDeducted = round2(loans.reduce((s, l) => s + l.monthly_deduction, 0));
+  const totalRemaining = round2(loans.reduce((s, l) => s + l.remaining_balance, 0));
+
+  return {
+    title: "SSS R5 — Loan Payment Collection List",
+    subtitle: period,
+    headers: ["Emp No.", "Name", "SSS No.", "Loan Type", "Amount Deducted", "Remaining Balance"],
+    rows,
+    summary: {
+      "Total Deducted": fmt(totalDeducted),
+      "Total Remaining": fmt(totalRemaining),
+      Loans: loans.length,
+    },
+  };
+}
+
+export function generatePhilHealthER2(employees: EmployeeRow[], year: number): ReportData {
+  const rows = employees.map((e) => [
+    e.employee_number ?? "—",
+    empName(e),
+    e.philhealth_number ?? "—",
+    e.date_of_birth ?? "—",
+    e.gender ?? "—",
+    e.civil_status ?? "—",
+    e.employment_status ?? "—",
+    e.hire_date ?? "—",
+  ]);
+
+  return {
+    title: "PhilHealth ER2 — Report of Employee-Members",
+    subtitle: `Year ${year}`,
+    headers: ["Emp No.", "Name", "PhilHealth No.", "Date of Birth", "Gender", "Civil Status", "Employment Status", "Hire Date"],
+    rows,
+    summary: {
+      "Total Employees": employees.length,
+    },
+  };
+}
+
+export function generatePagibigMCRF(items: PayrollItemRow[], period: string): ReportData {
+  const rows = items.map((i) => [
+    i.employee?.pagibig_number ?? "—",
+    i.employee?.employee_number ?? "—",
+    empName(i.employee),
+    fmt(i.basic_pay * 2), // monthly compensation (semi-monthly assumption)
+    fmt(i.pagibig_employee),
+    fmt(i.pagibig_employer),
+    fmt(i.pagibig_employee + i.pagibig_employer),
+  ]);
+
+  const totalEE = round2(items.reduce((s, i) => s + i.pagibig_employee, 0));
+  const totalER = round2(items.reduce((s, i) => s + i.pagibig_employer, 0));
+
+  return {
+    title: "Pag-IBIG MCRF — Monthly Contribution Remittance Form",
+    subtitle: period,
+    headers: ["Pag-IBIG MID No.", "Emp No.", "Name", "Monthly Compensation", "EE Share", "ER Share", "Total"],
+    rows,
+    summary: {
+      "Total EE": fmt(totalEE),
+      "Total ER": fmt(totalER),
+      "Grand Total": fmt(round2(totalEE + totalER)),
+      Employees: items.length,
+    },
+  };
+}
+
+export function generatePagibigLoan(loans: LoanRow[], period: string): ReportData {
+  const rows = loans.map((l) => [
+    l.employee?.pagibig_number ?? "—",
+    l.employee?.employee_number ?? "—",
+    empName(l.employee),
+    l.loan_type?.name ?? "—",
+    fmt(l.monthly_deduction),
+    fmt(l.remaining_balance),
+  ]);
+
+  const totalDeducted = round2(loans.reduce((s, l) => s + l.monthly_deduction, 0));
+  const totalRemaining = round2(loans.reduce((s, l) => s + l.remaining_balance, 0));
+
+  return {
+    title: "Pag-IBIG — Loan Amortization Report",
+    subtitle: period,
+    headers: ["Pag-IBIG MID No.", "Emp No.", "Name", "Loan Type", "Amount Deducted", "Remaining Balance"],
+    rows,
+    summary: {
+      "Total Deducted": fmt(totalDeducted),
+      "Total Remaining": fmt(totalRemaining),
+      Loans: loans.length,
     },
   };
 }

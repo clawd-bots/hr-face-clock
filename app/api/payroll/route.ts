@@ -3,7 +3,7 @@ import { getSupabaseService } from "@/lib/supabase-service";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { logAudit } from "@/lib/audit";
 import { computePayrollItem } from "@/lib/payroll-computation";
-import type { DTRRecord, AllowanceInput, LoanInput } from "@/lib/payroll-computation";
+import type { DTRRecord, AllowanceInput, LoanInput, OvertimeInput } from "@/lib/payroll-computation";
 
 async function getContext() {
   try {
@@ -130,6 +130,28 @@ export async function POST(req: NextRequest) {
       holiday_type: d.holiday_type,
     }));
 
+    // 3b2. Get approved overtime requests for the period
+    const { data: otData } = await supabase
+      .from("overtime_requests")
+      .select("date, ot_hours")
+      .eq("employee_id", emp.id)
+      .eq("company_id", ctx.companyId)
+      .eq("status", "approved")
+      .gte("date", period_start)
+      .lte("date", period_end);
+
+    // Cross-reference OT dates with DTR for day classification
+    const overtimeRecords: OvertimeInput[] = (otData ?? []).map((ot) => {
+      const matchingDtr = dtrRecords.find(d => d.date === ot.date);
+      return {
+        date: ot.date,
+        ot_hours: Number(ot.ot_hours),
+        is_rest_day: matchingDtr?.is_rest_day ?? false,
+        is_holiday: matchingDtr?.is_holiday ?? false,
+        holiday_type: matchingDtr?.holiday_type ?? null,
+      };
+    });
+
     // 3c. Get active allowances
     const { data: allowanceData } = await supabase
       .from("employee_allowances")
@@ -169,6 +191,7 @@ export async function POST(req: NextRequest) {
       dailyRate: salary.daily_rate,
       hourlyRate: salary.hourly_rate,
       dtrRecords,
+      overtimeRecords,
       allowances,
       loans,
       otherDeductions: 0,

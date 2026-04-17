@@ -456,6 +456,32 @@ export type PayrollItem = {
 // Phase 6: Overtime Requests
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Phase 6B: Time Declarations (Manual Clock-In/Out)
+// ---------------------------------------------------------------------------
+
+export type TimeDeclarationStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+
+export type TimeDeclaration = {
+  id: string;
+  company_id: string;
+  employee_id: string;
+  date: string;
+  clock_in: string;       // HH:MM
+  clock_out: string;       // HH:MM
+  hours_worked: number;
+  location: string | null;
+  reason: string;
+  status: TimeDeclarationStatus;
+  filed_by: string;
+  approved_by: string | null;
+  approved_at: string | null;
+  rejection_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  employee?: Employee;
+};
+
 export type OvertimeRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
 export type OvertimeRequest = {

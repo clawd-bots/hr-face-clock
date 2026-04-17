@@ -10,6 +10,7 @@ const navItems = [
   { href: "/employee/profile", label: "Profile", icon: "user" },
   { href: "/employee/leaves", label: "Leaves", icon: "calendar" },
   { href: "/employee/overtime", label: "Overtime", icon: "clock" },
+  { href: "/employee/declarations", label: "Declarations", icon: "edit" },
   { href: "/employee/payslips", label: "Payslips", icon: "wallet" },
   { href: "/employee/attendance", label: "Attendance", icon: "clock" },
 ];
@@ -39,6 +40,12 @@ function NavIcon({ name, className }: { name: string; className?: string }) {
       return (
         <svg className={c} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 110 6h3.75A2.25 2.25 0 0021 13.5V12zm0 0V9.75a2.25 2.25 0 00-2.25-2.25h-13.5A2.25 2.25 0 003 9.75v10.5A2.25 2.25 0 005.25 22.5h13.5A2.25 2.25 0 0021 20.25V12zM3 9.75V6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v3" />
+        </svg>
+      );
+    case "edit":
+      return (
+        <svg className={c} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
         </svg>
       );
     case "clock":

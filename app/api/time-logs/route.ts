@@ -39,7 +39,7 @@ async function getClientAndContext() {
 }
 
 export async function GET(req: NextRequest) {
-  const { supabase } = await getClientAndContext();
+  const { supabase, companyId } = await getClientAndContext();
   const { searchParams } = new URL(req.url);
   const date = searchParams.get("date");
   const employeeId = searchParams.get("employee_id");
@@ -48,9 +48,10 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from("time_logs")
-    .select("*, employee:employees(id, name, department, role)")
+    .select("*, employee:employees(id, employee_number, first_name, last_name, name, position_title, department:departments(name))")
     .order("clock_in", { ascending: false });
 
+  if (companyId) query = query.eq("company_id", companyId);
   if (date) query = query.eq("date", date);
   if (employeeId) query = query.eq("employee_id", employeeId);
   if (from) query = query.gte("date", from);
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
         date: today,
         company_id: employee?.company_id ?? null,
       })
-      .select("*, employee:employees(id, name, department, role)")
+      .select("*, employee:employees(id, employee_number, first_name, last_name, name, position_title, department:departments(name))")
       .single();
 
     if (error)
@@ -135,7 +136,7 @@ export async function POST(req: NextRequest) {
         hours_worked: Math.round(hoursWorked * 100) / 100,
       })
       .eq("id", openLog.id)
-      .select("*, employee:employees(id, name, department, role)")
+      .select("*, employee:employees(id, employee_number, first_name, last_name, name, position_title, department:departments(name))")
       .single();
 
     if (error)

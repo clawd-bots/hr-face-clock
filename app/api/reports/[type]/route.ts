@@ -56,26 +56,20 @@ export async function GET(
   const supabase = getSupabaseService();
 
   try {
-    // Helper: fetch payroll items for a month (both cutoffs)
+    // Helper: fetch payroll items for a month.
+    // Uses overlap semantics: any run whose period overlaps the target month.
     async function getPayrollItemsForMonth(m: number, y: number) {
       const monthStr = `${y}-${String(m).padStart(2, "0")}`;
       const firstDay = `${monthStr}-01`;
       const lastDay = `${monthStr}-${new Date(y, m, 0).getDate()}`;
 
-      const { data } = await supabase
-        .from("payroll_items")
-        .select("*, employee:employees(id, employee_number, first_name, last_name, name, position_title, sss_number, tin_number, philhealth_number, pagibig_number, department:departments(name))")
-        .eq("company_id", ctx.companyId!)
-        .gte("created_at", firstDay)
-        .lte("created_at", lastDay + "T23:59:59");
-
-      // Better approach: join through payroll_runs
+      // A run overlaps the month iff: period_start <= lastDay AND period_end >= firstDay
       const { data: runs } = await supabase
         .from("payroll_runs")
         .select("id")
         .eq("company_id", ctx.companyId!)
-        .gte("period_start", firstDay)
-        .lte("period_end", lastDay);
+        .lte("period_start", lastDay)
+        .gte("period_end", firstDay);
 
       if (!runs || runs.length === 0) return [];
 

@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from("time_logs")
-    .select("*, employee:employees(id, employee_number, first_name, last_name, name, position_title, department:departments(name))")
+    .select("*, employee:employees(id, employee_number, first_name, last_name, name, position_title)")
     .order("clock_in", { ascending: false });
 
   if (companyId) query = query.eq("company_id", companyId);
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
         date: today,
         company_id: employee?.company_id ?? null,
       })
-      .select("*, employee:employees(id, employee_number, first_name, last_name, name, position_title, department:departments(name))")
+      .select("*, employee:employees(id, employee_number, first_name, last_name, name, position_title)")
       .single();
 
     if (error)
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
         hours_worked: Math.round(hoursWorked * 100) / 100,
       })
       .eq("id", openLog.id)
-      .select("*, employee:employees(id, employee_number, first_name, last_name, name, position_title, department:departments(name))")
+      .select("*, employee:employees(id, employee_number, first_name, last_name, name, position_title)")
       .single();
 
     if (error)

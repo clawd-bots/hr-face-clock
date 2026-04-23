@@ -56,10 +56,10 @@ function fmtDate(d: string): string {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-[rgba(255,198,113,0.2)] text-[#9a6d2a]",
-  approved: "bg-[rgba(76,175,80,0.12)] text-[#2e7d32]",
-  rejected: "bg-[rgba(244,67,54,0.12)] text-[#c62828]",
-  cancelled: "bg-[rgba(0,0,0,0.06)] text-[rgba(0,0,0,0.4)]",
+  pending: "bg-[var(--color-sw-gold-50)] text-sw-gold-600",
+  approved: "bg-[rgba(76,175,80,0.12)] text-sw-success-500",
+  rejected: "bg-[rgba(244,67,54,0.12)] text-sw-danger-500",
+  cancelled: "bg-[rgba(28, 26, 22, 0.06)] text-sw-ink-500",
 };
 
 export default function EmployeeDashboard() {
@@ -97,7 +97,7 @@ export default function EmployeeDashboard() {
 
   if (loading) {
     return (
-      <div className="text-center py-20 text-[rgba(0,0,0,0.4)] text-sm">Loading...</div>
+      <div className="text-center py-20 text-sw-ink-500 text-sm">Loading...</div>
     );
   }
 
@@ -115,11 +115,11 @@ export default function EmployeeDashboard() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)]">
+        <h1 className="t-display">
           Welcome, {empName(employee) || "Employee"}
         </h1>
         {employee?.position_title && (
-          <p className="text-sm text-[rgba(0,0,0,0.5)] mt-1">
+          <p className="text-sm text-sw-ink-500 mt-1">
             {employee.position_title}
             {employee.department ? ` · ${employee.department.name}` : ""}
           </p>
@@ -128,75 +128,75 @@ export default function EmployeeDashboard() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] p-5">
-          <p className="text-xs font-medium text-[rgba(0,0,0,0.4)] uppercase tracking-wider mb-1">
+        <div className="sw-panel p-5">
+          <p className="text-xs font-medium text-sw-ink-500 uppercase tracking-wider mb-1">
             Available Leave Days
           </p>
-          <p className="text-2xl font-semibold text-[rgba(0,0,0,0.88)]">
+          <p className="text-2xl font-semibold text-sw-ink-900">
             {totalLeave.toFixed(1)}
           </p>
-          <p className="text-xs text-[rgba(0,0,0,0.4)] mt-1">
+          <p className="text-xs text-sw-ink-500 mt-1">
             across {balances.length} leave type{balances.length !== 1 ? "s" : ""}
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] p-5">
-          <p className="text-xs font-medium text-[rgba(0,0,0,0.4)] uppercase tracking-wider mb-1">
+        <div className="sw-panel p-5">
+          <p className="text-xs font-medium text-sw-ink-500 uppercase tracking-wider mb-1">
             Latest Payslip
           </p>
           {nextPayslip?.payroll_run ? (
             <>
-              <p className="text-2xl font-semibold text-[rgba(0,0,0,0.88)] tabular-nums">
+              <p className="text-2xl font-semibold text-sw-ink-900 tabular-nums">
                 ₱{nextPayslip.net_pay.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
               </p>
-              <p className="text-xs text-[rgba(0,0,0,0.4)] mt-1">
+              <p className="text-xs text-sw-ink-500 mt-1">
                 {fmtDate(nextPayslip.payroll_run.period_start)} – {fmtDate(nextPayslip.payroll_run.period_end)}
               </p>
             </>
           ) : (
-            <p className="text-sm text-[rgba(0,0,0,0.4)]">No payslips yet</p>
+            <p className="text-sm text-sw-ink-500">No payslips yet</p>
           )}
         </div>
 
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] p-5">
-          <p className="text-xs font-medium text-[rgba(0,0,0,0.4)] uppercase tracking-wider mb-1">
+        <div className="sw-panel p-5">
+          <p className="text-xs font-medium text-sw-ink-500 uppercase tracking-wider mb-1">
             Pending Requests
           </p>
-          <p className="text-2xl font-semibold text-[rgba(0,0,0,0.88)]">
+          <p className="text-2xl font-semibold text-sw-ink-900">
             {requests.filter((r) => r.status === "pending").length}
           </p>
-          <p className="text-xs text-[rgba(0,0,0,0.4)] mt-1">leave requests awaiting approval</p>
+          <p className="text-xs text-sw-ink-500 mt-1">leave requests awaiting approval</p>
         </div>
       </div>
 
       {/* Recent Leave Requests */}
-      <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] overflow-hidden">
-        <div className="px-5 py-4 border-b border-[rgba(0,0,0,0.06)]">
-          <h2 className="text-sm font-semibold text-[rgba(0,0,0,0.88)]">Recent Leave Requests</h2>
+      <div className="sw-panel overflow-hidden">
+        <div className="px-5 py-4 border-b border-sw-ink-100">
+          <h2 className="text-sm font-semibold text-sw-ink-900">Recent Leave Requests</h2>
         </div>
         {requests.length === 0 ? (
-          <div className="px-5 py-8 text-center text-sm text-[rgba(0,0,0,0.4)]">
+          <div className="px-5 py-8 text-center text-sm text-sw-ink-500">
             No leave requests yet
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#f9f8f3]">
-                <th className="text-left px-5 py-2.5 font-medium text-[rgba(0,0,0,0.5)]">Type</th>
-                <th className="text-left px-5 py-2.5 font-medium text-[rgba(0,0,0,0.5)]">Dates</th>
-                <th className="text-right px-5 py-2.5 font-medium text-[rgba(0,0,0,0.5)]">Days</th>
-                <th className="text-left px-5 py-2.5 font-medium text-[rgba(0,0,0,0.5)]">Status</th>
+              <tr className="bg-sw-cream-25">
+                <th className="text-left px-5 py-2.5 font-medium text-sw-ink-500">Type</th>
+                <th className="text-left px-5 py-2.5 font-medium text-sw-ink-500">Dates</th>
+                <th className="text-right px-5 py-2.5 font-medium text-sw-ink-500">Days</th>
+                <th className="text-left px-5 py-2.5 font-medium text-sw-ink-500">Status</th>
               </tr>
             </thead>
             <tbody>
               {requests.map((r) => (
-                <tr key={r.id} className="border-t border-[rgba(0,0,0,0.04)]">
-                  <td className="px-5 py-3 text-[rgba(0,0,0,0.88)]">{r.leave_type?.name ?? "—"}</td>
-                  <td className="px-5 py-3 text-[rgba(0,0,0,0.65)]">
+                <tr key={r.id} className="border-t border-sw-ink-100">
+                  <td className="px-6 py-4 text-sw-ink-900">{r.leave_type?.name ?? "—"}</td>
+                  <td className="px-6 py-4 text-sw-ink-700">
                     {fmtDate(r.start_date)} – {fmtDate(r.end_date)}
                   </td>
-                  <td className="px-5 py-3 text-right text-[rgba(0,0,0,0.65)]">{r.total_days}</td>
-                  <td className="px-5 py-3">
+                  <td className="px-6 py-4 text-right text-sw-ink-700">{r.total_days}</td>
+                  <td className="px-6 py-4">
                     <span className={`px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-full ${STATUS_STYLES[r.status] ?? ""}`}>
                       {r.status}
                     </span>

@@ -1,0 +1,180 @@
+/**
+ * Sweldo Design System — design tokens (Tailwind v4 @theme).
+ *
+ * Utilities use the `sw-` prefix. Examples:
+ *   bg-sw-cream-50, text-sw-ink-900, bg-sw-gold-500,
+ *   rounded-sw-lg, shadow-sw-2, duration-sw-fast,
+ *   text-sw-body, leading-sw-relaxed, tracking-sw-h2.
+ *
+ * Semantic typography is exposed as @utility: .t-display, .t-h2–.t-h5,
+ * .t-body-lg, .t-body, .t-caption, .t-micro, .t-eyebrow.
+ */
+
+@theme {
+  /* ── Colors: brand gold ─────────────────────────────── */
+  --color-sw-gold-600: #a27420;
+  --color-sw-gold-500: #c9972e;
+  --color-sw-gold-100: #f4e3b8;
+  --color-sw-gold-50:  #faf2dc;
+
+  /* ── Colors: warm ink neutrals ──────────────────────── */
+  --color-sw-ink-900: #1c1a16;
+  --color-sw-ink-700: #3a362f;
+  --color-sw-ink-500: #76726a;
+  --color-sw-ink-300: #b9b5ad;
+  --color-sw-ink-200: #d9d5cc;
+  --color-sw-ink-100: #ece8df;
+
+  /* ── Colors: surfaces ───────────────────────────────── */
+  --color-sw-cream-50: #fefefd;
+  --color-sw-cream-25: #f6f5f1;
+  --color-sw-white:    #ffffff;
+
+  /* ── Colors: feature tints ──────────────────────────── */
+  --color-sw-lilac-100:  #e7e6f5;
+  --color-sw-lilac-500:  #8a7df0;
+  --color-sw-violet-600: #7c3aed;
+
+  /* ── Colors: status ─────────────────────────────────── */
+  --color-sw-success-500: #23a55a;
+  --color-sw-success-100: #cdeedb;
+  --color-sw-warn-500:    #f3c33b;
+  --color-sw-warn-100:    #fbecb6;
+  --color-sw-danger-500:  #f43f5e;
+  --color-sw-danger-100:  #ffd6de;
+
+  --color-sw-link: #6b5cf0;
+
+  /* ── Font family (wired to next/font/local --font-figtree) ── */
+  --font-sans:
+    var(--font-figtree),
+    "Figtree",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+
+  /* ── Font sizes (capped at 40px per Sweldo scale) ───── */
+  --text-sw-micro:   12px;
+  --text-sw-caption: 14px;
+  --text-sw-body:    16px;
+  --text-sw-body-lg: 18px;
+  --text-sw-h5:      18px;
+  --text-sw-h4:      20px;
+  --text-sw-h3:      24px;
+  --text-sw-h2:      36px;
+  --text-sw-display: 40px;
+
+  /* ── Line heights ───────────────────────────────────── */
+  --leading-sw-tight:   1.1;
+  --leading-sw-heading: 1.4;
+  --leading-sw-body:    1.5;
+  --leading-sw-relaxed: 1.6;
+
+  /* ── Letter spacing ─────────────────────────────────── */
+  --tracking-sw-display: -1.6px;
+  --tracking-sw-h2:      -1.44px;
+  --tracking-sw-h3:      -0.96px;
+  --tracking-sw-h4:      -0.8px;
+  --tracking-sw-h5:      -0.72px;
+  --tracking-sw-body-lg: -0.36px;
+  --tracking-sw-body:    -0.32px;
+  --tracking-sw-caption: -0.28px;
+
+  /* ── Spacing (8pt base): p-5 = 20px, p-6 = 24px … ──── */
+  --spacing: 4px;
+
+  /* ── Radius ─────────────────────────────────────────── */
+  --radius-sw-sm:   8px;
+  --radius-sw-md:   16px;
+  --radius-sw-lg:   20px;
+  --radius-sw-xl:   24px;
+  --radius-sw-pill: 40px;
+  --radius-sw-full: 9999px;
+
+  /* ── Shadows / elevation ────────────────────────────── */
+  --shadow-sw-1: 0 1px 2px rgba(28, 26, 22, 0.04), 0 1px 1px rgba(28, 26, 22, 0.03);
+  --shadow-sw-2: 0 6px 18px rgba(28, 26, 22, 0.06), 0 1px 2px rgba(28, 26, 22, 0.04);
+  --shadow-sw-3: 0 18px 40px rgba(28, 26, 22, 0.10), 0 2px 6px rgba(28, 26, 22, 0.05);
+  --shadow-sw-ring-accent: 0 0 0 4px rgba(201, 151, 46, 0.22);
+
+  /* ── Motion ─────────────────────────────────────────── */
+  --duration-sw-fast:   150ms;
+  --duration-sw-normal: 200ms;
+  --ease-sw-std: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Layout ─────────────────────────────────────────── */
+  --max-width-sw-content: 1200px;
+}
+
+/* ── Semantic typography utilities ────────────────────── */
+
+@utility t-display {
+  font-size: var(--text-sw-display);
+  font-weight: 600;
+  line-height: var(--leading-sw-tight);
+  letter-spacing: var(--tracking-sw-display);
+  color: var(--color-sw-ink-900);
+}
+@utility t-h1 {
+  font-size: var(--text-sw-display);
+  font-weight: 600;
+  line-height: var(--leading-sw-tight);
+  letter-spacing: var(--tracking-sw-display);
+  color: var(--color-sw-ink-900);
+}
+@utility t-h2 {
+  font-size: var(--text-sw-h2);
+  font-weight: 600;
+  line-height: var(--leading-sw-heading);
+  letter-spacing: var(--tracking-sw-h2);
+}
+@utility t-h3 {
+  font-size: var(--text-sw-h3);
+  font-weight: 600;
+  line-height: var(--leading-sw-heading);
+  letter-spacing: var(--tracking-sw-h3);
+}
+@utility t-h4 {
+  font-size: var(--text-sw-h4);
+  font-weight: 600;
+  line-height: var(--leading-sw-heading);
+  letter-spacing: var(--tracking-sw-h4);
+}
+@utility t-h5 {
+  font-size: var(--text-sw-h5);
+  font-weight: 600;
+  line-height: var(--leading-sw-heading);
+  letter-spacing: var(--tracking-sw-h5);
+}
+@utility t-body-lg {
+  font-size: var(--text-sw-body-lg);
+  line-height: var(--leading-sw-relaxed);
+  letter-spacing: var(--tracking-sw-body-lg);
+}
+@utility t-body {
+  font-size: var(--text-sw-body);
+  line-height: var(--leading-sw-relaxed);
+  letter-spacing: var(--tracking-sw-body);
+}
+@utility t-caption {
+  font-size: var(--text-sw-caption);
+  line-height: var(--leading-sw-relaxed);
+  letter-spacing: var(--tracking-sw-caption);
+  color: var(--color-sw-ink-500);
+}
+@utility t-micro {
+  font-size: var(--text-sw-micro);
+  line-height: var(--leading-sw-body);
+  color: var(--color-sw-ink-500);
+}
+@utility t-eyebrow {
+  font-size: var(--text-sw-caption);
+  line-height: var(--leading-sw-body);
+  text-transform: capitalize;
+  color: var(--color-sw-gold-600);
+  font-weight: 500;
+}
+

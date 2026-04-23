@@ -65,78 +65,78 @@ export default function EmployeeAttendancePage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)]">
+        <h1 className="t-display">
           My Attendance
         </h1>
         <input
           type="month"
           value={month}
           onChange={(e) => setMonth(e.target.value)}
-          className="h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+          className="h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
         />
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] p-4">
-          <p className="text-xs font-medium text-[rgba(0,0,0,0.4)] uppercase tracking-wider mb-1">Days Worked</p>
-          <p className="text-xl font-semibold text-[rgba(0,0,0,0.88)]">{totalDays}</p>
+        <div className="sw-panel p-4">
+          <p className="text-xs font-medium text-sw-ink-500 uppercase tracking-wider mb-1">Days Worked</p>
+          <p className="text-xl font-semibold text-sw-ink-900">{totalDays}</p>
         </div>
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] p-4">
-          <p className="text-xs font-medium text-[rgba(0,0,0,0.4)] uppercase tracking-wider mb-1">Total Hours</p>
-          <p className="text-xl font-semibold text-[rgba(0,0,0,0.88)]">{totalHours.toFixed(1)}</p>
+        <div className="sw-panel p-4">
+          <p className="text-xs font-medium text-sw-ink-500 uppercase tracking-wider mb-1">Total Hours</p>
+          <p className="text-xl font-semibold text-sw-ink-900">{totalHours.toFixed(1)}</p>
         </div>
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] p-4">
-          <p className="text-xs font-medium text-[rgba(0,0,0,0.4)] uppercase tracking-wider mb-1">Late (mins)</p>
-          <p className="text-xl font-semibold text-[rgba(0,0,0,0.88)]">{totalLate}</p>
+        <div className="sw-panel p-4">
+          <p className="text-xs font-medium text-sw-ink-500 uppercase tracking-wider mb-1">Late (mins)</p>
+          <p className="text-xl font-semibold text-sw-ink-900">{totalLate}</p>
         </div>
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] p-4">
-          <p className="text-xs font-medium text-[rgba(0,0,0,0.4)] uppercase tracking-wider mb-1">Undertime (mins)</p>
-          <p className="text-xl font-semibold text-[rgba(0,0,0,0.88)]">{totalUndertime}</p>
+        <div className="sw-panel p-4">
+          <p className="text-xs font-medium text-sw-ink-500 uppercase tracking-wider mb-1">Undertime (mins)</p>
+          <p className="text-xl font-semibold text-sw-ink-900">{totalUndertime}</p>
         </div>
       </div>
 
       {/* DTR Table */}
       {loading ? (
-        <div className="text-center py-12 text-[rgba(0,0,0,0.4)] text-sm">Loading...</div>
+        <div className="text-center py-12 text-sw-ink-500 text-sm">Loading...</div>
       ) : records.length === 0 ? (
-        <div className="text-center py-12 text-[rgba(0,0,0,0.4)] text-sm">
+        <div className="text-center py-12 text-sw-ink-500 text-sm">
           No attendance records for this month.
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] overflow-hidden">
+        <div className="sw-panel overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#f9f8f3] border-b border-[rgba(0,0,0,0.06)]">
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Date</th>
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Time In</th>
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Time Out</th>
-                <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Hours</th>
-                <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Late</th>
-                <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Undertime</th>
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Remarks</th>
+              <tr className="bg-sw-cream-25 border-b border-sw-ink-100">
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Date</th>
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Time In</th>
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Time Out</th>
+                <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Hours</th>
+                <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Late</th>
+                <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Undertime</th>
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Remarks</th>
               </tr>
             </thead>
             <tbody>
               {records.map((r) => (
-                <tr key={r.id} className="border-b border-[rgba(0,0,0,0.04)] hover:bg-[#f9f8f3] transition-colors">
-                  <td className="px-5 py-3.5 text-[rgba(0,0,0,0.88)] font-medium">{fmtDate(r.date)}</td>
-                  <td className="px-5 py-3.5 text-[rgba(0,0,0,0.65)]">{fmtTime(r.first_in)}</td>
-                  <td className="px-5 py-3.5 text-[rgba(0,0,0,0.65)]">{fmtTime(r.last_out)}</td>
-                  <td className="px-5 py-3.5 text-right tabular-nums text-[rgba(0,0,0,0.88)]">
+                <tr key={r.id} className="border-b border-sw-ink-100 hover:bg-sw-cream-25 transition-colors">
+                  <td className="px-6 py-4.5 text-sw-ink-900 font-medium">{fmtDate(r.date)}</td>
+                  <td className="px-6 py-4.5 text-sw-ink-700">{fmtTime(r.first_in)}</td>
+                  <td className="px-6 py-4.5 text-sw-ink-700">{fmtTime(r.last_out)}</td>
+                  <td className="px-6 py-4.5 text-right tabular-nums text-sw-ink-900">
                     {(r.total_hours_worked ?? 0).toFixed(1)}
                   </td>
-                  <td className="px-5 py-3.5 text-right tabular-nums text-[rgba(0,0,0,0.65)]">
+                  <td className="px-6 py-4.5 text-right tabular-nums text-sw-ink-700">
                     {r.late_minutes > 0 ? (
-                      <span className="text-[#c62828]">{r.late_minutes}m</span>
+                      <span className="text-sw-danger-500">{r.late_minutes}m</span>
                     ) : "—"}
                   </td>
-                  <td className="px-5 py-3.5 text-right tabular-nums text-[rgba(0,0,0,0.65)]">
+                  <td className="px-6 py-4.5 text-right tabular-nums text-sw-ink-700">
                     {r.undertime_minutes > 0 ? (
-                      <span className="text-[#c62828]">{r.undertime_minutes}m</span>
+                      <span className="text-sw-danger-500">{r.undertime_minutes}m</span>
                     ) : "—"}
                   </td>
-                  <td className="px-5 py-3.5 text-[rgba(0,0,0,0.4)] text-xs">
+                  <td className="px-6 py-4.5 text-sw-ink-500 text-xs">
                     {[
                       r.is_rest_day && "Rest Day",
                       r.is_holiday && (r.holiday_type === "regular" ? "Regular Holiday" : "Special Holiday"),

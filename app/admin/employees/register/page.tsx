@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import FaceRegistration from "@/components/FaceRegistration";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
 
 export default function RegisterEmployeePage() {
   const router = useRouter();
@@ -54,21 +57,18 @@ export default function RegisterEmployeePage() {
 
   return (
     <div className="max-w-xl mx-auto">
-      <h1 className="text-[44px] font-medium tracking-[-2px] leading-[1.1] text-[rgba(0,0,0,0.88)] mb-8">
-        Register New Employee
-      </h1>
+      <h1 className="t-display mb-8">Register New Employee</h1>
 
-      {/* Progress steps */}
       <div className="flex items-center mb-10">
         <StepIndicator num={1} label="Details" active={step === "info"} done={step !== "info"} />
-        <div className="flex-1 h-px bg-[rgba(0,0,0,0.1)] mx-3" />
+        <div className="flex-1 h-px bg-sw-ink-200 mx-3" />
         <StepIndicator num={2} label="Face Scan" active={step === "face"} done={step === "saving"} />
-        <div className="flex-1 h-px bg-[rgba(0,0,0,0.1)] mx-3" />
+        <div className="flex-1 h-px bg-sw-ink-200 mx-3" />
         <StepIndicator num={3} label="Complete" active={step === "saving"} done={false} />
       </div>
 
       {error && (
-        <div className="mb-5 px-4 py-3 bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34]">
+        <div className="mb-5 px-4 py-3 bg-sw-danger-100 border border-sw-danger-500/20 rounded-[12px] text-sw-caption font-medium text-[#a11b35]">
           {error}
         </div>
       )}
@@ -76,62 +76,47 @@ export default function RegisterEmployeePage() {
       {step === "info" && (
         <form
           onSubmit={handleInfoSubmit}
-          className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-8"
+          className="bg-sw-white rounded-sw-xl border border-sw-ink-200 shadow-sw-1 p-8"
         >
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium tracking-normal text-[rgba(0,0,0,0.65)] mb-2">
-                Full Name *
-              </label>
-              <input
+              <Label>Full Name *</Label>
+              <Input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full h-12 px-4 border border-[rgba(0,0,0,0.1)] rounded-2xl text-base text-[rgba(0,0,0,0.88)] bg-[#fafaf2] placeholder:text-[rgba(0,0,0,0.3)] focus:border-[#ffc671] focus:ring-2 focus:ring-[rgba(255,198,113,0.25)] outline-none transition-all duration-150"
                 placeholder="John Smith"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium tracking-normal text-[rgba(0,0,0,0.65)] mb-2">
-                Role
-              </label>
-              <input
+              <Label>Role</Label>
+              <Input
                 type="text"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="w-full h-12 px-4 border border-[rgba(0,0,0,0.1)] rounded-2xl text-base text-[rgba(0,0,0,0.88)] bg-[#fafaf2] placeholder:text-[rgba(0,0,0,0.3)] focus:border-[#ffc671] focus:ring-2 focus:ring-[rgba(255,198,113,0.25)] outline-none transition-all duration-150"
                 placeholder="Software Engineer"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium tracking-normal text-[rgba(0,0,0,0.65)] mb-2">
-                Department
-              </label>
-              <input
+              <Label>Department</Label>
+              <Input
                 type="text"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                className="w-full h-12 px-4 border border-[rgba(0,0,0,0.1)] rounded-2xl text-base text-[rgba(0,0,0,0.88)] bg-[#fafaf2] placeholder:text-[rgba(0,0,0,0.3)] focus:border-[#ffc671] focus:ring-2 focus:ring-[rgba(255,198,113,0.25)] outline-none transition-all duration-150"
                 placeholder="Engineering"
               />
             </div>
           </div>
-          <button
-            type="submit"
-            className="w-full h-12 mt-8 rounded-full text-sm font-medium text-[#61474c] transition-all duration-150 hover:shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
-            style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
-          >
+          <Button type="submit" variant="primary" size="lg" className="w-full mt-8">
             Next: Capture Face
-          </button>
+          </Button>
         </form>
       )}
 
       {step === "face" && (
-        <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-8">
-          <h2 className="text-xl font-medium tracking-[-1px] leading-[1.2] text-[rgba(0,0,0,0.88)] mb-1">
-            Face Registration for {name}
-          </h2>
-          <p className="text-base text-[rgba(0,0,0,0.4)] mb-6">
+        <div className="bg-sw-white rounded-sw-xl border border-sw-ink-200 shadow-sw-1 p-8">
+          <h2 className="t-h4 mb-1 text-sw-ink-900">Face Registration for {name}</h2>
+          <p className="t-body text-sw-ink-500 mb-6">
             Capture 5 face images. Move your head slightly between each capture.
           </p>
           <FaceRegistration onComplete={handleFaceComplete} requiredCaptures={5} />
@@ -139,9 +124,9 @@ export default function RegisterEmployeePage() {
       )}
 
       {step === "saving" && (
-        <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-16 text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#ffc671] mx-auto mb-4" />
-          <p className="text-base text-[rgba(0,0,0,0.65)]">Saving employee data...</p>
+        <div className="bg-sw-white rounded-sw-xl border border-sw-ink-200 shadow-sw-1 p-16 text-center">
+          <div className="animate-spin rounded-sw-full h-10 w-10 border-b-2 border-sw-gold-500 mx-auto mb-4" />
+          <p className="t-body text-sw-ink-500">Saving employee data...</p>
         </div>
       )}
     </div>
@@ -159,24 +144,20 @@ function StepIndicator({
   active: boolean;
   done: boolean;
 }) {
+  const circleClass = done
+    ? "bg-sw-gold-500 text-sw-white"
+    : active
+    ? "bg-sw-gold-600 text-sw-white"
+    : "bg-sw-ink-100 text-sw-ink-500";
   return (
     <div className="flex items-center gap-2">
       <div
-        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors duration-150"
-        style={
-          done
-            ? { background: "linear-gradient(to right, #ffc671, #cf9358)", color: "#61474c" }
-            : active
-            ? { background: "#9a6d2a", color: "#ffffff" }
-            : { background: "rgba(0,0,0,0.06)", color: "rgba(0,0,0,0.4)" }
-        }
+        className={`w-8 h-8 rounded-sw-full flex items-center justify-center text-sw-micro font-medium transition-colors duration-sw-fast ${circleClass}`}
       >
-        {done ? "\u2713" : num}
+        {done ? "✓" : num}
       </div>
       <span
-        className={`text-sm font-medium ${
-          active ? "text-[rgba(0,0,0,0.88)]" : "text-[rgba(0,0,0,0.4)]"
-        }`}
+        className={`text-sw-caption font-medium ${active ? "text-sw-ink-900" : "text-sw-ink-500"}`}
       >
         {label}
       </span>

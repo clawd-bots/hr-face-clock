@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Department } from "@/lib/types/database";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { Plus } from "@/components/ui/icons";
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -68,114 +72,107 @@ export default function DepartmentsPage() {
     fetchDepartments();
   };
 
+  const openNew = () => {
+    setEditId(null);
+    setName("");
+    setCode("");
+    setShowForm(true);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-[28px] font-medium tracking-[-1.75px] text-[rgba(0,0,0,0.88)]">
-          Departments
-        </h1>
-        <button
-          onClick={() => {
-            setEditId(null);
-            setName("");
-            setCode("");
-            setShowForm(true);
-          }}
-          className="h-10 px-5 rounded-full text-sm font-medium text-[#61474c]"
-          style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
-        >
-          + New Department
-        </button>
+        <h1 className="t-display">Departments</h1>
+        <Button variant="primary" onClick={openNew}>
+          <Plus className="w-4 h-4" strokeWidth={2} />
+          New Department
+        </Button>
       </div>
 
       {error && (
-        <div className="mb-4 px-4 py-3 bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34]">
+        <div className="mb-4 px-4 py-3 bg-sw-danger-100 border border-sw-danger-500/20 rounded-[12px] text-sw-caption font-medium text-[#a11b35]">
           {error}
         </div>
       )}
 
       {showForm && (
-        <div className="mb-6 p-5 rounded-2xl bg-white border border-[rgba(0,0,0,0.1)] shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
-          <h3 className="text-sm font-medium text-[rgba(0,0,0,0.88)] mb-3">
+        <div className="mb-6 sw-panel p-6">
+          <h3 className="t-h5 mb-4 text-sw-ink-900">
             {editId ? "Edit Department" : "New Department"}
           </h3>
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Department name"
-              className="flex-1 h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
-            />
-            <input
-              type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="Code (optional)"
-              className="w-32 h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
-            />
-            <button
-              onClick={handleSave}
-              disabled={saving || !name.trim()}
-              className="h-10 px-5 rounded-xl text-sm font-medium text-[#61474c] disabled:opacity-50"
-              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
-            >
+          <div className="flex flex-wrap gap-3 items-end">
+            <div className="flex-1 min-w-[220px]">
+              <Label>Name</Label>
+              <Input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Department name"
+              />
+            </div>
+            <div className="w-40">
+              <Label>Code</Label>
+              <Input
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="Optional"
+              />
+            </div>
+            <Button variant="primary" onClick={handleSave} disabled={saving || !name.trim()}>
               {saving ? "Saving..." : editId ? "Update" : "Create"}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
               onClick={() => {
                 setShowForm(false);
                 setEditId(null);
               }}
-              className="h-10 px-4 rounded-xl text-sm font-medium text-[rgba(0,0,0,0.5)] border border-[rgba(0,0,0,0.1)]"
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
-      <div className="rounded-2xl border border-[rgba(0,0,0,0.1)] overflow-hidden bg-white">
+      <div className="glass-card overflow-hidden">
         <table className="w-full">
           <thead>
-            <tr className="bg-[#f4f1e6]">
-              <th className="text-left px-5 py-3 text-xs font-medium text-[rgba(0,0,0,0.5)] uppercase tracking-wider">
-                Name
-              </th>
-              <th className="text-left px-5 py-3 text-xs font-medium text-[rgba(0,0,0,0.5)] uppercase tracking-wider">
-                Code
-              </th>
-              <th className="text-right px-5 py-3 text-xs font-medium text-[rgba(0,0,0,0.5)] uppercase tracking-wider">
-                Actions
-              </th>
+            <tr className="text-left bg-sw-cream-25 border-b border-sw-ink-100">
+              <th className="px-6 py-4 text-sw-micro font-medium uppercase tracking-wide text-sw-ink-500">Name</th>
+              <th className="px-6 py-4 text-sw-micro font-medium uppercase tracking-wide text-sw-ink-500">Code</th>
+              <th className="px-6 py-4 text-sw-micro font-medium uppercase tracking-wide text-sw-ink-500 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
+          <tbody>
             {departments.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-5 py-8 text-center text-sm text-[rgba(0,0,0,0.4)]">
+                <td colSpan={3} className="px-6 py-10 text-center text-sw-caption text-sw-ink-500">
                   No departments yet
                 </td>
               </tr>
             ) : (
               departments.map((dept) => (
-                <tr key={dept.id} className="hover:bg-[#fafaf2] transition-colors duration-100">
-                  <td className="px-5 py-3 text-sm font-medium text-[rgba(0,0,0,0.88)]">
+                <tr
+                  key={dept.id}
+                  className="border-b border-sw-ink-100 last:border-0 hover:bg-sw-cream-25 transition-colors duration-sw-fast"
+                >
+                  <td className="px-6 py-4 text-sw-caption font-medium text-sw-ink-900">
                     {dept.name}
                   </td>
-                  <td className="px-5 py-3 text-sm text-[rgba(0,0,0,0.5)]">
+                  <td className="px-6 py-4 text-sw-caption text-sw-ink-700">
                     {dept.code || "—"}
                   </td>
-                  <td className="px-5 py-3 text-right">
+                  <td className="px-6 py-4 text-right">
                     <button
                       onClick={() => handleEdit(dept)}
-                      className="text-xs font-medium text-[#9a6d2a] hover:text-[#cf9358] mr-4"
+                      className="text-sw-caption font-medium text-sw-gold-600 hover:underline mr-4 transition-colors duration-sw-fast"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDeactivate(dept.id)}
-                      className="text-xs font-medium text-[#8a3a34] hover:text-[rgba(138,58,52,0.7)]"
+                      className="text-sw-caption font-medium text-sw-danger-500 hover:underline transition-colors duration-sw-fast"
                     >
                       Deactivate
                     </button>

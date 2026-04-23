@@ -23,9 +23,9 @@ const TABS = [
 ];
 
 const inputClass =
-  "w-full h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150";
+  "w-full h-10 px-3 bg-sw-cream-50 border border-sw-ink-200 rounded-xl text-sm text-sw-ink-900 placeholder:text-sw-ink-500 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)] focus:border-sw-gold-500 transition-colors duration-150";
 
-const labelClass = "block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1";
+const labelClass = "block text-xs font-medium text-sw-ink-500 mb-1";
 
 export default function EmployeeDetailPage({
   params,
@@ -170,7 +170,7 @@ export default function EmployeeDetailPage({
   if (!employee) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#cf9358]" />
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sw-gold-600" />
       </div>
     );
   }
@@ -182,15 +182,15 @@ export default function EmployeeDetailPage({
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.push("/admin/employees")}
-            className="text-sm font-medium text-[rgba(0,0,0,0.5)] hover:text-[rgba(0,0,0,0.88)]"
+            className="text-sm font-medium text-sw-ink-500 hover:text-sw-ink-900"
           >
             ← Employees
           </button>
           <div>
-            <h1 className="text-[28px] font-medium tracking-[-1.75px] text-[rgba(0,0,0,0.88)]">
+            <h1 className="t-display">
               {employee.first_name ? `${employee.first_name} ${employee.last_name ?? ""}`.trim() : employee.name}
             </h1>
-            <p className="text-sm text-[rgba(0,0,0,0.5)]">
+            <p className="text-sm text-sw-ink-500">
               {employee.position_title || employee.role || "No position"} ·{" "}
               {employee.employee_number || "No ID"}
             </p>
@@ -198,17 +198,17 @@ export default function EmployeeDetailPage({
         </div>
         <div className="flex items-center gap-3">
           {accountMsg && (
-            <span className={`text-sm font-medium ${accountMsg.startsWith("Account created") ? "text-[#9a6d2a]" : "text-[#8a3a34]"}`}>{accountMsg}</span>
+            <span className={`text-sm font-medium ${accountMsg.startsWith("Account created") ? "text-sw-gold-600" : "text-sw-danger-500"}`}>{accountMsg}</span>
           )}
           {success && (
-            <span className="text-sm font-medium text-[#9a6d2a]">{success}</span>
+            <span className="text-sm font-medium text-sw-gold-600">{success}</span>
           )}
           {error && (
-            <span className="text-sm font-medium text-[#8a3a34]">{error}</span>
+            <span className="text-sm font-medium text-sw-danger-500">{error}</span>
           )}
           {accountChecked && (
             hasAccount ? (
-              <span className="text-xs text-[rgba(0,0,0,0.4)] border border-[rgba(0,0,0,0.08)] rounded-full px-3 py-1.5">
+              <span className="text-xs text-sw-ink-500 border border-sw-ink-100 rounded-full px-3 py-1.5">
                 Login: {hasAccount}
               </span>
             ) : (
@@ -217,7 +217,7 @@ export default function EmployeeDetailPage({
                   setShowCreateAccount(true);
                   setAccountEmail(employee.work_email || employee.personal_email || "");
                 }}
-                className="h-10 px-4 rounded-full text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.12)] hover:bg-[#f4f1e6] transition-colors"
+                className="h-10 px-4 rounded-full text-sm font-medium text-sw-ink-700 border border-sw-ink-200 hover:bg-[var(--color-sw-ink-100)] transition-colors"
               >
                 Create Account
               </button>
@@ -226,8 +226,8 @@ export default function EmployeeDetailPage({
           <button
             onClick={saveEmployee}
             disabled={saving}
-            className="h-10 px-6 rounded-full text-sm font-medium text-[#61474c] disabled:opacity-50"
-            style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+            className="h-10 px-6 rounded-full text-sm font-medium text-[#ffffff] disabled:opacity-50"
+            style={{ background: "var(--color-sw-gold-500)" }}
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
@@ -436,17 +436,17 @@ export default function EmployeeDetailPage({
         <div className="space-y-6">
           <DocumentUpload employeeId={id} onUploadComplete={fetchSubData} />
           {documents.length === 0 ? (
-            <p className="text-sm text-[rgba(0,0,0,0.4)] text-center py-8">No documents uploaded</p>
+            <p className="text-sm text-sw-ink-500 text-center py-8">No documents uploaded</p>
           ) : (
             <div className="space-y-2">
               {documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-white border border-[rgba(0,0,0,0.06)]"
+                  className="flex items-center justify-between p-3 rounded-xl bg-white border border-sw-ink-100"
                 >
                   <div>
-                    <p className="text-sm font-medium text-[rgba(0,0,0,0.88)]">{doc.document_name}</p>
-                    <p className="text-xs text-[rgba(0,0,0,0.4)]">
+                    <p className="text-sm font-medium text-sw-ink-900">{doc.document_name}</p>
+                    <p className="text-xs text-sw-ink-500">
                       {doc.document_type.replace("_", " ")} · {doc.file_size ? `${(doc.file_size / 1024).toFixed(0)} KB` : ""} · {new Date(doc.created_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -459,7 +459,7 @@ export default function EmployeeDetailPage({
                           window.open(url, "_blank");
                         }
                       }}
-                      className="text-xs font-medium text-[#9a6d2a] hover:text-[rgba(154,109,42,0.7)]"
+                      className="text-xs font-medium text-sw-gold-600 hover:text-[rgba(154,109,42,0.7)]"
                     >
                       View
                     </button>
@@ -468,7 +468,7 @@ export default function EmployeeDetailPage({
                         await fetch(`/api/employees/${id}/documents?docId=${doc.id}`, { method: "DELETE" });
                         fetchSubData();
                       }}
-                      className="text-xs font-medium text-[#8a3a34] hover:text-[rgba(138,58,52,0.7)]"
+                      className="text-xs font-medium text-sw-danger-500 hover:text-[rgba(138,58,52,0.7)]"
                     >
                       Delete
                     </button>
@@ -484,8 +484,8 @@ export default function EmployeeDetailPage({
       {showCreateAccount && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
           <div className="glass-modal rounded-2xl w-full max-w-md p-6">
-            <h3 className="text-lg font-semibold text-[rgba(0,0,0,0.88)] mb-1">Create Login Account</h3>
-            <p className="text-sm text-[rgba(0,0,0,0.4)] mb-5">
+            <h3 className="text-lg font-semibold text-sw-ink-900 mb-1">Create Login Account</h3>
+            <p className="text-sm text-sw-ink-500 mb-5">
               Create a login for {employee.first_name ? `${employee.first_name} ${employee.last_name ?? ""}`.trim() : employee.name}
             </p>
 
@@ -529,15 +529,15 @@ export default function EmployeeDetailPage({
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => { setShowCreateAccount(false); setAccountMsg(""); }}
-                className="h-10 px-4 rounded-full text-sm font-medium text-[rgba(0,0,0,0.5)] border border-[rgba(0,0,0,0.1)]"
+                className="h-10 px-4 rounded-full text-sm font-medium text-sw-ink-500 border border-sw-ink-200"
               >
                 Cancel
               </button>
               <button
                 onClick={createAccount}
                 disabled={accountLoading || !accountEmail || !accountPassword}
-                className="h-10 px-5 rounded-full text-sm font-medium text-[#61474c] disabled:opacity-50"
-                style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+                className="h-10 px-5 rounded-full text-sm font-medium text-[#ffffff] disabled:opacity-50"
+                style={{ background: "var(--color-sw-gold-500)" }}
               >
                 {accountLoading ? "Creating..." : "Create Account"}
               </button>
@@ -571,21 +571,21 @@ function ExpandableSection({
   const toggle = onToggle ?? (() => setInternalOpen((p) => !p));
 
   return (
-    <div className="border border-[rgba(0,0,0,0.08)] rounded-2xl bg-white overflow-hidden">
+    <div className="border border-sw-ink-100 rounded-2xl bg-white overflow-hidden">
       <button
         onClick={toggle}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-[rgba(0,0,0,0.01)] transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-sw-cream-25 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-[rgba(0,0,0,0.88)]">{title}</span>
+          <span className="text-sm font-semibold text-sw-ink-900">{title}</span>
           {count !== undefined && (
-            <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full text-[11px] font-semibold bg-[rgba(255,198,113,0.2)] text-[#9a6d2a]">
+            <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full text-[11px] font-semibold bg-[var(--color-sw-gold-50)] text-sw-gold-600">
               {count}
             </span>
           )}
         </div>
         <svg
-          className={`w-4 h-4 text-[rgba(0,0,0,0.35)] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-sw-ink-300 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -595,7 +595,7 @@ function ExpandableSection({
         </svg>
       </button>
       {isOpen && (
-        <div className="px-5 pb-5 border-t border-[rgba(0,0,0,0.06)]">
+        <div className="px-5 pb-5 border-t border-sw-ink-100">
           <div className="pt-4">{children}</div>
         </div>
       )}
@@ -688,19 +688,19 @@ function SubTableSection({
   return (
     <div>
       {items.length === 0 && !showForm && (
-        <p className="text-sm text-[rgba(0,0,0,0.4)] text-center py-4">{emptyText}</p>
+        <p className="text-sm text-sw-ink-500 text-center py-4">{emptyText}</p>
       )}
 
       {items.map((item) => (
         <div
           key={item.id as string}
-          className="flex items-center justify-between p-3 rounded-xl bg-[#fafaf2] border border-[rgba(0,0,0,0.04)] mb-2"
+          className="flex items-center justify-between p-3 rounded-xl bg-sw-cream-50 border border-sw-ink-100 mb-2"
         >
           <div className="flex flex-wrap gap-x-6 gap-y-1">
             {fields.map((f) => (
               <div key={f.key}>
-                <span className="text-xs text-[rgba(0,0,0,0.4)]">{f.label}: </span>
-                <span className="text-sm text-[rgba(0,0,0,0.88)]">
+                <span className="text-xs text-sw-ink-500">{f.label}: </span>
+                <span className="text-sm text-sw-ink-900">
                   {(item[f.key] as string) || "\u2014"}
                 </span>
               </div>
@@ -708,7 +708,7 @@ function SubTableSection({
           </div>
           <button
             onClick={() => onDelete(item.id as string)}
-            className="text-xs font-medium text-[#8a3a34] hover:text-[rgba(138,58,52,0.7)] ml-4 shrink-0"
+            className="text-xs font-medium text-sw-danger-500 hover:text-[rgba(138,58,52,0.7)] ml-4 shrink-0"
           >
             Delete
           </button>
@@ -716,7 +716,7 @@ function SubTableSection({
       ))}
 
       {showForm ? (
-        <div className="p-4 rounded-2xl bg-[#fafaf2] border border-[rgba(0,0,0,0.08)] mt-3">
+        <div className="p-4 rounded-2xl bg-sw-cream-50 border border-sw-ink-100 mt-3">
           <div className="grid grid-cols-2 gap-3 mb-3">
             {fields.map((f) =>
               f.options ? (
@@ -750,14 +750,14 @@ function SubTableSection({
             <button
               onClick={handleAdd}
               disabled={saving}
-              className="h-9 px-4 rounded-lg text-sm font-medium text-[#61474c] disabled:opacity-50"
-              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+              className="h-9 px-4 rounded-lg text-sm font-medium text-[#ffffff] disabled:opacity-50"
+              style={{ background: "var(--color-sw-gold-500)" }}
             >
               {saving ? "Adding..." : "Add"}
             </button>
             <button
               onClick={() => { setShowForm(false); setFormData({}); }}
-              className="h-9 px-4 rounded-lg text-sm font-medium text-[rgba(0,0,0,0.5)] border border-[rgba(0,0,0,0.1)]"
+              className="h-9 px-4 rounded-lg text-sm font-medium text-sw-ink-500 border border-sw-ink-200"
             >
               Cancel
             </button>
@@ -766,7 +766,7 @@ function SubTableSection({
       ) : (
         <button
           onClick={() => setShowForm(true)}
-          className="mt-3 h-9 px-4 rounded-lg text-sm font-medium text-[#9a6d2a] border border-[rgba(207,147,88,0.3)] hover:bg-[rgba(255,198,113,0.1)] transition-colors duration-150"
+          className="mt-3 h-9 px-4 rounded-lg text-sm font-medium text-sw-gold-600 border border-[var(--color-sw-gold-100)] hover:bg-[rgba(255,198,113,0.1)] transition-colors duration-150"
         >
           + Add
         </button>

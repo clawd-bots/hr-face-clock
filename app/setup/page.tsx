@@ -2,7 +2,23 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { SweldoLogo } from "@/components/ui/SweldoLogo";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+
+function Brand({ tagline }: { tagline: string }) {
+  return (
+    <div className="text-center mb-8">
+      <div className="inline-flex items-center gap-2.5 mb-3">
+        <SweldoLogo width={28} height={30} />
+        <span className="t-h3 text-sw-ink-900">Sweldo</span>
+      </div>
+      <p className="t-body text-sw-ink-500">{tagline}</p>
+    </div>
+  );
+}
 
 export default function SetupPage() {
   const [step, setStep] = useState<"company" | "admin" | "done">("company");
@@ -15,7 +31,6 @@ export default function SetupPage() {
   const [alreadySetup, setAlreadySetup] = useState(false);
   const router = useRouter();
 
-  // Check if setup is already done
   useEffect(() => {
     fetch("/api/setup/check")
       .then((r) => r.json())
@@ -33,8 +48,6 @@ export default function SetupPage() {
     setLoading(true);
 
     try {
-      // Use the server-side setup endpoint which creates both the auth user
-      // (auto-confirmed via service role) and the company + profile
       const res = await fetch("/api/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,7 +65,6 @@ export default function SetupPage() {
         return;
       }
 
-      // Sign in with the newly created account
       const supabase = getSupabaseBrowser();
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -60,9 +72,7 @@ export default function SetupPage() {
       });
 
       if (signInError) {
-        setError(
-          "Account created but sign-in failed: " + signInError.message
-        );
+        setError("Account created but sign-in failed: " + signInError.message);
         return;
       }
 
@@ -80,14 +90,12 @@ export default function SetupPage() {
 
   if (alreadySetup) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafaf2]">
+      <div className="min-h-screen flex items-center justify-center bg-sw-cream-50">
         <div className="text-center">
-          <p className="text-base text-[rgba(0,0,0,0.65)] mb-4">
-            System is already set up.
-          </p>
+          <p className="t-body text-sw-ink-500 mb-4">System is already set up.</p>
           <a
             href="/login"
-            className="text-sm font-medium text-[#9a6d2a] hover:underline"
+            className="text-sw-caption font-medium text-sw-gold-600 hover:underline"
           >
             Go to Sign In
           </a>
@@ -98,54 +106,28 @@ export default function SetupPage() {
 
   if (step === "done") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafaf2]">
+      <div className="min-h-screen flex items-center justify-center bg-sw-cream-50">
         <div className="text-center">
-          <div className="text-[52px] font-medium tracking-[-3.5px] leading-none mb-2 text-[#cf9358]">
-            All Set!
-          </div>
-          <p className="text-base text-[rgba(0,0,0,0.65)]">
-            Redirecting to dashboard...
-          </p>
+          <div className="t-display text-sw-gold-600 mb-2">All Set!</div>
+          <p className="t-body text-sw-ink-500">Redirecting to dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#fafaf2]">
-      <div
-        className="w-full max-w-lg p-10 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
-        style={{
-          background:
-            "linear-gradient(167deg, #f4f1e6 0%, #faf8f2 38%, #faf8f2 84%, #f4f1e6 100%)",
-        }}
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-[44px] font-medium tracking-[-2px] leading-[1.1] text-[rgba(0,0,0,0.88)]">
-            &you
-          </h1>
-          <p className="text-base text-[rgba(0,0,0,0.65)] mt-1">
-            Set up your HR system
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-sw-cream-50 p-6">
+      <div className="w-full max-w-lg p-10 rounded-sw-xl bg-sw-white border border-sw-ink-200 shadow-sw-2">
+        <Brand tagline="Set up your HR system" />
 
-        {/* Progress */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div
-            className={`w-3 h-3 rounded-full ${
-              step === "company" ? "bg-[#cf9358]" : "bg-[rgba(0,0,0,0.1)]"
-            }`}
-          />
-          <div className="w-8 h-px bg-[rgba(0,0,0,0.1)]" />
-          <div
-            className={`w-3 h-3 rounded-full ${
-              step === "admin" ? "bg-[#cf9358]" : "bg-[rgba(0,0,0,0.1)]"
-            }`}
-          />
+          <div className={`w-3 h-3 rounded-sw-full ${step === "company" ? "bg-sw-gold-500" : "bg-sw-ink-200"}`} />
+          <div className="w-8 h-px bg-sw-ink-200" />
+          <div className={`w-3 h-3 rounded-sw-full ${step === "admin" ? "bg-sw-gold-500" : "bg-sw-ink-200"}`} />
         </div>
 
         {error && (
-          <div className="mb-6 px-4 py-3 bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34]">
+          <div className="mb-6 px-4 py-3 bg-sw-danger-100 border border-sw-danger-500/20 rounded-[12px] text-sw-caption font-medium text-[#a11b35]">
             {error}
           </div>
         )}
@@ -153,99 +135,75 @@ export default function SetupPage() {
         {step === "company" && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1.5">
-                Company Name
-              </label>
-              <input
+              <Label>Company Name</Label>
+              <Input
                 type="text"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 required
-                className="w-full h-12 px-4 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-2xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150"
                 placeholder="Your Company Name"
               />
             </div>
-            <button
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full"
               onClick={() => {
                 if (companyName.trim()) {
                   setStep("admin");
                   setError("");
                 }
               }}
-              className="w-full h-12 rounded-full text-sm font-medium text-[#61474c] transition-all duration-150 hover:shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
-              style={{
-                background: "linear-gradient(to right, #ffc671, #cf9358)",
-              }}
             >
               Next
-            </button>
+            </Button>
           </div>
         )}
 
         {step === "admin" && (
           <form onSubmit={handleSetup} className="space-y-4">
-            <p className="text-sm font-medium text-[rgba(0,0,0,0.65)] mb-2">
+            <p className="text-sw-caption font-medium text-sw-ink-500 mb-2">
               Create your admin account for{" "}
-              <span className="text-[#9a6d2a]">{companyName}</span>
+              <span className="text-sw-gold-600">{companyName}</span>
             </p>
             <div>
-              <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1.5">
-                Your Name
-              </label>
-              <input
+              <Label>Your Name</Label>
+              <Input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
-                className="w-full h-12 px-4 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-2xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150"
                 placeholder="Full name"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1.5">
-                Email
-              </label>
-              <input
+              <Label>Email</Label>
+              <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full h-12 px-4 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-2xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150"
                 placeholder="admin@company.com"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1.5">
-                Password
-              </label>
-              <input
+              <Label>Password</Label>
+              <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full h-12 px-4 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-2xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150"
                 placeholder="Minimum 6 characters"
               />
             </div>
             <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setStep("company")}
-                className="h-12 px-6 rounded-full text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.1)] hover:border-[rgba(0,0,0,0.2)] transition-colors duration-150"
-              >
+              <Button type="button" variant="secondary" size="lg" onClick={() => setStep("company")}>
                 Back
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 h-12 rounded-full text-sm font-medium text-[#61474c] transition-all duration-150 hover:shadow-[0_4px_24px_rgba(0,0,0,0.10)] disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  background: "linear-gradient(to right, #ffc671, #cf9358)",
-                }}
-              >
+              </Button>
+              <Button type="submit" variant="primary" size="lg" className="flex-1" disabled={loading}>
                 {loading ? "Setting up..." : "Complete Setup"}
-              </button>
+              </Button>
             </div>
           </form>
         )}

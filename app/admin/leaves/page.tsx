@@ -114,9 +114,9 @@ function diffDays(start: string, end: string): number {
 }
 
 const INPUT_CLASS =
-  "w-full h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150";
+  "w-full h-10 px-3 bg-sw-cream-50 border border-sw-ink-200 rounded-xl text-sm text-sw-ink-900 placeholder:text-sw-ink-500 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)] focus:border-sw-gold-500 transition-colors duration-150";
 
-const LABEL_CLASS = "block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1";
+const LABEL_CLASS = "block text-xs font-medium text-sw-ink-500 mb-1";
 
 const STATUS_FILTERS = ["all", "pending", "approved", "rejected", "cancelled"] as const;
 
@@ -136,7 +136,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
       role="switch"
       aria-checked={value}
       onClick={() => onChange(!value)}
-      className={`relative w-10 h-6 rounded-full transition-colors duration-150 ${value ? "bg-[#ffc671]" : "bg-[rgba(0,0,0,0.1)]"}`}
+      className={`relative w-10 h-6 rounded-full transition-colors duration-150 ${value ? "bg-[var(--color-sw-gold-500)]" : "bg-[var(--color-sw-ink-200)]"}`}
     >
       <span
         className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-150 ${value ? "translate-x-4" : ""}`}
@@ -624,25 +624,25 @@ export default function LeaveManagementPage() {
     switch (status) {
       case "pending":
         return (
-          <span className={`${base} bg-[rgba(255,198,113,0.2)] text-[#9a6d2a]`}>
+          <span className={`${base} bg-[var(--color-sw-gold-50)] text-sw-gold-600`}>
             {status}
           </span>
         );
       case "approved":
         return (
-          <span className={`${base} bg-[rgba(34,139,34,0.1)] text-[#1a7a1a]`}>
+          <span className={`${base} bg-[rgba(34,139,34,0.1)] text-sw-success-500`}>
             {status}
           </span>
         );
       case "rejected":
         return (
-          <span className={`${base} bg-[rgba(138,58,52,0.1)] text-[#8a3a34]`}>
+          <span className={`${base} bg-[rgba(138,58,52,0.1)] text-sw-danger-500`}>
             {status}
           </span>
         );
       case "cancelled":
         return (
-          <span className={`${base} bg-[rgba(0,0,0,0.06)] text-[rgba(0,0,0,0.4)]`}>
+          <span className={`${base} bg-[rgba(28, 26, 22, 0.06)] text-sw-ink-500`}>
             {status}
           </span>
         );
@@ -657,13 +657,13 @@ export default function LeaveManagementPage() {
 
   function renderLtForm() {
     return (
-      <div className="bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-2xl p-4 mb-4">
-        <h3 className="text-sm font-semibold text-[rgba(0,0,0,0.88)] mb-3">
+      <div className="bg-sw-cream-50 border border-sw-ink-200 rounded-2xl p-4 mb-4">
+        <h3 className="text-sm font-semibold text-sw-ink-900 mb-3">
           {ltFormMode === "add" ? "Add Leave Type" : "Edit Leave Type"}
         </h3>
 
         {ltFormError && (
-          <div className="bg-white border border-[rgba(138,58,52,0.2)] rounded-xl text-sm font-medium text-[#8a3a34] p-3 mb-3">
+          <div className="bg-white border border-[rgba(244, 63, 94, 0.2)] rounded-xl text-sm font-medium text-sw-danger-500 p-3 mb-3">
             {ltFormError}
           </div>
         )}
@@ -706,19 +706,19 @@ export default function LeaveManagementPage() {
 
           {/* Toggle row 1 */}
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <label className="flex items-center gap-2 text-sm text-[rgba(0,0,0,0.65)]">
+            <label className="flex items-center gap-2 text-sm text-sw-ink-700">
               <Toggle value={ltForm.is_paid} onChange={(v) => setLtForm((p) => ({ ...p, is_paid: v }))} />
               Is Paid
             </label>
-            <label className="flex items-center gap-2 text-sm text-[rgba(0,0,0,0.65)]">
+            <label className="flex items-center gap-2 text-sm text-sw-ink-700">
               <Toggle value={ltForm.is_convertible} onChange={(v) => setLtForm((p) => ({ ...p, is_convertible: v }))} />
               Is Convertible
             </label>
-            <label className="flex items-center gap-2 text-sm text-[rgba(0,0,0,0.65)]">
+            <label className="flex items-center gap-2 text-sm text-sw-ink-700">
               <Toggle value={ltForm.requires_attachment} onChange={(v) => setLtForm((p) => ({ ...p, requires_attachment: v }))} />
               Requires Attachment
             </label>
-            <label className="flex items-center gap-2 text-sm text-[rgba(0,0,0,0.65)]">
+            <label className="flex items-center gap-2 text-sm text-sw-ink-700">
               <Toggle value={ltForm.allow_half_day} onChange={(v) => setLtForm((p) => ({ ...p, allow_half_day: v }))} />
               Allow Half Day
             </label>
@@ -761,7 +761,7 @@ export default function LeaveManagementPage() {
           </div>
 
           {/* Prorate toggle */}
-          <label className="flex items-center gap-2 text-sm text-[rgba(0,0,0,0.65)]">
+          <label className="flex items-center gap-2 text-sm text-sw-ink-700">
             <Toggle value={ltForm.prorate_on_hire} onChange={(v) => setLtForm((p) => ({ ...p, prorate_on_hire: v }))} />
             Pro-rate on Hire
           </label>
@@ -771,14 +771,14 @@ export default function LeaveManagementPage() {
             <button
               onClick={handleLtFormSubmit}
               disabled={ltFormSubmitting}
-              className="h-9 px-4 rounded-xl text-sm font-medium text-[#61474c] transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+              className="h-9 px-4 rounded-xl text-sm font-medium text-[#ffffff] transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{ background: "var(--color-sw-gold-500)" }}
             >
               {ltFormSubmitting ? "Saving..." : "Save"}
             </button>
             <button
               onClick={cancelLtForm}
-              className="h-9 px-4 rounded-xl text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.1)] hover:bg-[rgba(0,0,0,0.03)] transition-colors"
+              className="h-9 px-4 rounded-xl text-sm font-medium text-sw-ink-700 border border-sw-ink-200 hover:bg-[rgba(28, 26, 22, 0.03)] transition-colors"
             >
               Cancel
             </button>
@@ -796,21 +796,21 @@ export default function LeaveManagementPage() {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-[28px] font-medium tracking-[-1.75px] text-[rgba(0,0,0,0.88)]">
+        <h1 className="t-display">
           Leave Management
         </h1>
         <div className="flex gap-3">
           <button
             onClick={() => setShowLTPopup(true)}
-            className="h-10 px-5 rounded-xl text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.1)] hover:bg-[rgba(0,0,0,0.03)] transition-colors"
+            className="h-10 px-5 rounded-xl text-sm font-medium text-sw-ink-700 border border-sw-ink-200 hover:bg-[rgba(28, 26, 22, 0.03)] transition-colors"
           >
             Leave Types
           </button>
           {activeTab === "requests" && (
             <button
               onClick={() => setShowFileModal(true)}
-              className="h-10 px-5 rounded-xl text-sm font-medium text-[#61474c] transition-opacity hover:opacity-90"
-              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+              className="h-10 px-5 rounded-xl text-sm font-medium text-[#ffffff] transition-opacity hover:opacity-90"
+              style={{ background: "var(--color-sw-gold-500)" }}
             >
               File Leave
             </button>
@@ -880,7 +880,7 @@ export default function LeaveManagementPage() {
 
           {/* Error */}
           {reqError && (
-            <div className="bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34] p-4 mb-6">
+            <div className="bg-sw-danger-100 border border-sw-danger-500/20 rounded-[12px] text-sw-caption font-medium text-[#a11b35] p-4 mb-6">
               {reqError}
             </div>
           )}
@@ -890,12 +890,12 @@ export default function LeaveManagementPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[rgba(0,0,0,0.06)]">
+                  <tr className="text-left bg-sw-cream-25 border-b border-sw-ink-100">
                     {["Employee", "Leave Type", "Dates", "Days", "Reason", "Status", "Actions"].map(
                       (h) => (
                         <th
                           key={h}
-                          className="text-left px-4 py-3 text-xs font-medium text-[rgba(0,0,0,0.5)] uppercase tracking-wide"
+                          className="text-left px-4 py-3 text-xs font-medium text-sw-ink-500 uppercase tracking-wide"
                         >
                           {h}
                         </th>
@@ -908,7 +908,7 @@ export default function LeaveManagementPage() {
                     <tr>
                       <td
                         colSpan={7}
-                        className="px-4 py-10 text-center text-[rgba(0,0,0,0.4)]"
+                        className="px-4 py-10 text-center text-sw-ink-500"
                       >
                         Loading...
                       </td>
@@ -917,7 +917,7 @@ export default function LeaveManagementPage() {
                     <tr>
                       <td
                         colSpan={7}
-                        className="px-4 py-10 text-center text-[rgba(0,0,0,0.4)]"
+                        className="px-4 py-10 text-center text-sw-ink-500"
                       >
                         No leave requests found.
                       </td>
@@ -926,36 +926,36 @@ export default function LeaveManagementPage() {
                     requests.map((r) => (
                       <tr
                         key={r.id}
-                        className="border-b border-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.01)]"
+                        className="border-b border-sw-ink-100 hover:bg-sw-cream-25"
                       >
-                        <td className="px-4 py-3 text-[rgba(0,0,0,0.88)]">
+                        <td className="px-6 py-4 text-sw-ink-900">
                           {employeeName(r.employee)}
                         </td>
-                        <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
+                        <td className="px-6 py-4 text-sw-ink-700">
                           {r.leave_type?.name ?? "\u2014"}
                         </td>
-                        <td className="px-4 py-3 text-[rgba(0,0,0,0.65)] whitespace-nowrap">
+                        <td className="px-6 py-4 text-sw-ink-700 whitespace-nowrap">
                           {dateFmt(r.start_date)} \u2014 {dateFmt(r.end_date)}
                         </td>
-                        <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
+                        <td className="px-6 py-4 text-sw-ink-700">
                           {r.total_days}
                         </td>
-                        <td className="px-4 py-3 text-[rgba(0,0,0,0.65)] max-w-[200px] truncate">
+                        <td className="px-6 py-4 text-sw-ink-700 max-w-[200px] truncate">
                           {r.reason || "\u2014"}
                         </td>
-                        <td className="px-4 py-3">{statusBadge(r.status)}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-6 py-4">{statusBadge(r.status)}</td>
+                        <td className="px-6 py-4">
                           {r.status === "pending" && (
                             <div className="flex gap-3">
                               <button
                                 onClick={() => handleApprove(r.id)}
-                                className="text-xs font-medium text-[#1a7a1a] hover:underline"
+                                className="text-xs font-medium text-sw-success-500 hover:underline"
                               >
                                 Approve
                               </button>
                               <button
                                 onClick={() => setRejectTarget(r.id)}
-                                className="text-xs font-medium text-[#8a3a34] hover:underline"
+                                className="text-xs font-medium text-sw-danger-500 hover:underline"
                               >
                                 Reject
                               </button>
@@ -1013,20 +1013,20 @@ export default function LeaveManagementPage() {
               <button
                 onClick={handleInitialize}
                 disabled={initLoading}
-                className="h-10 px-5 rounded-xl text-sm font-medium text-[#61474c] transition-opacity hover:opacity-90 disabled:opacity-50"
-                style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+                className="h-10 px-5 rounded-xl text-sm font-medium text-[#ffffff] transition-opacity hover:opacity-90 disabled:opacity-50"
+                style={{ background: "var(--color-sw-gold-500)" }}
               >
                 {initLoading ? "Initializing..." : "Initialize Balances"}
               </button>
             </div>
             {initResult && (
-              <p className="mt-3 text-sm text-[rgba(0,0,0,0.65)]">{initResult}</p>
+              <p className="mt-3 text-sm text-sw-ink-700">{initResult}</p>
             )}
           </div>
 
           {/* Error */}
           {balError && (
-            <div className="bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34] p-4 mb-6">
+            <div className="bg-sw-danger-100 border border-sw-danger-500/20 rounded-[12px] text-sw-caption font-medium text-[#a11b35] p-4 mb-6">
               {balError}
             </div>
           )}
@@ -1036,7 +1036,7 @@ export default function LeaveManagementPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[rgba(0,0,0,0.06)]">
+                  <tr className="text-left bg-sw-cream-25 border-b border-sw-ink-100">
                     {[
                       "Employee",
                       "Leave Type",
@@ -1050,7 +1050,7 @@ export default function LeaveManagementPage() {
                     ].map((h) => (
                       <th
                         key={h || "actions"}
-                        className="text-left px-4 py-3 text-xs font-medium text-[rgba(0,0,0,0.5)] uppercase tracking-wide"
+                        className="text-left px-4 py-3 text-xs font-medium text-sw-ink-500 uppercase tracking-wide"
                       >
                         {h}
                       </th>
@@ -1062,7 +1062,7 @@ export default function LeaveManagementPage() {
                     <tr>
                       <td
                         colSpan={9}
-                        className="px-4 py-10 text-center text-[rgba(0,0,0,0.4)]"
+                        className="px-4 py-10 text-center text-sw-ink-500"
                       >
                         Loading...
                       </td>
@@ -1071,7 +1071,7 @@ export default function LeaveManagementPage() {
                     <tr>
                       <td
                         colSpan={9}
-                        className="px-4 py-10 text-center text-[rgba(0,0,0,0.4)]"
+                        className="px-4 py-10 text-center text-sw-ink-500"
                       >
                         No balance records found.
                       </td>
@@ -1090,14 +1090,14 @@ export default function LeaveManagementPage() {
                         return (
                           <tr
                             key={b.id}
-                            className={`border-b border-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.01)] ${
-                              idx === 0 && empId ? "border-t border-t-[rgba(0,0,0,0.08)]" : ""
+                            className={`border-b border-sw-ink-100 hover:bg-sw-cream-25 ${
+                              idx === 0 && empId ? "border-t border-t-[rgba(28, 26, 22, 0.08)]" : ""
                             }`}
                           >
-                            <td className="px-4 py-3 text-[rgba(0,0,0,0.88)] font-medium">
+                            <td className="px-6 py-4 text-sw-ink-900 font-medium">
                               {idx === 0 ? employeeName(b.employee) : ""}
                             </td>
-                            <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
+                            <td className="px-6 py-4 text-sw-ink-700">
                               {b.leave_type?.name ?? "\u2014"}
                             </td>
                             <td className="px-4 py-2">
@@ -1108,10 +1108,10 @@ export default function LeaveManagementPage() {
                                   min="0"
                                   value={editValues.entitled_days}
                                   onChange={(e) => setEditValues((p) => ({ ...p, entitled_days: parseFloat(e.target.value) || 0 }))}
-                                  className="w-20 h-8 px-2 bg-[#fafaf2] border border-[rgba(255,198,113,0.5)] rounded-lg text-sm text-[rgba(0,0,0,0.88)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+                                  className="w-20 h-8 px-2 bg-sw-cream-50 border border-[rgba(201, 151, 46, 0.22)] rounded-lg text-sm text-sw-ink-900 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)]"
                                 />
                               ) : (
-                                <span className="text-[rgba(0,0,0,0.65)]">{b.entitled_days}</span>
+                                <span className="text-sw-ink-700">{b.entitled_days}</span>
                               )}
                             </td>
                             <td className="px-4 py-2">
@@ -1122,10 +1122,10 @@ export default function LeaveManagementPage() {
                                   min="0"
                                   value={editValues.carried_over}
                                   onChange={(e) => setEditValues((p) => ({ ...p, carried_over: parseFloat(e.target.value) || 0 }))}
-                                  className="w-20 h-8 px-2 bg-[#fafaf2] border border-[rgba(255,198,113,0.5)] rounded-lg text-sm text-[rgba(0,0,0,0.88)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+                                  className="w-20 h-8 px-2 bg-sw-cream-50 border border-[rgba(201, 151, 46, 0.22)] rounded-lg text-sm text-sw-ink-900 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)]"
                                 />
                               ) : (
-                                <span className="text-[rgba(0,0,0,0.65)]">{b.carried_over}</span>
+                                <span className="text-sw-ink-700">{b.carried_over}</span>
                               )}
                             </td>
                             <td className="px-4 py-2">
@@ -1135,40 +1135,40 @@ export default function LeaveManagementPage() {
                                   step="0.5"
                                   value={editValues.adjusted_days}
                                   onChange={(e) => setEditValues((p) => ({ ...p, adjusted_days: parseFloat(e.target.value) || 0 }))}
-                                  className="w-20 h-8 px-2 bg-[#fafaf2] border border-[rgba(255,198,113,0.5)] rounded-lg text-sm text-[rgba(0,0,0,0.88)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+                                  className="w-20 h-8 px-2 bg-sw-cream-50 border border-[rgba(201, 151, 46, 0.22)] rounded-lg text-sm text-sw-ink-900 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)]"
                                 />
                               ) : (
-                                <span className="text-[rgba(0,0,0,0.65)]">{b.adjusted_days}</span>
+                                <span className="text-sw-ink-700">{b.adjusted_days}</span>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
+                            <td className="px-6 py-4 text-sw-ink-700">
                               {b.used_days}
                             </td>
-                            <td className="px-4 py-3 text-[rgba(0,0,0,0.65)]">
+                            <td className="px-6 py-4 text-sw-ink-700">
                               {b.pending_days}
                             </td>
                             <td
                               className={`px-4 py-3 font-medium ${
                                 available <= 0
-                                  ? "text-[#8a3a34]"
-                                  : "text-[rgba(0,0,0,0.88)]"
+                                  ? "text-sw-danger-500"
+                                  : "text-sw-ink-900"
                               }`}
                             >
                               {available}
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-6 py-4">
                               {isEditing ? (
                                 <div className="flex gap-2">
                                   <button
                                     onClick={saveEditBalance}
                                     disabled={editSaving}
-                                    className="text-xs font-medium text-[#1a7a1a] hover:underline disabled:opacity-50"
+                                    className="text-xs font-medium text-sw-success-500 hover:underline disabled:opacity-50"
                                   >
                                     {editSaving ? "..." : "Save"}
                                   </button>
                                   <button
                                     onClick={() => setEditingBalance(null)}
-                                    className="text-xs font-medium text-[rgba(0,0,0,0.4)] hover:underline"
+                                    className="text-xs font-medium text-sw-ink-500 hover:underline"
                                   >
                                     Cancel
                                   </button>
@@ -1176,7 +1176,7 @@ export default function LeaveManagementPage() {
                               ) : (
                                 <button
                                   onClick={() => startEditBalance(b)}
-                                  className="text-xs font-medium text-[#9a6d2a] hover:underline"
+                                  className="text-xs font-medium text-sw-gold-600 hover:underline"
                                 >
                                   Edit
                                 </button>
@@ -1200,12 +1200,12 @@ export default function LeaveManagementPage() {
       {showFileModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="glass-modal rounded-2xl w-full max-w-lg mx-4 p-6">
-            <h2 className="text-lg font-semibold text-[rgba(0,0,0,0.88)] mb-5">
+            <h2 className="text-lg font-semibold text-sw-ink-900 mb-5">
               File Leave
             </h2>
 
             {fileError && (
-              <div className="bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34] p-3 mb-4">
+              <div className="bg-sw-danger-100 border border-sw-danger-500/20 rounded-[12px] text-sw-caption font-medium text-[#a11b35] p-3 mb-4">
                 {fileError}
               </div>
             )}
@@ -1254,11 +1254,11 @@ export default function LeaveManagementPage() {
 
               {/* Available Balance */}
               {fileBalance !== null && (
-                <p className="text-sm text-[rgba(0,0,0,0.65)]">
+                <p className="text-sm text-sw-ink-700">
                   Available balance:{" "}
                   <span
                     className={`font-medium ${
-                      fileBalance <= 0 ? "text-[#8a3a34]" : "text-[#1a7a1a]"
+                      fileBalance <= 0 ? "text-sw-danger-500" : "text-sw-success-500"
                     }`}
                   >
                     {fileBalance} day{fileBalance !== 1 ? "s" : ""}
@@ -1316,7 +1316,7 @@ export default function LeaveManagementPage() {
 
               {/* Half Day */}
               <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 text-sm text-[rgba(0,0,0,0.65)] cursor-pointer">
+                <label className="flex items-center gap-2 text-sm text-sw-ink-700 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={fileForm.half_day}
@@ -1326,13 +1326,13 @@ export default function LeaveManagementPage() {
                         half_day: e.target.checked,
                       }))
                     }
-                    className="rounded border-[rgba(0,0,0,0.2)] text-[#cf9358] focus:ring-[rgba(255,198,113,0.5)]"
+                    className="rounded border-[var(--color-sw-ink-300)] text-sw-gold-600 focus:ring-[rgba(201, 151, 46, 0.22)]"
                   />
                   Half Day
                 </label>
                 {fileForm.half_day && (
                   <div className="flex gap-3">
-                    <label className="flex items-center gap-1.5 text-sm text-[rgba(0,0,0,0.65)] cursor-pointer">
+                    <label className="flex items-center gap-1.5 text-sm text-sw-ink-700 cursor-pointer">
                       <input
                         type="radio"
                         name="half_day_period"
@@ -1344,11 +1344,11 @@ export default function LeaveManagementPage() {
                             half_day_period: "morning",
                           }))
                         }
-                        className="text-[#cf9358] focus:ring-[rgba(255,198,113,0.5)]"
+                        className="text-sw-gold-600 focus:ring-[rgba(201, 151, 46, 0.22)]"
                       />
                       Morning
                     </label>
-                    <label className="flex items-center gap-1.5 text-sm text-[rgba(0,0,0,0.65)] cursor-pointer">
+                    <label className="flex items-center gap-1.5 text-sm text-sw-ink-700 cursor-pointer">
                       <input
                         type="radio"
                         name="half_day_period"
@@ -1360,7 +1360,7 @@ export default function LeaveManagementPage() {
                             half_day_period: "afternoon",
                           }))
                         }
-                        className="text-[#cf9358] focus:ring-[rgba(255,198,113,0.5)]"
+                        className="text-sw-gold-600 focus:ring-[rgba(201, 151, 46, 0.22)]"
                       />
                       Afternoon
                     </label>
@@ -1390,7 +1390,7 @@ export default function LeaveManagementPage() {
                   setShowFileModal(false);
                   setFileError("");
                 }}
-                className="h-10 px-4 rounded-xl text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.1)] hover:bg-[rgba(0,0,0,0.03)] transition-colors"
+                className="h-10 px-4 rounded-xl text-sm font-medium text-sw-ink-700 border border-sw-ink-200 hover:bg-[rgba(28, 26, 22, 0.03)] transition-colors"
               >
                 Cancel
               </button>
@@ -1403,9 +1403,9 @@ export default function LeaveManagementPage() {
                   !fileForm.start_date ||
                   !fileForm.end_date
                 }
-                className="h-10 px-5 rounded-xl text-sm font-medium text-[#61474c] transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="h-10 px-5 rounded-xl text-sm font-medium text-[#ffffff] transition-opacity hover:opacity-90 disabled:opacity-50"
                 style={{
-                  background: "linear-gradient(to right, #ffc671, #cf9358)",
+                  background: "var(--color-sw-gold-500)",
                 }}
               >
                 {fileSubmitting ? "Submitting..." : "Submit"}
@@ -1421,7 +1421,7 @@ export default function LeaveManagementPage() {
       {rejectTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="glass-modal rounded-2xl w-full max-w-md mx-4 p-6">
-            <h2 className="text-lg font-semibold text-[rgba(0,0,0,0.88)] mb-4">
+            <h2 className="text-lg font-semibold text-sw-ink-900 mb-4">
               Reject Leave Request
             </h2>
             <div>
@@ -1440,14 +1440,14 @@ export default function LeaveManagementPage() {
                   setRejectTarget(null);
                   setRejectReason("");
                 }}
-                className="h-10 px-4 rounded-xl text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.1)] hover:bg-[rgba(0,0,0,0.03)] transition-colors"
+                className="h-10 px-4 rounded-xl text-sm font-medium text-sw-ink-700 border border-sw-ink-200 hover:bg-[rgba(28, 26, 22, 0.03)] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleReject}
                 disabled={rejectSubmitting}
-                className="h-10 px-5 rounded-xl text-sm font-medium text-white bg-[#8a3a34] hover:bg-[#742e29] transition-colors disabled:opacity-50"
+                className="h-10 px-5 rounded-xl text-sm font-medium text-white bg-[var(--color-sw-danger-500)] hover:bg-[var(--color-sw-danger-500)] transition-colors disabled:opacity-50"
               >
                 {rejectSubmitting ? "Rejecting..." : "Confirm Reject"}
               </button>
@@ -1463,23 +1463,23 @@ export default function LeaveManagementPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="glass-modal rounded-2xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col">
             {/* Popup header */}
-            <div className="flex items-center justify-between p-6 pb-4 border-b border-[rgba(0,0,0,0.06)]">
-              <h2 className="text-lg font-semibold text-[rgba(0,0,0,0.88)]">
+            <div className="flex items-center justify-between p-6 pb-4 border-b border-sw-ink-100">
+              <h2 className="text-lg font-semibold text-sw-ink-900">
                 Leave Types
               </h2>
               <div className="flex gap-2">
                 <button
                   onClick={handleSeedDefaults}
                   disabled={ltSeedLoading}
-                  className="h-9 px-4 rounded-xl text-xs font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.1)] hover:bg-[rgba(0,0,0,0.03)] transition-colors disabled:opacity-50"
+                  className="h-9 px-4 rounded-xl text-xs font-medium text-sw-ink-700 border border-sw-ink-200 hover:bg-[rgba(28, 26, 22, 0.03)] transition-colors disabled:opacity-50"
                 >
                   {ltSeedLoading ? "Seeding..." : "Seed PH Defaults"}
                 </button>
                 {ltFormMode === "none" && (
                   <button
                     onClick={openLtAdd}
-                    className="h-9 px-4 rounded-xl text-xs font-medium text-[#61474c] transition-opacity hover:opacity-90"
-                    style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+                    className="h-9 px-4 rounded-xl text-xs font-medium text-[#ffffff] transition-opacity hover:opacity-90"
+                    style={{ background: "var(--color-sw-gold-500)" }}
                   >
                     + Add
                   </button>
@@ -1489,7 +1489,7 @@ export default function LeaveManagementPage() {
                     setShowLTPopup(false);
                     cancelLtForm();
                   }}
-                  className="h-9 w-9 flex items-center justify-center rounded-xl text-[rgba(0,0,0,0.4)] hover:text-[rgba(0,0,0,0.88)] hover:bg-[rgba(0,0,0,0.04)] transition-colors"
+                  className="h-9 w-9 flex items-center justify-center rounded-xl text-sw-ink-500 hover:text-sw-ink-900 hover:bg-[rgba(28, 26, 22, 0.04)] transition-colors"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
                 </button>
@@ -1499,7 +1499,7 @@ export default function LeaveManagementPage() {
             {/* Popup body - scrollable */}
             <div className="flex-1 overflow-y-auto p-6 pt-4">
               {ltError && (
-                <div className="bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34] p-3 mb-4">
+                <div className="bg-sw-danger-100 border border-sw-danger-500/20 rounded-[12px] text-sw-caption font-medium text-[#a11b35] p-3 mb-4">
                   {ltError}
                 </div>
               )}
@@ -1509,9 +1509,9 @@ export default function LeaveManagementPage() {
 
               {/* Leave types list */}
               {ltLoading ? (
-                <p className="text-center text-[rgba(0,0,0,0.4)] py-8">Loading...</p>
+                <p className="text-center text-sw-ink-500 py-8">Loading...</p>
               ) : allLeaveTypes.length === 0 ? (
-                <p className="text-center text-[rgba(0,0,0,0.4)] py-8">
+                <p className="text-center text-sw-ink-500 py-8">
                   No leave types found. Seed defaults or add one.
                 </p>
               ) : (
@@ -1519,59 +1519,59 @@ export default function LeaveManagementPage() {
                   {allLeaveTypes.map((lt) => (
                     <div
                       key={lt.id}
-                      className={`bg-white border border-[rgba(0,0,0,0.06)] rounded-2xl p-4 flex items-center justify-between gap-3 ${
+                      className={`bg-white border border-sw-ink-100 rounded-2xl p-4 flex items-center justify-between gap-3 ${
                         lt.active === false ? "opacity-50" : ""
                       }`}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-medium text-[rgba(0,0,0,0.88)]">
+                          <span className="text-sm font-medium text-sw-ink-900">
                             {lt.name}
                           </span>
                           {lt.code && (
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-[rgba(255,198,113,0.2)] text-[#9a6d2a]">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-[var(--color-sw-gold-50)] text-sw-gold-600">
                               {lt.code}
                             </span>
                           )}
                           {lt.days_per_year != null && (
-                            <span className="text-xs text-[rgba(0,0,0,0.4)]">
+                            <span className="text-xs text-sw-ink-500">
                               {lt.days_per_year}d/yr
                             </span>
                           )}
                           {lt.active === false && (
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(0,0,0,0.06)] text-[rgba(0,0,0,0.4)]">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(28, 26, 22, 0.06)] text-sw-ink-500">
                               Inactive
                             </span>
                           )}
                         </div>
                         <div className="flex gap-1.5 mt-1.5 flex-wrap">
                           {lt.is_paid && (
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(34,139,34,0.08)] text-[#1a7a1a]">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(34,139,34,0.08)] text-sw-success-500">
                               Paid
                             </span>
                           )}
                           {lt.is_convertible && (
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(0,0,0,0.04)] text-[rgba(0,0,0,0.5)]">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(28, 26, 22, 0.04)] text-sw-ink-500">
                               Convertible
                             </span>
                           )}
                           {lt.requires_attachment && (
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(0,0,0,0.04)] text-[rgba(0,0,0,0.5)]">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(28, 26, 22, 0.04)] text-sw-ink-500">
                               Attachment Required
                             </span>
                           )}
                           {lt.allow_half_day && (
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(0,0,0,0.04)] text-[rgba(0,0,0,0.5)]">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(28, 26, 22, 0.04)] text-sw-ink-500">
                               Half Day
                             </span>
                           )}
                           {lt.gender_specific && lt.gender_specific !== "both" && (
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(0,0,0,0.04)] text-[rgba(0,0,0,0.5)]">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(28, 26, 22, 0.04)] text-sw-ink-500">
                               {lt.gender_specific === "male" ? "Male Only" : "Female Only"}
                             </span>
                           )}
                           {lt.prorate_on_hire && (
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(0,0,0,0.04)] text-[rgba(0,0,0,0.5)]">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(28, 26, 22, 0.04)] text-sw-ink-500">
                               Pro-rated
                             </span>
                           )}
@@ -1580,14 +1580,14 @@ export default function LeaveManagementPage() {
                       <div className="flex gap-2 shrink-0">
                         <button
                           onClick={() => openLtEdit(lt)}
-                          className="text-xs font-medium text-[#9a6d2a] hover:underline"
+                          className="text-xs font-medium text-sw-gold-600 hover:underline"
                         >
                           Edit
                         </button>
                         {lt.active !== false && (
                           <button
                             onClick={() => handleLtDeactivate(lt.id)}
-                            className="text-xs font-medium text-[#8a3a34] hover:underline"
+                            className="text-xs font-medium text-sw-danger-500 hover:underline"
                           >
                             Deactivate
                           </button>

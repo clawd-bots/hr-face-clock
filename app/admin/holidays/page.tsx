@@ -18,15 +18,15 @@ const TYPE_OPTIONS = [
 const TYPE_BADGE: Record<Holiday["type"], { label: string; className: string }> = {
   regular: {
     label: "Regular",
-    className: "bg-[rgba(138,58,52,0.1)] text-[#8a3a34]",
+    className: "bg-[rgba(138,58,52,0.1)] text-sw-danger-500",
   },
   special_non_working: {
     label: "Special Non-Working",
-    className: "bg-[rgba(207,147,88,0.15)] text-[#9a6d2a]",
+    className: "bg-[rgba(207,147,88,0.15)] text-sw-gold-600",
   },
   special_working: {
     label: "Special Working",
-    className: "bg-[rgba(59,130,186,0.1)] text-[#2e6e99]",
+    className: "bg-[rgba(59,130,186,0.1)] text-sw-lilac-500",
   },
 };
 
@@ -41,7 +41,7 @@ function formatDate(dateStr: string) {
 }
 
 const inputClass =
-  "w-full h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150";
+  "w-full h-10 px-3 bg-sw-cream-50 border border-sw-ink-200 rounded-xl text-sm text-sw-ink-900 placeholder:text-sw-ink-500 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)] focus:border-sw-gold-500 transition-colors duration-150";
 
 export default function HolidaysPage() {
   const currentYear = new Date().getFullYear();
@@ -156,13 +156,13 @@ export default function HolidaysPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <h1 className="text-[28px] font-medium tracking-[-1.75px] text-[rgba(0,0,0,0.88)]">
+          <h1 className="t-display">
             Holidays
           </h1>
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="h-9 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150"
+            className="h-9 px-3 bg-sw-cream-50 border border-sw-ink-200 rounded-xl text-sm text-sw-ink-900 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)] focus:border-sw-gold-500 transition-colors duration-150"
           >
             <option value={2025}>2025</option>
             <option value={2026}>2026</option>
@@ -173,7 +173,7 @@ export default function HolidaysPage() {
           <button
             onClick={handleSeed}
             disabled={seeding}
-            className="h-10 px-5 rounded-full text-sm font-medium text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.12)] hover:bg-[rgba(0,0,0,0.03)] disabled:opacity-50 transition-colors duration-150"
+            className="h-10 px-5 rounded-full text-sm font-medium text-sw-ink-700 border border-sw-ink-200 hover:bg-[rgba(28, 26, 22, 0.03)] disabled:opacity-50 transition-colors duration-150"
           >
             {seeding ? "Seeding..." : `Seed ${year} Holidays`}
           </button>
@@ -184,8 +184,8 @@ export default function HolidaysPage() {
               setFormType("regular");
               setShowForm(true);
             }}
-            className="h-10 px-5 rounded-full text-sm font-medium text-[#61474c]"
-            style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+            className="h-10 px-5 rounded-full text-sm font-medium text-[#ffffff]"
+            style={{ background: "var(--color-sw-gold-500)" }}
           >
             + Add Holiday
           </button>
@@ -197,8 +197,8 @@ export default function HolidaysPage() {
         <div
           className={`mb-4 px-4 py-3 rounded-2xl text-sm font-medium ${
             message.type === "success"
-              ? "bg-[rgba(52,138,82,0.08)] border border-[rgba(52,138,82,0.2)] text-[#2d7a4a]"
-              : "bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] text-[#8a3a34]"
+              ? "bg-[rgba(52,138,82,0.08)] border border-[rgba(52,138,82,0.2)] text-sw-success-500"
+              : "bg-[var(--color-sw-ink-100)] border border-[rgba(244, 63, 94, 0.2)] text-sw-danger-500"
           }`}
         >
           {message.text}
@@ -207,8 +207,8 @@ export default function HolidaysPage() {
 
       {/* Add Holiday Form */}
       {showForm && (
-        <div className="mb-6 p-5 rounded-2xl bg-white border border-[rgba(0,0,0,0.1)] shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
-          <h3 className="text-sm font-medium text-[rgba(0,0,0,0.88)] mb-3">New Holiday</h3>
+        <div className="mb-6 p-5 rounded-2xl bg-white border border-sw-ink-200 shadow-[0_2px_12px_rgba(28, 26, 22, 0.06)]">
+          <h3 className="text-sm font-medium text-sw-ink-900 mb-3">New Holiday</h3>
           <div className="flex gap-3">
             <input
               type="date"
@@ -237,14 +237,14 @@ export default function HolidaysPage() {
             <button
               onClick={handleSave}
               disabled={saving || !formDate || !formName.trim()}
-              className="h-10 px-5 rounded-xl text-sm font-medium text-[#61474c] disabled:opacity-50"
-              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+              className="h-10 px-5 rounded-xl text-sm font-medium text-[#ffffff] disabled:opacity-50"
+              style={{ background: "var(--color-sw-gold-500)" }}
             >
               {saving ? "Saving..." : "Save"}
             </button>
             <button
               onClick={() => setShowForm(false)}
-              className="h-10 px-4 rounded-xl text-sm font-medium text-[rgba(0,0,0,0.5)] border border-[rgba(0,0,0,0.1)]"
+              className="h-10 px-4 rounded-xl text-sm font-medium text-sw-ink-500 border border-sw-ink-200"
             >
               Cancel
             </button>
@@ -253,34 +253,34 @@ export default function HolidaysPage() {
       )}
 
       {/* Holiday List */}
-      <div className="rounded-2xl border border-[rgba(0,0,0,0.1)] overflow-hidden bg-white">
+      <div className="sw-panel overflow-hidden">
         <table className="w-full">
           <thead>
-            <tr className="bg-[#f4f1e6]">
-              <th className="text-left px-5 py-3 text-xs font-medium text-[rgba(0,0,0,0.5)] uppercase tracking-wider">
+            <tr className="text-left bg-sw-cream-25 border-b border-sw-ink-100">
+              <th className="text-left px-6 py-4 text-sw-micro font-medium text-sw-ink-500 uppercase tracking-wider">
                 Date
               </th>
-              <th className="text-left px-5 py-3 text-xs font-medium text-[rgba(0,0,0,0.5)] uppercase tracking-wider">
+              <th className="text-left px-6 py-4 text-sw-micro font-medium text-sw-ink-500 uppercase tracking-wider">
                 Holiday
               </th>
-              <th className="text-left px-5 py-3 text-xs font-medium text-[rgba(0,0,0,0.5)] uppercase tracking-wider">
+              <th className="text-left px-6 py-4 text-sw-micro font-medium text-sw-ink-500 uppercase tracking-wider">
                 Type
               </th>
-              <th className="text-right px-5 py-3 text-xs font-medium text-[rgba(0,0,0,0.5)] uppercase tracking-wider">
+              <th className="text-right px-6 py-4 text-sw-micro font-medium text-sw-ink-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
+          <tbody className="divide-y divide-sw-ink-100">
             {loading ? (
               <tr>
-                <td colSpan={4} className="px-5 py-8 text-center text-sm text-[rgba(0,0,0,0.4)]">
+                <td colSpan={4} className="px-5 py-8 text-center text-sm text-sw-ink-500">
                   Loading...
                 </td>
               </tr>
             ) : holidays.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-5 py-8 text-center text-sm text-[rgba(0,0,0,0.4)]">
+                <td colSpan={4} className="px-5 py-8 text-center text-sm text-sw-ink-500">
                   No holidays for {year}. Use &quot;Seed {year} Holidays&quot; to add standard PH holidays.
                 </td>
               </tr>
@@ -288,24 +288,24 @@ export default function HolidaysPage() {
               holidays.map((h) => {
                 const badge = TYPE_BADGE[h.type] || TYPE_BADGE.regular;
                 return (
-                  <tr key={h.id} className="hover:bg-[#fafaf2] transition-colors duration-100">
-                    <td className="px-5 py-3 text-sm text-[rgba(0,0,0,0.65)] whitespace-nowrap">
+                  <tr key={h.id} className="hover:bg-sw-cream-25 transition-colors duration-100">
+                    <td className="px-6 py-4 text-sm text-sw-ink-700 whitespace-nowrap">
                       {formatDate(h.date)}
                     </td>
-                    <td className="px-5 py-3 text-sm font-medium text-[rgba(0,0,0,0.88)]">
+                    <td className="px-6 py-4 text-sm font-medium text-sw-ink-900">
                       {h.name}
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-6 py-4">
                       <span
                         className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
                       >
                         {badge.label}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-right">
+                    <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => handleDelete(h.id, h.name)}
-                        className="text-xs font-medium text-[#8a3a34] hover:text-[rgba(138,58,52,0.7)]"
+                        className="text-xs font-medium text-sw-danger-500 hover:text-[rgba(138,58,52,0.7)]"
                       >
                         Delete
                       </button>

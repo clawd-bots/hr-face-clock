@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
 
 type DocumentUploadProps = {
   employeeId: string;
@@ -68,7 +70,7 @@ export default function DocumentUpload({
   return (
     <div className="space-y-4">
       {error && (
-        <div className="px-4 py-3 bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34]">
+        <div className="px-4 py-3 bg-sw-danger-100 border border-sw-danger-500/20 rounded-[12px] text-sw-caption font-medium text-[#a11b35]">
           {error}
         </div>
       )}
@@ -81,10 +83,10 @@ export default function DocumentUpload({
         }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors duration-150 ${
+        className={`border-2 border-dashed rounded-sw-lg p-8 text-center cursor-pointer transition-colors duration-sw-fast ${
           dragOver
-            ? "border-[#cf9358] bg-[rgba(255,198,113,0.1)]"
-            : "border-[rgba(0,0,0,0.15)] hover:border-[rgba(0,0,0,0.3)] bg-[#fafaf2]"
+            ? "border-sw-gold-500 bg-sw-gold-50"
+            : "border-sw-ink-200 hover:border-sw-ink-300 bg-sw-cream-25"
         }`}
       >
         <input
@@ -96,19 +98,17 @@ export default function DocumentUpload({
         />
         {file ? (
           <div>
-            <p className="text-sm font-medium text-[rgba(0,0,0,0.88)]">
-              {file.name}
-            </p>
-            <p className="text-xs text-[rgba(0,0,0,0.4)] mt-1">
+            <p className="text-sw-caption font-medium text-sw-ink-900">{file.name}</p>
+            <p className="text-sw-micro text-sw-ink-500 mt-1">
               {(file.size / 1024).toFixed(1)} KB
             </p>
           </div>
         ) : (
           <div>
-            <p className="text-sm font-medium text-[rgba(0,0,0,0.65)]">
+            <p className="text-sw-caption font-medium text-sw-ink-700">
               Drop a file here or click to browse
             </p>
-            <p className="text-xs text-[rgba(0,0,0,0.4)] mt-1">
+            <p className="text-sw-micro text-sw-ink-500 mt-1">
               PDF, DOC, DOCX, JPG, PNG — max 10MB
             </p>
           </div>
@@ -117,27 +117,20 @@ export default function DocumentUpload({
 
       {file && (
         <div className="flex gap-3">
-          <select
+          <Select
+            className="flex-1"
             value={docType}
             onChange={(e) => setDocType(e.target.value)}
-            className="flex-1 h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
           >
             {DOCUMENT_TYPES.map((type) => (
               <option key={type} value={type}>
                 {type.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
               </option>
             ))}
-          </select>
-          <button
-            onClick={handleUpload}
-            disabled={uploading}
-            className="h-10 px-6 rounded-xl text-sm font-medium text-[#61474c] disabled:opacity-50"
-            style={{
-              background: "linear-gradient(to right, #ffc671, #cf9358)",
-            }}
-          >
+          </Select>
+          <Button variant="primary" onClick={handleUpload} disabled={uploading}>
             {uploading ? "Uploading..." : "Upload"}
-          </button>
+          </Button>
         </div>
       )}
     </div>

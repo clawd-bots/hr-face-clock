@@ -24,9 +24,9 @@ interface LeaveType {
 /* ---------- helpers ---------- */
 
 const inputClass =
-  "w-full h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150";
+  "w-full h-10 px-3 bg-sw-cream-50 border border-sw-ink-200 rounded-xl text-sm text-sw-ink-900 placeholder:text-sw-ink-500 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)] focus:border-sw-gold-500 transition-colors duration-150";
 
-const labelClass = "block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1";
+const labelClass = "block text-xs font-medium text-sw-ink-500 mb-1";
 
 function Toggle({
   value,
@@ -42,7 +42,7 @@ function Toggle({
       aria-checked={value}
       onClick={() => onChange(!value)}
       className={`relative w-10 h-6 rounded-full transition-colors duration-150 ${
-        value ? "bg-[#ffc671]" : "bg-[rgba(0,0,0,0.1)]"
+        value ? "bg-[var(--color-sw-gold-500)]" : "bg-[var(--color-sw-ink-200)]"
       }`}
     >
       <span
@@ -230,26 +230,26 @@ export default function LeaveTypesPage() {
   /* ---------- render ---------- */
 
   return (
-    <div className="min-h-screen bg-[#fafaf2]">
+    <div className="min-h-screen bg-sw-cream-50">
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-[rgba(0,0,0,0.88)]">
+          <h1 className="text-2xl font-bold text-sw-ink-900">
             Leave Types
           </h1>
           <div className="flex items-center gap-3">
             <button
               onClick={handleSeed}
               disabled={seeding}
-              className="h-10 px-4 rounded-xl border border-[rgba(0,0,0,0.1)] bg-white text-sm font-medium text-[rgba(0,0,0,0.65)] hover:bg-[rgba(0,0,0,0.03)] transition-colors duration-150 disabled:opacity-50"
+              className="h-10 px-4 rounded-xl border border-sw-ink-200 bg-white text-sm font-medium text-sw-ink-700 hover:bg-[rgba(28, 26, 22, 0.03)] transition-colors duration-150 disabled:opacity-50"
             >
               {seeding ? "Seeding..." : "Seed PH Defaults"}
             </button>
             <button
               onClick={openCreate}
-              className="h-10 px-5 rounded-xl text-sm font-semibold text-[#61474c] shadow-sm hover:opacity-90 transition-opacity duration-150"
+              className="h-10 px-5 rounded-xl text-sm font-semibold text-[#ffffff] shadow-sm hover:opacity-90 transition-opacity duration-150"
               style={{
-                background: "linear-gradient(to right, #ffc671, #cf9358)",
+                background: "var(--color-sw-gold-500)",
               }}
             >
               + Add Leave Type
@@ -266,13 +266,13 @@ export default function LeaveTypesPage() {
 
         {/* Loading */}
         {loading ? (
-          <p className="text-sm text-[rgba(0,0,0,0.4)]">Loading...</p>
+          <p className="text-sm text-sw-ink-500">Loading...</p>
         ) : leaveTypes.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-sm text-[rgba(0,0,0,0.4)] mb-2">
+            <p className="text-sm text-sw-ink-500 mb-2">
               No leave types configured yet.
             </p>
-            <p className="text-xs text-[rgba(0,0,0,0.3)]">
+            <p className="text-xs text-sw-ink-300">
               Click &quot;Seed PH Defaults&quot; to get started with standard
               Philippine leave types, or add your own.
             </p>
@@ -283,17 +283,17 @@ export default function LeaveTypesPage() {
             {leaveTypes.map((lt) => (
               <div
                 key={lt.id}
-                className={`bg-white border border-[rgba(0,0,0,0.06)] rounded-2xl p-4 ${
+                className={`bg-white border border-sw-ink-100 rounded-2xl p-4 ${
                   !lt.active ? "opacity-50" : ""
                 }`}
               >
                 {/* Top row: name + code */}
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-[rgba(0,0,0,0.88)]">
+                    <span className="font-semibold text-sw-ink-900">
                       {lt.name}
                     </span>
-                    <span className="px-2 py-0.5 rounded-md bg-[rgba(255,198,113,0.2)] text-xs font-medium text-[#cf9358]">
+                    <span className="px-2 py-0.5 rounded-md bg-[var(--color-sw-gold-50)] text-xs font-medium text-sw-gold-600">
                       {lt.code}
                     </span>
                     {!lt.active && (
@@ -302,14 +302,14 @@ export default function LeaveTypesPage() {
                       </span>
                     )}
                   </div>
-                  <span className="text-sm text-[rgba(0,0,0,0.65)]">
+                  <span className="text-sm text-sw-ink-700">
                     {lt.days_per_year} days/year
                   </span>
                 </div>
 
                 {/* Description */}
                 {lt.description && (
-                  <p className="text-xs text-[rgba(0,0,0,0.4)] mb-2 line-clamp-2">
+                  <p className="text-xs text-sw-ink-500 mb-2 line-clamp-2">
                     {lt.description}
                   </p>
                 )}
@@ -359,7 +359,7 @@ export default function LeaveTypesPage() {
                 </div>
 
                 {/* Meta info */}
-                <div className="flex flex-wrap gap-3 text-xs text-[rgba(0,0,0,0.4)] mb-3">
+                <div className="flex flex-wrap gap-3 text-xs text-sw-ink-500 mb-3">
                   {lt.min_service_months > 0 && (
                     <span>After {lt.min_service_months} months</span>
                   )}
@@ -371,10 +371,10 @@ export default function LeaveTypesPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 pt-2 border-t border-[rgba(0,0,0,0.05)]">
+                <div className="flex items-center gap-2 pt-2 border-t border-sw-ink-100">
                   <button
                     onClick={() => openEdit(lt)}
-                    className="text-xs font-medium text-[#cf9358] hover:text-[#b07a40] transition-colors duration-150"
+                    className="text-xs font-medium text-sw-gold-600 hover:text-sw-gold-600 transition-colors duration-150"
                   >
                     Edit
                   </button>
@@ -405,7 +405,7 @@ export default function LeaveTypesPage() {
           {/* Panel */}
           <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-lg font-bold text-[rgba(0,0,0,0.88)] mb-5">
+              <h2 className="text-lg font-bold text-sw-ink-900 mb-5">
                 {editId ? "Edit Leave Type" : "Add Leave Type"}
               </h2>
 
@@ -464,14 +464,14 @@ export default function LeaveTypesPage() {
                 {/* Toggles */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm text-[rgba(0,0,0,0.65)]">
+                    <label className="text-sm text-sw-ink-700">
                       Is Paid
                     </label>
                     <Toggle value={formIsPaid} onChange={setFormIsPaid} />
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <label className="text-sm text-[rgba(0,0,0,0.65)]">
+                    <label className="text-sm text-sw-ink-700">
                       Is Convertible
                     </label>
                     <Toggle
@@ -481,7 +481,7 @@ export default function LeaveTypesPage() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <label className="text-sm text-[rgba(0,0,0,0.65)]">
+                    <label className="text-sm text-sw-ink-700">
                       Requires Attachment
                     </label>
                     <Toggle
@@ -491,7 +491,7 @@ export default function LeaveTypesPage() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <label className="text-sm text-[rgba(0,0,0,0.65)]">
+                    <label className="text-sm text-sw-ink-700">
                       Allow Half Day
                     </label>
                     <Toggle
@@ -501,7 +501,7 @@ export default function LeaveTypesPage() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <label className="text-sm text-[rgba(0,0,0,0.65)]">
+                    <label className="text-sm text-sw-ink-700">
                       Pro-rate on Hire
                     </label>
                     <Toggle
@@ -543,7 +543,7 @@ export default function LeaveTypesPage() {
                 <div>
                   <label className={labelClass}>
                     Carry Over Max Days{" "}
-                    <span className="text-[rgba(0,0,0,0.3)]">
+                    <span className="text-sw-ink-300">
                       (0 = no carry over)
                     </span>
                   </label>
@@ -560,20 +560,20 @@ export default function LeaveTypesPage() {
               </div>
 
               {/* Buttons */}
-              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-sw-ink-100">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="h-10 px-4 rounded-xl border border-[rgba(0,0,0,0.1)] bg-white text-sm font-medium text-[rgba(0,0,0,0.65)] hover:bg-[rgba(0,0,0,0.03)] transition-colors duration-150"
+                  className="h-10 px-4 rounded-xl border border-sw-ink-200 bg-white text-sm font-medium text-sw-ink-700 hover:bg-[rgba(28, 26, 22, 0.03)] transition-colors duration-150"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="h-10 px-5 rounded-xl text-sm font-semibold text-[#61474c] shadow-sm hover:opacity-90 transition-opacity duration-150 disabled:opacity-50"
+                  className="h-10 px-5 rounded-xl text-sm font-semibold text-[#ffffff] shadow-sm hover:opacity-90 transition-opacity duration-150 disabled:opacity-50"
                   style={{
                     background:
-                      "linear-gradient(to right, #ffc671, #cf9358)",
+                      "var(--color-sw-gold-500)",
                   }}
                 >
                   {saving ? "Saving..." : "Save"}

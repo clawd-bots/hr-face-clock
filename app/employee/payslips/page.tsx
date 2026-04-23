@@ -59,61 +59,61 @@ export default function EmployeePayslipsPage() {
   }, []);
 
   if (loading) {
-    return <div className="text-center py-20 text-[rgba(0,0,0,0.4)] text-sm">Loading...</div>;
+    return <div className="text-center py-20 text-sw-ink-500 text-sm">Loading...</div>;
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)] mb-8">
+      <h1 className="t-display mb-8">
         My Payslips
       </h1>
 
       {payslips.length === 0 ? (
-        <div className="text-center py-12 text-[rgba(0,0,0,0.4)] text-sm">
+        <div className="text-center py-12 text-sw-ink-500 text-sm">
           No payslips available yet.
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] overflow-hidden">
+        <div className="sw-panel overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#f9f8f3] border-b border-[rgba(0,0,0,0.06)]">
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Period</th>
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Cycle</th>
-                <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Basic Pay</th>
-                <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Allowances</th>
-                <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Gross</th>
-                <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Deductions</th>
-                <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Net Pay</th>
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Pay Date</th>
-                <th className="text-center px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Payslip</th>
+              <tr className="bg-sw-cream-25 border-b border-sw-ink-100">
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Period</th>
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Cycle</th>
+                <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Basic Pay</th>
+                <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Allowances</th>
+                <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Gross</th>
+                <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Deductions</th>
+                <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Net Pay</th>
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Pay Date</th>
+                <th className="text-center px-6 py-4 font-medium text-sw-ink-500">Payslip</th>
               </tr>
             </thead>
             <tbody>
               {payslips.map((p) => (
-                <tr key={p.id} className="border-b border-[rgba(0,0,0,0.04)] hover:bg-[#f9f8f3] transition-colors">
-                  <td className="px-5 py-3.5 text-[rgba(0,0,0,0.88)] font-medium">
+                <tr key={p.id} className="border-b border-sw-ink-100 hover:bg-sw-cream-25 transition-colors">
+                  <td className="px-6 py-4.5 text-sw-ink-900 font-medium">
                     {p.payroll_run
                       ? `${fmtDate(p.payroll_run.period_start)} – ${fmtDate(p.payroll_run.period_end)}`
                       : "—"}
                   </td>
-                  <td className="px-5 py-3.5 text-[rgba(0,0,0,0.65)]">
+                  <td className="px-6 py-4.5 text-sw-ink-700">
                     {CYCLE_LABELS[p.payroll_run?.cycle ?? ""] ?? "—"}
                   </td>
-                  <td className="px-5 py-3.5 text-right tabular-nums text-[rgba(0,0,0,0.88)]">{fmt(p.basic_pay)}</td>
-                  <td className="px-5 py-3.5 text-right tabular-nums text-[rgba(0,0,0,0.65)]">{fmt(p.total_allowances)}</td>
-                  <td className="px-5 py-3.5 text-right tabular-nums text-[rgba(0,0,0,0.88)] font-medium">{fmt(p.gross_pay)}</td>
-                  <td className="px-5 py-3.5 text-right tabular-nums text-[rgba(0,0,0,0.65)]">{fmt(p.total_deductions)}</td>
-                  <td className="px-5 py-3.5 text-right tabular-nums text-[rgba(0,0,0,0.88)] font-semibold">{fmt(p.net_pay)}</td>
-                  <td className="px-5 py-3.5 text-[rgba(0,0,0,0.65)]">
+                  <td className="px-6 py-4.5 text-right tabular-nums text-sw-ink-900">{fmt(p.basic_pay)}</td>
+                  <td className="px-6 py-4.5 text-right tabular-nums text-sw-ink-700">{fmt(p.total_allowances)}</td>
+                  <td className="px-6 py-4.5 text-right tabular-nums text-sw-ink-900 font-medium">{fmt(p.gross_pay)}</td>
+                  <td className="px-6 py-4.5 text-right tabular-nums text-sw-ink-700">{fmt(p.total_deductions)}</td>
+                  <td className="px-6 py-4.5 text-right tabular-nums text-sw-ink-900 font-semibold">{fmt(p.net_pay)}</td>
+                  <td className="px-6 py-4.5 text-sw-ink-700">
                     {p.payroll_run ? fmtDate(p.payroll_run.pay_date) : "—"}
                   </td>
-                  <td className="px-5 py-3.5 text-center">
+                  <td className="px-6 py-4.5 text-center">
                     {p.payroll_run && (
                       <a
                         href={`/api/payroll/${p.payroll_run.id}/payslip?item_id=${p.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-[#9a6d2a] hover:text-[#7a5520] font-medium"
+                        className="text-xs text-sw-gold-600 hover:text-sw-gold-600 font-medium"
                       >
                         View
                       </a>

@@ -1,18 +1,45 @@
 "use client";
 
 import { Suspense, useState, useEffect } from "react";
+import Link from "next/link";
+import { SweldoLogo } from "@/components/ui/SweldoLogo";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-sw-cream-50">
+      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sw-gold-500" />
+    </div>
+  );
+}
+
+function Brand({ tagline }: { tagline: string }) {
+  return (
+    <div className="text-center mb-8">
+      <div className="inline-flex items-center gap-2.5 mb-3">
+        <SweldoLogo width={28} height={30} />
+        <span className="t-h3 text-sw-ink-900">Sweldo</span>
+      </div>
+      <p className="t-body text-sw-ink-500">{tagline}</p>
+    </div>
+  );
+}
+
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <div className="mb-6 px-4 py-3 bg-sw-danger-100 border border-sw-danger-500/20 rounded-[12px] text-sw-caption font-medium text-[#a11b35]">
+      {message}
+    </div>
+  );
+}
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#fafaf2]">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#cf9358]" />
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingScreen />}>
       <LoginForm />
     </Suspense>
   );
@@ -29,7 +56,6 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/admin";
 
-  // Check if system needs initial setup
   useEffect(() => {
     fetch("/api/setup/check")
       .then((r) => r.json())
@@ -38,9 +64,7 @@ function LoginForm() {
           setNeedsSetup(true);
         }
       })
-      .catch(() => {
-        // If check fails, just show normal login
-      })
+      .catch(() => {})
       .finally(() => setCheckingSetup(false));
   }, []);
 
@@ -50,24 +74,13 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      console.log("[login] Starting sign-in for:", email);
       const supabase = getSupabaseBrowser();
-      console.log("[login] Supabase client created, calling signInWithPassword...");
-
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      console.log("[login] signInWithPassword returned:", {
-        hasData: !!data,
-        hasSession: !!data?.session,
-        hasUser: !!data?.user,
-        error: authError?.message || null
-      });
-
       if (authError) {
-        // Provide more helpful messages for common issues
         if (authError.message === "Email not confirmed") {
           setError(
             "Email not confirmed. Check your inbox for a confirmation link, or ask your admin to disable email confirmation in Supabase."
@@ -82,7 +95,6 @@ function LoginForm() {
         return;
       }
 
-      // Check user role to determine redirect
       let targetRedirect = redirect;
       try {
         const { data: profile } = await supabase
@@ -93,144 +105,79 @@ function LoginForm() {
 
         const adminRoles = ["super_admin", "company_admin", "hr_manager", "payroll_officer", "department_manager"];
         if (profile?.system_role && !adminRoles.includes(profile.system_role)) {
-          // Employee role — redirect to employee portal
           targetRedirect = "/employee";
         }
-      } catch {
-        // If profile check fails, use default redirect
-      }
+      } catch {}
 
-      console.log("[login] Sign-in successful, redirecting to:", targetRedirect);
       router.push(targetRedirect);
       router.refresh();
     } catch (err) {
-      console.error("[login] Unexpected error:", err);
       setError("An unexpected error occurred: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
   };
 
-  if (checkingSetup) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafaf2]">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#cf9358]" />
-      </div>
-    );
-  }
+  if (checkingSetup) return <LoadingScreen />;
 
-  // If no companies exist yet, show a prompt to go to setup
   if (needsSetup) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafaf2]">
-        <div
-          className="w-full max-w-md p-10 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
-          style={{
-            background:
-              "linear-gradient(167deg, #f4f1e6 0%, #faf8f2 38%, #faf8f2 84%, #f4f1e6 100%)",
-          }}
-        >
-          <div className="text-center mb-8">
-            <h1 className="text-[44px] font-medium tracking-[-2px] leading-[1.1] text-[rgba(0,0,0,0.88)]">
-              &you
-            </h1>
-            <p className="text-base text-[rgba(0,0,0,0.65)] mt-1">
-              Welcome! Let&apos;s get started.
-            </p>
-          </div>
-
-          <div className="text-center mb-6">
-            <p className="text-sm text-[rgba(0,0,0,0.65)] mb-6">
-              No company has been set up yet. Complete the initial setup to
-              create your company and admin account.
-            </p>
-            <a
-              href="/setup"
-              className="inline-block w-full h-12 leading-[48px] rounded-full text-sm font-medium text-[#61474c] transition-all duration-150 hover:shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
-              style={{
-                background: "linear-gradient(to right, #ffc671, #cf9358)",
-              }}
-            >
-              Start Setup
-            </a>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-sw-cream-50 p-6">
+        <div className="w-full max-w-md p-10 rounded-sw-xl bg-sw-white border border-sw-ink-200 shadow-sw-2">
+          <Brand tagline="Welcome! Let's get started." />
+          <p className="t-body text-sw-ink-500 text-center mb-6">
+            No company has been set up yet. Complete the initial setup to create your company and admin account.
+          </p>
+          <Button asChild variant="primary" size="lg" className="w-full">
+            <Link href="/setup">Start Setup</Link>
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#fafaf2]">
-      <div
-        className="w-full max-w-md p-10 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
-        style={{
-          background:
-            "linear-gradient(167deg, #f4f1e6 0%, #faf8f2 38%, #faf8f2 84%, #f4f1e6 100%)",
-        }}
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-[44px] font-medium tracking-[-2px] leading-[1.1] text-[rgba(0,0,0,0.88)]">
-            &you
-          </h1>
-          <p className="text-base text-[rgba(0,0,0,0.65)] mt-1">
-            Sign in to your account
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-sw-cream-50 p-6">
+      <div className="w-full max-w-md p-10 rounded-sw-xl bg-sw-white border border-sw-ink-200 shadow-sw-2">
+        <Brand tagline="Sign in to your account" />
 
-        {error && (
-          <div className="mb-6 px-4 py-3 bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34]">
-            {error}
-          </div>
-        )}
+        {error && <ErrorBanner message={error} />}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1.5">
-              Email
-            </label>
-            <input
+            <Label>Email</Label>
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full h-12 px-4 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-2xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150"
               placeholder="you@company.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1.5">
-              Password
-            </label>
-            <input
+            <Label>Password</Label>
+            <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full h-12 px-4 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-2xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150"
               placeholder="Enter your password"
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full h-12 rounded-full text-sm font-medium text-[#61474c] transition-all duration-150 hover:shadow-[0_4px_24px_rgba(0,0,0,0.10)] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-            style={{
-              background: "linear-gradient(to right, #ffc671, #cf9358)",
-            }}
-          >
+          <Button type="submit" disabled={loading} variant="primary" size="lg" className="w-full mt-2">
             {loading ? "Signing in..." : "Sign In"}
-          </button>
+          </Button>
         </form>
 
-        <div className="mt-6 text-center space-y-2">
-          <a
+        <div className="mt-6 text-center">
+          <Link
             href="/"
-            className="block text-sm font-medium text-[rgba(0,0,0,0.4)] hover:text-[rgba(0,0,0,0.65)] transition-colors duration-150"
+            className="text-sw-caption font-medium text-sw-ink-500 hover:text-sw-ink-900 transition-colors duration-sw-fast"
           >
             Go to Kiosk Mode
-          </a>
+          </Link>
         </div>
       </div>
     </div>

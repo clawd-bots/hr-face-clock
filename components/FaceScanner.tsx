@@ -71,7 +71,7 @@ export default function FaceScanner({
           const ctx = canvas.getContext("2d")!;
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           const { x, y, width, height } = result.detection.box;
-          ctx.strokeStyle = "#ffc671";
+          ctx.strokeStyle = "#c9972e";
           ctx.lineWidth = 3;
           ctx.strokeRect(x, y, width, height);
         }
@@ -95,7 +95,7 @@ export default function FaceScanner({
 
   return (
     <div className="relative">
-      <div className="relative rounded-3xl overflow-hidden bg-black shadow-[0_4px_24px_rgba(0,0,0,0.10)]">
+      <div className="relative rounded-sw-xl overflow-hidden bg-sw-ink-900 shadow-sw-2">
         <video
           ref={videoRef}
           className="w-full max-w-[640px]"
@@ -111,10 +111,10 @@ export default function FaceScanner({
           />
         )}
         {!ready && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+          <div className="absolute inset-0 flex items-center justify-center bg-sw-ink-900/80">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#ffc671] mx-auto mb-3" />
-              <p className="text-sm font-medium text-white">{status}</p>
+              <div className="animate-spin rounded-sw-full h-10 w-10 border-b-2 border-sw-gold-500 mx-auto mb-3" />
+              <p className="text-sw-caption font-medium text-sw-white">{status}</p>
             </div>
           </div>
         )}
@@ -122,10 +122,11 @@ export default function FaceScanner({
       {ready && (
         <div className="mt-3 flex items-center gap-2">
           <div
-            className="w-3 h-3 rounded-full transition-colors duration-150"
-            style={{ background: faceFound ? "#cf9358" : "rgba(0,0,0,0.15)" }}
+            className={`w-3 h-3 rounded-sw-full transition-colors duration-sw-fast ${
+              faceFound ? "bg-sw-success-500" : "bg-sw-ink-200"
+            }`}
           />
-          <span className="text-sm font-medium text-[rgba(0,0,0,0.65)]">
+          <span className="text-sw-caption font-medium text-sw-ink-700">
             {faceFound ? "Face detected" : "No face detected"}
           </span>
         </div>

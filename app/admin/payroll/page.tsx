@@ -67,10 +67,10 @@ function fmtDate(d: string): string {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  draft: "bg-[rgba(0,0,0,0.06)] text-[rgba(0,0,0,0.5)]",
-  computed: "bg-[rgba(255,198,113,0.2)] text-[#9a6d2a]",
-  approved: "bg-[rgba(76,175,80,0.12)] text-[#2e7d32]",
-  paid: "bg-[rgba(33,150,243,0.12)] text-[#1565c0]",
+  draft: "bg-[rgba(28, 26, 22, 0.06)] text-sw-ink-500",
+  computed: "bg-[var(--color-sw-gold-50)] text-sw-gold-600",
+  approved: "bg-[rgba(76,175,80,0.12)] text-sw-success-500",
+  paid: "bg-[rgba(33,150,243,0.12)] text-sw-lilac-500",
 };
 
 const CYCLE_LABELS: Record<string, string> = {
@@ -255,7 +255,7 @@ export default function PayrollPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)]">
+        <h1 className="t-display">
           Payroll
         </h1>
       </div>
@@ -276,7 +276,7 @@ export default function PayrollPage() {
             <button
               onClick={() => setShowRunModal(true)}
               className="px-5 py-2.5 rounded-full text-sm font-medium text-white"
-              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+              style={{ background: "var(--color-sw-gold-500)" }}
             >
               Run Payroll
             </button>
@@ -287,24 +287,24 @@ export default function PayrollPage() {
           )}
 
           {runsLoading ? (
-            <div className="text-center py-12 text-[rgba(0,0,0,0.4)] text-sm">Loading...</div>
+            <div className="text-center py-12 text-sw-ink-500 text-sm">Loading...</div>
           ) : runs.length === 0 ? (
-            <div className="text-center py-12 text-[rgba(0,0,0,0.4)] text-sm">
+            <div className="text-center py-12 text-sw-ink-500 text-sm">
               No payroll runs yet. Click &quot;Run Payroll&quot; to get started.
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] overflow-hidden">
+            <div className="sw-panel overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#f9f8f3] border-b border-[rgba(0,0,0,0.06)]">
-                    <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Period</th>
-                    <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Cycle</th>
-                    <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Status</th>
-                    <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Employees</th>
-                    <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Gross</th>
-                    <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Deductions</th>
-                    <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Net</th>
-                    <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Pay Date</th>
+                  <tr className="bg-sw-cream-25 border-b border-sw-ink-100">
+                    <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Period</th>
+                    <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Cycle</th>
+                    <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Status</th>
+                    <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Employees</th>
+                    <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Gross</th>
+                    <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Deductions</th>
+                    <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Net</th>
+                    <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Pay Date</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -312,30 +312,30 @@ export default function PayrollPage() {
                     <tr
                       key={r.id}
                       onClick={() => router.push(`/admin/payroll/${r.id}`)}
-                      className="border-b border-[rgba(0,0,0,0.04)] hover:bg-[#f9f8f3] cursor-pointer transition-colors"
+                      className="border-b border-sw-ink-100 hover:bg-sw-cream-25 cursor-pointer transition-colors"
                     >
-                      <td className="px-5 py-3.5 text-[rgba(0,0,0,0.88)] font-medium">
+                      <td className="px-6 py-4.5 text-sw-ink-900 font-medium">
                         {fmtDate(r.period_start)} – {fmtDate(r.period_end)}
                       </td>
-                      <td className="px-5 py-3.5 text-[rgba(0,0,0,0.65)]">
+                      <td className="px-6 py-4.5 text-sw-ink-700">
                         {CYCLE_LABELS[r.cycle] ?? r.cycle}
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-6 py-4.5">
                         <span className={`px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-full ${STATUS_STYLES[r.status] ?? ""}`}>
                           {r.status}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-right text-[rgba(0,0,0,0.65)]">{r.employee_count}</td>
-                      <td className="px-5 py-3.5 text-right text-[rgba(0,0,0,0.88)] font-medium tabular-nums">
+                      <td className="px-6 py-4.5 text-right text-sw-ink-700">{r.employee_count}</td>
+                      <td className="px-6 py-4.5 text-right text-sw-ink-900 font-medium tabular-nums">
                         {fmt(r.total_gross)}
                       </td>
-                      <td className="px-5 py-3.5 text-right text-[rgba(0,0,0,0.65)] tabular-nums">
+                      <td className="px-6 py-4.5 text-right text-sw-ink-700 tabular-nums">
                         {fmt(r.total_deductions)}
                       </td>
-                      <td className="px-5 py-3.5 text-right text-[rgba(0,0,0,0.88)] font-medium tabular-nums">
+                      <td className="px-6 py-4.5 text-right text-sw-ink-900 font-medium tabular-nums">
                         {fmt(r.total_net)}
                       </td>
-                      <td className="px-5 py-3.5 text-[rgba(0,0,0,0.65)]">{fmtDate(r.pay_date)}</td>
+                      <td className="px-6 py-4.5 text-sw-ink-700">{fmtDate(r.pay_date)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -349,25 +349,25 @@ export default function PayrollPage() {
               <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setShowRunModal(false)} />
               <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
                 <div className="glass-modal rounded-2xl w-full max-w-md p-6">
-                  <h2 className="text-lg font-semibold text-[rgba(0,0,0,0.88)] mb-4">Run Payroll</h2>
+                  <h2 className="text-lg font-semibold text-sw-ink-900 mb-4">Run Payroll</h2>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Month</label>
+                      <label className="block text-sm font-medium text-sw-ink-700 mb-1">Month</label>
                       <input
                         type="month"
                         value={runMonth}
                         onChange={(e) => setRunMonth(e.target.value)}
-                        className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                        className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Cutoff</label>
+                      <label className="block text-sm font-medium text-sw-ink-700 mb-1">Cutoff</label>
                       <select
                         value={runCycle}
                         onChange={(e) => setRunCycle(e.target.value as "semi_monthly_1" | "semi_monthly_2")}
-                        className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                        className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
                       >
                         <option value="semi_monthly_1">1st – 15th</option>
                         <option value="semi_monthly_2">16th – End of Month</option>
@@ -375,12 +375,12 @@ export default function PayrollPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Pay Date</label>
+                      <label className="block text-sm font-medium text-sw-ink-700 mb-1">Pay Date</label>
                       <input
                         type="date"
                         value={runPayDate}
                         onChange={(e) => setRunPayDate(e.target.value)}
-                        className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                        className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
                       />
                     </div>
                   </div>
@@ -388,7 +388,7 @@ export default function PayrollPage() {
                   <div className="flex justify-end gap-3 mt-6">
                     <button
                       onClick={() => setShowRunModal(false)}
-                      className="px-4 py-2 rounded-full text-sm font-medium text-[rgba(0,0,0,0.65)] hover:bg-[#f4f1e6] transition-colors"
+                      className="px-4 py-2 rounded-full text-sm font-medium text-sw-ink-700 hover:bg-[var(--color-sw-ink-100)] transition-colors"
                     >
                       Cancel
                     </button>
@@ -396,7 +396,7 @@ export default function PayrollPage() {
                       onClick={handleRunPayroll}
                       disabled={runSubmitting}
                       className="px-5 py-2 rounded-full text-sm font-medium text-white disabled:opacity-50"
-                      style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+                      style={{ background: "var(--color-sw-gold-500)" }}
                     >
                       {runSubmitting ? "Computing..." : "Compute Payroll"}
                     </button>
@@ -415,7 +415,7 @@ export default function PayrollPage() {
             <button
               onClick={() => setShowSalaryModal(true)}
               className="px-5 py-2.5 rounded-full text-sm font-medium text-white"
-              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+              style={{ background: "var(--color-sw-gold-500)" }}
             >
               Set Salary
             </button>
@@ -426,52 +426,52 @@ export default function PayrollPage() {
           )}
 
           {salariesLoading ? (
-            <div className="text-center py-12 text-[rgba(0,0,0,0.4)] text-sm">Loading...</div>
+            <div className="text-center py-12 text-sw-ink-500 text-sm">Loading...</div>
           ) : salaries.length === 0 ? (
-            <div className="text-center py-12 text-[rgba(0,0,0,0.4)] text-sm">
+            <div className="text-center py-12 text-sw-ink-500 text-sm">
               No salary records yet. Click &quot;Set Salary&quot; to assign salaries.
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] overflow-hidden">
+            <div className="sw-panel overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#f9f8f3] border-b border-[rgba(0,0,0,0.06)]">
-                    <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Employee</th>
-                    <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Position</th>
-                    <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Basic Salary</th>
-                    <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Daily Rate</th>
-                    <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Hourly Rate</th>
-                    <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Effective From</th>
-                    <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Basis</th>
-                    <th className="text-center px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Actions</th>
+                  <tr className="bg-sw-cream-25 border-b border-sw-ink-100">
+                    <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Employee</th>
+                    <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Position</th>
+                    <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Basic Salary</th>
+                    <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Daily Rate</th>
+                    <th className="text-right px-6 py-4 font-medium text-sw-ink-500">Hourly Rate</th>
+                    <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Effective From</th>
+                    <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Basis</th>
+                    <th className="text-center px-6 py-4 font-medium text-sw-ink-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {salaries.map((s) => (
-                    <tr key={s.id} className="border-b border-[rgba(0,0,0,0.04)] hover:bg-[#f9f8f3] transition-colors">
-                      <td className="px-5 py-3.5 text-[rgba(0,0,0,0.88)] font-medium">
+                    <tr key={s.id} className="border-b border-sw-ink-100 hover:bg-sw-cream-25 transition-colors">
+                      <td className="px-6 py-4.5 text-sw-ink-900 font-medium">
                         <div>{empName(s.employee)}</div>
                         {s.employee?.employee_number && (
-                          <div className="text-xs text-[rgba(0,0,0,0.4)]">{s.employee.employee_number}</div>
+                          <div className="text-xs text-sw-ink-500">{s.employee.employee_number}</div>
                         )}
                       </td>
-                      <td className="px-5 py-3.5 text-[rgba(0,0,0,0.65)]">
+                      <td className="px-6 py-4.5 text-sw-ink-700">
                         {s.employee?.position_title ?? "—"}
                       </td>
-                      <td className="px-5 py-3.5 text-right text-[rgba(0,0,0,0.88)] font-medium tabular-nums">
+                      <td className="px-6 py-4.5 text-right text-sw-ink-900 font-medium tabular-nums">
                         {fmt(s.basic_salary)}
                       </td>
-                      <td className="px-5 py-3.5 text-right text-[rgba(0,0,0,0.65)] tabular-nums">
+                      <td className="px-6 py-4.5 text-right text-sw-ink-700 tabular-nums">
                         {fmt(s.daily_rate)}
                       </td>
-                      <td className="px-5 py-3.5 text-right text-[rgba(0,0,0,0.65)] tabular-nums">
+                      <td className="px-6 py-4.5 text-right text-sw-ink-700 tabular-nums">
                         {fmt(s.hourly_rate)}
                       </td>
-                      <td className="px-5 py-3.5 text-[rgba(0,0,0,0.65)]">
+                      <td className="px-6 py-4.5 text-sw-ink-700">
                         {fmtDate(s.effective_from)}
                       </td>
-                      <td className="px-5 py-3.5 text-[rgba(0,0,0,0.65)] capitalize">{s.pay_basis}</td>
-                      <td className="px-5 py-3.5 text-center">
+                      <td className="px-6 py-4.5 text-sw-ink-700 capitalize">{s.pay_basis}</td>
+                      <td className="px-6 py-4.5 text-center">
                         <button
                           onClick={() => handleDeleteSalary(s.id)}
                           className="text-xs text-red-500 hover:text-red-700 font-medium"
@@ -492,15 +492,15 @@ export default function PayrollPage() {
               <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setShowSalaryModal(false)} />
               <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
                 <div className="glass-modal rounded-2xl w-full max-w-md p-6">
-                  <h2 className="text-lg font-semibold text-[rgba(0,0,0,0.88)] mb-4">Set Salary</h2>
+                  <h2 className="text-lg font-semibold text-sw-ink-900 mb-4">Set Salary</h2>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Employee</label>
+                      <label className="block text-sm font-medium text-sw-ink-700 mb-1">Employee</label>
                       <select
                         value={salaryForm.employee_id}
                         onChange={(e) => setSalaryForm({ ...salaryForm, employee_id: e.target.value })}
-                        className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                        className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
                       >
                         <option value="">Select employee...</option>
                         {employees.map((e) => (
@@ -512,45 +512,45 @@ export default function PayrollPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Basic Salary (Monthly)</label>
+                      <label className="block text-sm font-medium text-sw-ink-700 mb-1">Basic Salary (Monthly)</label>
                       <input
                         type="number"
                         value={salaryForm.basic_salary}
                         onChange={(e) => setSalaryForm({ ...salaryForm, basic_salary: e.target.value })}
                         placeholder="e.g. 25000"
-                        className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                        className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Effective From</label>
+                      <label className="block text-sm font-medium text-sw-ink-700 mb-1">Effective From</label>
                       <input
                         type="date"
                         value={salaryForm.effective_from}
                         onChange={(e) => setSalaryForm({ ...salaryForm, effective_from: e.target.value })}
-                        className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                        className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Pay Basis</label>
+                        <label className="block text-sm font-medium text-sw-ink-700 mb-1">Pay Basis</label>
                         <select
                           value={salaryForm.pay_basis}
                           onChange={(e) => setSalaryForm({ ...salaryForm, pay_basis: e.target.value })}
-                          className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                          className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
                         >
                           <option value="monthly">Monthly</option>
                           <option value="daily">Daily</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Days/Month</label>
+                        <label className="block text-sm font-medium text-sw-ink-700 mb-1">Days/Month</label>
                         <input
                           type="number"
                           value={salaryForm.days_per_month}
                           onChange={(e) => setSalaryForm({ ...salaryForm, days_per_month: e.target.value })}
-                          className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                          className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
                         />
                       </div>
                     </div>
@@ -559,7 +559,7 @@ export default function PayrollPage() {
                   <div className="flex justify-end gap-3 mt-6">
                     <button
                       onClick={() => setShowSalaryModal(false)}
-                      className="px-4 py-2 rounded-full text-sm font-medium text-[rgba(0,0,0,0.65)] hover:bg-[#f4f1e6] transition-colors"
+                      className="px-4 py-2 rounded-full text-sm font-medium text-sw-ink-700 hover:bg-[var(--color-sw-ink-100)] transition-colors"
                     >
                       Cancel
                     </button>
@@ -567,7 +567,7 @@ export default function PayrollPage() {
                       onClick={handleSetSalary}
                       disabled={salarySubmitting || !salaryForm.employee_id || !salaryForm.basic_salary}
                       className="px-5 py-2 rounded-full text-sm font-medium text-white disabled:opacity-50"
-                      style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+                      style={{ background: "var(--color-sw-gold-500)" }}
                     >
                       {salarySubmitting ? "Saving..." : "Save"}
                     </button>

@@ -96,19 +96,19 @@ export default function EmployeeProfilePage() {
   }
 
   if (loading) {
-    return <div className="text-center py-20 text-[rgba(0,0,0,0.4)] text-sm">Loading...</div>;
+    return <div className="text-center py-20 text-sw-ink-500 text-sm">Loading...</div>;
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)] mb-8">
+      <h1 className="t-display mb-8">
         My Profile
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Info (read-only) */}
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] p-6">
-          <h2 className="text-sm font-semibold text-[rgba(0,0,0,0.88)] mb-4">Personal Information</h2>
+        <div className="sw-panel p-6">
+          <h2 className="text-sm font-semibold text-sw-ink-900 mb-4">Personal Information</h2>
           <div className="space-y-3">
             {[
               ["Name", empName(employee)],
@@ -124,8 +124,8 @@ export default function EmployeeProfilePage() {
               ["Work Email", employee?.work_email],
             ].map(([label, value]) => (
               <div key={label as string} className="flex justify-between">
-                <span className="text-sm text-[rgba(0,0,0,0.5)]">{label}</span>
-                <span className="text-sm text-[rgba(0,0,0,0.88)] font-medium">
+                <span className="text-sm text-sw-ink-500">{label}</span>
+                <span className="text-sm text-sw-ink-900 font-medium">
                   {(value as string) || "—"}
                 </span>
               </div>
@@ -134,8 +134,8 @@ export default function EmployeeProfilePage() {
         </div>
 
         {/* Government IDs (read-only) */}
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] p-6">
-          <h2 className="text-sm font-semibold text-[rgba(0,0,0,0.88)] mb-4">Government IDs</h2>
+        <div className="sw-panel p-6">
+          <h2 className="text-sm font-semibold text-sw-ink-900 mb-4">Government IDs</h2>
           <div className="space-y-3">
             {[
               ["SSS", employee?.sss_number],
@@ -144,8 +144,8 @@ export default function EmployeeProfilePage() {
               ["Pag-IBIG", employee?.pagibig_number],
             ].map(([label, value]) => (
               <div key={label as string} className="flex justify-between">
-                <span className="text-sm text-[rgba(0,0,0,0.5)]">{label}</span>
-                <span className="text-sm text-[rgba(0,0,0,0.88)] font-medium font-mono">
+                <span className="text-sm text-sw-ink-500">{label}</span>
+                <span className="text-sm text-sw-ink-900 font-medium font-mono">
                   {(value as string) || "—"}
                 </span>
               </div>
@@ -154,10 +154,10 @@ export default function EmployeeProfilePage() {
         </div>
 
         {/* Contact & Address (editable) */}
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.1)] p-6 lg:col-span-2">
-          <h2 className="text-sm font-semibold text-[rgba(0,0,0,0.88)] mb-4">
+        <div className="sw-panel p-6 lg:col-span-2">
+          <h2 className="text-sm font-semibold text-sw-ink-900 mb-4">
             Contact &amp; Address
-            <span className="text-xs font-normal text-[rgba(0,0,0,0.4)] ml-2">editable</span>
+            <span className="text-xs font-normal text-sw-ink-500 ml-2">editable</span>
           </h2>
 
           {message && (
@@ -168,66 +168,66 @@ export default function EmployeeProfilePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Phone</label>
+              <label className="block text-sm font-medium text-sw-ink-700 mb-1">Phone</label>
               <input
                 type="tel"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Personal Email</label>
+              <label className="block text-sm font-medium text-sw-ink-700 mb-1">Personal Email</label>
               <input
                 type="email"
                 value={form.personal_email}
                 onChange={(e) => setForm({ ...form, personal_email: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Address Line 1</label>
+              <label className="block text-sm font-medium text-sw-ink-700 mb-1">Address Line 1</label>
               <input
                 type="text"
                 value={form.address_line1}
                 onChange={(e) => setForm({ ...form, address_line1: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Address Line 2</label>
+              <label className="block text-sm font-medium text-sw-ink-700 mb-1">Address Line 2</label>
               <input
                 type="text"
                 value={form.address_line2}
                 onChange={(e) => setForm({ ...form, address_line2: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">City</label>
+              <label className="block text-sm font-medium text-sw-ink-700 mb-1">City</label>
               <input
                 type="text"
                 value={form.city}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Province</label>
+              <label className="block text-sm font-medium text-sw-ink-700 mb-1">Province</label>
               <input
                 type="text"
                 value={form.province}
                 onChange={(e) => setForm({ ...form, province: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">ZIP Code</label>
+              <label className="block text-sm font-medium text-sw-ink-700 mb-1">ZIP Code</label>
               <input
                 type="text"
                 value={form.zip_code}
                 onChange={(e) => setForm({ ...form, zip_code: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
               />
             </div>
           </div>
@@ -237,7 +237,7 @@ export default function EmployeeProfilePage() {
               onClick={handleSave}
               disabled={saving}
               className="px-5 py-2.5 rounded-full text-sm font-medium text-white disabled:opacity-50"
-              style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+              style={{ background: "var(--color-sw-gold-500)" }}
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>

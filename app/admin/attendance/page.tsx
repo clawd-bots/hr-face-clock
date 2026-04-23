@@ -225,9 +225,9 @@ export default function AttendancePage() {
 
   function StatusBadge({ status }: { status: string }) {
     const styles: Record<string, { bg: string; text: string }> = {
-      computed: { bg: "rgba(0,0,0,0.06)", text: "rgba(0,0,0,0.55)" },
-      adjusted: { bg: "rgba(207,147,88,0.15)", text: "#9a6d2a" },
-      approved: { bg: "rgba(34,139,34,0.10)", text: "#1a7a1a" },
+      computed: { bg: "rgba(28, 26, 22, 0.06)", text: "var(--color-sw-ink-500)" },
+      adjusted: { bg: "rgba(207,147,88,0.15)", text: "var(--color-sw-gold-600)" },
+      approved: { bg: "rgba(34,139,34,0.10)", text: "var(--color-sw-success-500)" },
     };
     const s = styles[status] ?? styles.computed;
     return (
@@ -248,22 +248,22 @@ export default function AttendancePage() {
     <div>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-[28px] font-medium tracking-[-1.75px] text-[rgba(0,0,0,0.88)]">
+        <h1 className="t-display">
           Attendance
         </h1>
         <div className="flex gap-3">
           <button
             onClick={handleBulkApprove}
             disabled={approving}
-            className="px-5 py-2.5 rounded-full text-sm font-medium border border-[rgba(0,0,0,0.12)] text-[rgba(0,0,0,0.65)] bg-white hover:bg-[#f4f1e6] transition-all duration-150 disabled:opacity-50"
+            className="px-5 py-2.5 rounded-full text-sm font-medium border border-sw-ink-200 text-sw-ink-700 bg-white hover:bg-[var(--color-sw-ink-100)] transition-all duration-150 disabled:opacity-50"
           >
             {approving ? "Approving..." : "Bulk Approve"}
           </button>
           <button
             onClick={handleCompute}
             disabled={computing}
-            className="px-5 py-2.5 rounded-full text-sm font-medium text-[#61474c] transition-all duration-150 hover:shadow-[0_4px_24px_rgba(0,0,0,0.10)] disabled:opacity-50"
-            style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+            className="px-5 py-2.5 rounded-full text-sm font-medium text-[#ffffff] transition-all duration-150 hover:shadow-[0_4px_24px_var(--color-sw-ink-200)] disabled:opacity-50"
+            style={{ background: "var(--color-sw-gold-500)" }}
           >
             {computing ? "Computing..." : "Compute DTR"}
           </button>
@@ -272,7 +272,7 @@ export default function AttendancePage() {
 
       {/* Success / error message */}
       {message && (
-        <div className="mb-4 px-4 py-3 rounded-xl bg-white border border-[rgba(0,0,0,0.06)] text-sm text-[rgba(0,0,0,0.65)]">
+        <div className="mb-4 px-4 py-3 rounded-xl bg-white border border-sw-ink-100 text-sm text-sw-ink-700">
           {message}
         </div>
       )}
@@ -280,31 +280,31 @@ export default function AttendancePage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="flex items-center gap-2">
-          <label className="text-xs text-[rgba(0,0,0,0.4)] uppercase tracking-wide">
+          <label className="text-xs text-sw-ink-500 uppercase tracking-wide">
             From
           </label>
           <input
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+            className="h-10 px-3 bg-sw-cream-50 border border-sw-ink-200 rounded-xl text-sm text-sw-ink-900 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)]"
           />
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-xs text-[rgba(0,0,0,0.4)] uppercase tracking-wide">
+          <label className="text-xs text-sw-ink-500 uppercase tracking-wide">
             To
           </label>
           <input
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+            className="h-10 px-3 bg-sw-cream-50 border border-sw-ink-200 rounded-xl text-sm text-sw-ink-900 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)]"
           />
         </div>
         <select
           value={departmentId}
           onChange={(e) => setDepartmentId(e.target.value)}
-          className="h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.65)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+          className="h-10 px-3 bg-sw-cream-50 border border-sw-ink-200 rounded-xl text-sm text-sw-ink-700 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)]"
         >
           <option value="">All Departments</option>
           {departments.map((d) => (
@@ -318,12 +318,12 @@ export default function AttendancePage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search employee..."
-          className="h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.35)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] min-w-[180px]"
+          className="h-10 px-3 bg-sw-cream-50 border border-sw-ink-200 rounded-xl text-sm text-sw-ink-900 placeholder:text-sw-ink-300 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)] min-w-[180px]"
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.65)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+          className="h-10 px-3 bg-sw-cream-50 border border-sw-ink-200 rounded-xl text-sm text-sw-ink-700 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)]"
         >
           <option value="all">All Statuses</option>
           <option value="computed">Computed</option>
@@ -344,10 +344,10 @@ export default function AttendancePage() {
             key={stat.label}
             className="glass-card rounded-2xl px-5 py-4"
           >
-            <p className="text-xs text-[rgba(0,0,0,0.4)] uppercase tracking-wide mb-1">
+            <p className="text-xs text-sw-ink-500 uppercase tracking-wide mb-1">
               {stat.label}
             </p>
-            <p className="text-xl font-medium text-[rgba(0,0,0,0.88)]">
+            <p className="text-xl font-medium text-sw-ink-900">
               {stat.value}
             </p>
           </div>
@@ -357,22 +357,22 @@ export default function AttendancePage() {
       {/* Table */}
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ffc671]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sw-gold-500" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] p-16 text-center">
-          <p className="text-base text-[rgba(0,0,0,0.4)]">
+        <div className="sw-panel p-16 text-center">
+          <p className="text-base text-sw-ink-500">
             {records.length === 0
               ? "No DTR records found for this period. Click \"Compute DTR\" to generate."
               : "No records match your filters."}
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] overflow-hidden">
+        <div className="sw-panel overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left bg-[#f4f1e6] border-b border-[rgba(0,0,0,0.06)]">
+                <tr className="text-left bg-sw-cream-25 border-b border-sw-ink-100">
                   {[
                     "Employee",
                     "Date",
@@ -388,7 +388,7 @@ export default function AttendancePage() {
                   ].map((col) => (
                     <th
                       key={col}
-                      className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)] whitespace-nowrap"
+                      className="px-4 py-3 text-xs font-medium uppercase tracking-wide text-sw-ink-500 whitespace-nowrap"
                     >
                       {col}
                     </th>
@@ -399,22 +399,22 @@ export default function AttendancePage() {
                 {filtered.map((r) => (
                   <tr
                     key={r.id}
-                    className="border-b border-[rgba(0,0,0,0.04)] last:border-0 hover:bg-[#fafaf2] transition-colors duration-150 cursor-pointer"
+                    className="border-b border-sw-ink-100 last:border-0 hover:bg-sw-cream-25 transition-colors duration-150 cursor-pointer"
                   >
-                    <td className="px-4 py-3">
-                      <span className="text-sm font-medium text-[rgba(0,0,0,0.88)]">
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-sw-ink-900">
                         {r.employee?.name ?? "—"}
                       </span>
                       {r.employee?.employee_number && (
-                        <span className="ml-1.5 text-xs text-[rgba(0,0,0,0.35)]">
+                        <span className="ml-1.5 text-xs text-sw-ink-300">
                           #{r.employee.employee_number}
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-[rgba(0,0,0,0.65)] whitespace-nowrap">
+                    <td className="px-6 py-4 text-sm text-sw-ink-700 whitespace-nowrap">
                       {formatShortDate(r.date)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-[rgba(0,0,0,0.65)]">
+                    <td className="px-6 py-4 text-sm text-sw-ink-700">
                       {r.is_rest_day
                         ? "Rest Day"
                         : r.is_holiday
@@ -423,38 +423,38 @@ export default function AttendancePage() {
                             ? "Regular"
                             : "—"}
                     </td>
-                    <td className="px-4 py-3 text-sm text-[rgba(0,0,0,0.65)] whitespace-nowrap">
+                    <td className="px-6 py-4 text-sm text-sw-ink-700 whitespace-nowrap">
                       {formatTime(r.first_in)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-[rgba(0,0,0,0.65)] whitespace-nowrap">
+                    <td className="px-6 py-4 text-sm text-sw-ink-700 whitespace-nowrap">
                       {formatTime(r.last_out)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-[rgba(0,0,0,0.88)] font-medium">
+                    <td className="px-6 py-4 text-sm text-sw-ink-900 font-medium">
                       {formatHours(r.total_hours_worked)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-[rgba(0,0,0,0.65)]">
+                    <td className="px-6 py-4 text-sm text-sw-ink-700">
                       {formatHours(r.regular_hours)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-[rgba(0,0,0,0.65)]">
+                    <td className="px-6 py-4 text-sm text-sw-ink-700">
                       {formatHours(r.night_diff_hours)}
                     </td>
-                    <td className="px-4 py-3 text-sm whitespace-nowrap">
+                    <td className="px-6 py-4 text-sm whitespace-nowrap">
                       <span
                         className={
                           (r.late_minutes ?? 0) > 0
                             ? "text-red-600 font-medium"
-                            : "text-[rgba(0,0,0,0.4)]"
+                            : "text-sw-ink-500"
                         }
                       >
                         {r.late_minutes != null ? `${r.late_minutes}m` : "—"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm whitespace-nowrap">
+                    <td className="px-6 py-4 text-sm whitespace-nowrap">
                       <span
                         className={
                           (r.undertime_minutes ?? 0) > 0
                             ? "text-red-600 font-medium"
-                            : "text-[rgba(0,0,0,0.4)]"
+                            : "text-sw-ink-500"
                         }
                       >
                         {r.undertime_minutes != null
@@ -462,7 +462,7 @@ export default function AttendancePage() {
                           : "—"}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-4">
                       <StatusBadge status={r.status} />
                     </td>
                   </tr>

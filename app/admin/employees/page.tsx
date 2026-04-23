@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import type { Employee, Department } from "@/lib/types/database";
 import { formatDate } from "@/lib/utils";
 import { cachedFetch } from "@/lib/swr-fetcher";
+import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
+import { Plus } from "@/components/ui/icons";
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -48,7 +51,7 @@ export default function EmployeesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ffc671]" />
+        <div className="animate-spin rounded-sw-full h-8 w-8 border-b-2 border-sw-gold-500" />
       </div>
     );
   }
@@ -56,32 +59,28 @@ export default function EmployeesPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-[44px] font-medium tracking-[-2px] leading-[1.1] text-[rgba(0,0,0,0.88)]">
-          Employees
-        </h1>
-        <Link
-          href="/admin/employees/register"
-          className="px-5 py-3 rounded-full text-sm font-medium text-[#61474c] transition-all duration-150 hover:shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
-          style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
-        >
-          + Register Employee
-        </Link>
+        <h1 className="t-display">Employees</h1>
+        <Button asChild variant="primary">
+          <Link href="/admin/employees/register">
+            <Plus className="w-4 h-4" strokeWidth={2} />
+            Register Employee
+          </Link>
+        </Button>
       </div>
 
-      {/* Filters */}
       <div className="flex gap-3 mb-6">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name, position, or ID..."
-          className="flex-1 h-10 px-4 bg-white border border-[rgba(0,0,0,0.1)] rounded-full text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.35)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+          className="flex-1 h-10 px-4 bg-sw-white border border-sw-ink-200 rounded-sw-pill text-sw-caption text-sw-ink-900 placeholder:text-sw-ink-300 focus:outline-none focus:border-sw-gold-500 focus:shadow-sw-ring-accent transition-[border,box-shadow] duration-sw-fast"
         />
         {departments.length > 0 && (
           <select
             value={deptFilter}
             onChange={(e) => setDeptFilter(e.target.value)}
-            className="h-10 px-4 bg-white border border-[rgba(0,0,0,0.1)] rounded-full text-sm text-[rgba(0,0,0,0.65)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)]"
+            className="h-10 px-4 bg-sw-white border border-sw-ink-200 rounded-sw-pill text-sw-caption text-sw-ink-700 focus:outline-none focus:border-sw-gold-500 focus:shadow-sw-ring-accent transition-[border,box-shadow] duration-sw-fast"
           >
             <option value="">All Departments</option>
             {departments.map((d) => (
@@ -94,8 +93,8 @@ export default function EmployeesPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="glass-card rounded-3xl p-16 text-center">
-          <p className="text-base text-[rgba(0,0,0,0.4)] mb-4">
+        <div className="glass-card rounded-sw-lg p-16 text-center">
+          <p className="t-body text-sw-ink-500 mb-4">
             {employees.length === 0
               ? "No employees registered yet."
               : "No employees match your search."}
@@ -103,38 +102,24 @@ export default function EmployeesPage() {
           {employees.length === 0 && (
             <Link
               href="/admin/employees/register"
-              className="text-sm font-medium text-[#9a6d2a] hover:underline"
+              className="text-sw-caption font-medium text-sw-gold-600 hover:underline"
             >
               Register your first employee
             </Link>
           )}
         </div>
       ) : (
-        <div className="glass-card rounded-3xl overflow-hidden">
+        <div className="glass-card rounded-sw-lg overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="text-left bg-[#f4f1e6] border-b border-[rgba(0,0,0,0.06)]">
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
-                  Name
-                </th>
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
-                  Position
-                </th>
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
-                  Department
-                </th>
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
-                  Face Data
-                </th>
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
-                  Registered
-                </th>
-                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
-                  Actions
-                </th>
+              <tr className="text-left bg-sw-cream-25 border-b border-sw-ink-100">
+                <th className="px-6 py-4 text-sw-micro font-medium uppercase tracking-wide text-sw-ink-500">Name</th>
+                <th className="px-6 py-4 text-sw-micro font-medium uppercase tracking-wide text-sw-ink-500">Position</th>
+                <th className="px-6 py-4 text-sw-micro font-medium uppercase tracking-wide text-sw-ink-500">Department</th>
+                <th className="px-6 py-4 text-sw-micro font-medium uppercase tracking-wide text-sw-ink-500">Status</th>
+                <th className="px-6 py-4 text-sw-micro font-medium uppercase tracking-wide text-sw-ink-500">Face Data</th>
+                <th className="px-6 py-4 text-sw-micro font-medium uppercase tracking-wide text-sw-ink-500">Registered</th>
+                <th className="px-6 py-4 text-sw-micro font-medium uppercase tracking-wide text-sw-ink-500">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -142,58 +127,43 @@ export default function EmployeesPage() {
                 <tr
                   key={emp.id}
                   onClick={() => router.push(`/admin/employees/${emp.id}`)}
-                  className="border-b border-[rgba(0,0,0,0.04)] last:border-0 hover:bg-[#fafaf2] transition-colors duration-150 cursor-pointer"
+                  className="border-b border-sw-ink-100 last:border-0 hover:bg-sw-cream-25 transition-colors duration-sw-fast cursor-pointer"
                 >
                   <td className="px-6 py-4">
                     <div>
-                      <span className="text-sm font-medium text-[rgba(0,0,0,0.88)]">
+                      <span className="text-sw-caption font-medium text-sw-ink-900">
                         {emp.name}
                       </span>
                       {emp.employee_number && (
-                        <span className="ml-2 text-xs text-[rgba(0,0,0,0.35)]">
+                        <span className="ml-2 text-sw-micro text-sw-ink-300">
                           #{emp.employee_number}
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-[rgba(0,0,0,0.65)]">
+                  <td className="px-6 py-4 text-sw-caption text-sw-ink-700">
                     {emp.position_title || emp.role || "—"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-[rgba(0,0,0,0.65)]">
+                  <td className="px-6 py-4 text-sw-caption text-sw-ink-700">
                     {emp.department || "—"}
                   </td>
                   <td className="px-6 py-4">
                     {emp.employment_status && (
-                      <span className="inline-block text-xs font-medium px-2.5 py-0.5 rounded-full bg-[rgba(207,147,88,0.12)] text-[#9a6d2a] capitalize">
-                        {emp.employment_status}
-                      </span>
+                      <Chip tone="gold" className="capitalize">{emp.employment_status}</Chip>
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <span
-                      className="inline-block text-xs font-medium px-3 py-1 rounded-full"
-                      style={
-                        emp.face_descriptors?.length > 0
-                          ? {
-                              background: "rgba(207,147,88,0.12)",
-                              color: "#9a6d2a",
-                            }
-                          : {
-                              background: "rgba(138,58,52,0.08)",
-                              color: "#8a3a34",
-                            }
-                      }
-                    >
+                    <Chip tone={emp.face_descriptors?.length > 0 ? "success" : "danger"}>
                       {emp.face_descriptors?.length || 0} captures
-                    </span>
+                    </Chip>
                   </td>
-                  <td className="px-6 py-4 text-sm text-[rgba(0,0,0,0.4)]">
+                  <td className="px-6 py-4 text-sw-caption text-sw-ink-500">
                     {formatDate(emp.created_at)}
                   </td>
                   <td className="px-6 py-4">
                     <button
                       onClick={(e) => handleDeactivate(e, emp.id)}
-                      className="text-sm font-medium text-[#8a3a34] hover:underline transition-colors duration-150"
+                      className="text-sw-caption font-medium text-sw-danger-500 hover:underline transition-colors duration-sw-fast"
                     >
                       Deactivate
                     </button>

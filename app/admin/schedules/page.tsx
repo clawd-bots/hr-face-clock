@@ -60,7 +60,7 @@ function toTimeInput(t: string): string {
 }
 
 const inputClass =
-  "w-full h-10 px-3 bg-[#fafaf2] border border-[rgba(0,0,0,0.1)] rounded-xl text-sm text-[rgba(0,0,0,0.88)] placeholder:text-[rgba(0,0,0,0.4)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,198,113,0.5)] focus:border-[#ffc671] transition-colors duration-150";
+  "w-full h-10 px-3 bg-sw-cream-50 border border-sw-ink-200 rounded-xl text-sm text-sw-ink-900 placeholder:text-sw-ink-500 focus:outline-none focus:ring-2 focus:ring-[rgba(201, 151, 46, 0.22)] focus:border-sw-gold-500 transition-colors duration-150";
 
 /* ---------- component ---------- */
 
@@ -251,7 +251,7 @@ export default function SchedulesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 text-sm text-[rgba(0,0,0,0.4)]">
+      <div className="flex items-center justify-center py-20 text-sm text-sw-ink-500">
         Loading schedules...
       </div>
     );
@@ -261,13 +261,13 @@ export default function SchedulesPage() {
     <div>
       {/* ---- header ---- */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-[28px] font-medium tracking-[-1.75px] text-[rgba(0,0,0,0.88)]">
+        <h1 className="t-display">
           Schedules
         </h1>
         <button
           onClick={openCreate}
-          className="h-10 px-5 rounded-full text-sm font-medium text-[#61474c]"
-          style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+          className="h-10 px-5 rounded-full text-sm font-medium text-[#ffffff]"
+          style={{ background: "var(--color-sw-gold-500)" }}
         >
           + New Schedule
         </button>
@@ -275,7 +275,7 @@ export default function SchedulesPage() {
 
       {/* ---- error ---- */}
       {error && (
-        <div className="mb-4 px-4 py-3 bg-[#f4f1e6] border border-[rgba(138,58,52,0.2)] rounded-2xl text-sm font-medium text-[#8a3a34]">
+        <div className="mb-4 px-4 py-3 bg-sw-danger-100 border border-sw-danger-500/20 rounded-[12px] text-sw-caption font-medium text-[#a11b35]">
           {error}
         </div>
       )}
@@ -283,14 +283,14 @@ export default function SchedulesPage() {
       {/* ---- modal overlay for create / edit ---- */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="w-full max-w-lg mx-4 bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] shadow-[0_8px_32px_rgba(0,0,0,0.12)] p-6">
-            <h2 className="text-lg font-medium text-[rgba(0,0,0,0.88)] mb-5">
+          <div className="w-full max-w-lg mx-4 sw-panel shadow-sw-3 p-6">
+            <h2 className="text-lg font-medium text-sw-ink-900 mb-5">
               {editId ? "Edit Schedule" : "New Schedule"}
             </h2>
 
             {/* name */}
             <div className="mb-4">
-              <label className="block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1">
+              <label className="block text-xs font-medium text-sw-ink-500 mb-1">
                 Name
               </label>
               <input
@@ -305,7 +305,7 @@ export default function SchedulesPage() {
             {/* times row */}
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1">
+                <label className="block text-xs font-medium text-sw-ink-500 mb-1">
                   Start Time
                 </label>
                 <input
@@ -316,7 +316,7 @@ export default function SchedulesPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1">
+                <label className="block text-xs font-medium text-sw-ink-500 mb-1">
                   End Time
                 </label>
                 <input
@@ -331,7 +331,7 @@ export default function SchedulesPage() {
             {/* break + grace */}
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1">
+                <label className="block text-xs font-medium text-sw-ink-500 mb-1">
                   Break Duration (min)
                 </label>
                 <input
@@ -343,7 +343,7 @@ export default function SchedulesPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1">
+                <label className="block text-xs font-medium text-sw-ink-500 mb-1">
                   Grace Period (min)
                 </label>
                 <input
@@ -358,7 +358,7 @@ export default function SchedulesPage() {
 
             {/* work days */}
             <div className="mb-4">
-              <label className="block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-2">
+              <label className="block text-xs font-medium text-sw-ink-500 mb-2">
                 Work Days
               </label>
               <div className="flex gap-2">
@@ -369,8 +369,8 @@ export default function SchedulesPage() {
                     onClick={() => toggleDay(d)}
                     className={`h-9 w-11 rounded-lg text-xs font-medium transition-colors duration-150 ${
                       formDays.includes(d)
-                        ? "bg-[#ffc671] text-[#61474c]"
-                        : "bg-[#fafaf2] text-[rgba(0,0,0,0.4)] border border-[rgba(0,0,0,0.1)]"
+                        ? "bg-[var(--color-sw-gold-500)] text-[#ffffff]"
+                        : "bg-sw-cream-50 text-sw-ink-500 border border-sw-ink-200"
                     }`}
                   >
                     {DAY_LABELS[d]}
@@ -388,7 +388,7 @@ export default function SchedulesPage() {
                   aria-checked={formFlexible}
                   onClick={() => setFormFlexible(!formFlexible)}
                   className={`relative w-10 h-6 rounded-full transition-colors duration-150 ${
-                    formFlexible ? "bg-[#ffc671]" : "bg-[rgba(0,0,0,0.1)]"
+                    formFlexible ? "bg-[var(--color-sw-gold-500)]" : "bg-[var(--color-sw-ink-200)]"
                   }`}
                 >
                   <span
@@ -397,7 +397,7 @@ export default function SchedulesPage() {
                     }`}
                   />
                 </button>
-                <span className="text-sm text-[rgba(0,0,0,0.65)]">
+                <span className="text-sm text-sw-ink-700">
                   Flexible
                 </span>
               </label>
@@ -409,7 +409,7 @@ export default function SchedulesPage() {
                   aria-checked={formNight}
                   onClick={() => setFormNight(!formNight)}
                   className={`relative w-10 h-6 rounded-full transition-colors duration-150 ${
-                    formNight ? "bg-[#ffc671]" : "bg-[rgba(0,0,0,0.1)]"
+                    formNight ? "bg-[var(--color-sw-gold-500)]" : "bg-[var(--color-sw-ink-200)]"
                   }`}
                 >
                   <span
@@ -418,7 +418,7 @@ export default function SchedulesPage() {
                     }`}
                   />
                 </button>
-                <span className="text-sm text-[rgba(0,0,0,0.65)]">
+                <span className="text-sm text-sw-ink-700">
                   Night Diff
                 </span>
               </label>
@@ -431,16 +431,16 @@ export default function SchedulesPage() {
                   setShowForm(false);
                   resetForm();
                 }}
-                className="h-10 px-5 rounded-xl text-sm font-medium text-[rgba(0,0,0,0.5)] border border-[rgba(0,0,0,0.1)]"
+                className="h-10 px-5 rounded-xl text-sm font-medium text-sw-ink-500 border border-sw-ink-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || !formName.trim()}
-                className="h-10 px-6 rounded-xl text-sm font-medium text-[#61474c] disabled:opacity-50"
+                className="h-10 px-6 rounded-xl text-sm font-medium text-[#ffffff] disabled:opacity-50"
                 style={{
-                  background: "linear-gradient(to right, #ffc671, #cf9358)",
+                  background: "var(--color-sw-gold-500)",
                 }}
               >
                 {saving ? "Saving..." : editId ? "Update" : "Create"}
@@ -452,7 +452,7 @@ export default function SchedulesPage() {
 
       {/* ---- schedule cards grid ---- */}
       {schedules.length === 0 ? (
-        <div className="text-center py-16 text-sm text-[rgba(0,0,0,0.4)]">
+        <div className="text-center py-16 text-sm text-sw-ink-500">
           No schedules yet. Create one to get started.
         </div>
       ) : (
@@ -464,17 +464,17 @@ export default function SchedulesPage() {
             >
               {/* name */}
               <div className="flex items-start justify-between mb-2">
-                <h3 className="text-sm font-semibold text-[rgba(0,0,0,0.88)] leading-tight">
+                <h3 className="text-sm font-semibold text-sw-ink-900 leading-tight">
                   {s.name}
                 </h3>
                 <div className="flex gap-1 shrink-0 ml-2">
                   {s.is_flexible && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(255,198,113,0.2)] text-[#9a6d2a]">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--color-sw-gold-50)] text-sw-gold-600">
                       Flexible
                     </span>
                   )}
                   {s.is_night_diff && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(88,80,150,0.1)] text-[#585096]">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[rgba(88,80,150,0.1)] text-[var(--color-sw-violet-600)]">
                       Night Diff
                     </span>
                   )}
@@ -482,10 +482,10 @@ export default function SchedulesPage() {
               </div>
 
               {/* time + break + grace */}
-              <div className="text-sm text-[rgba(0,0,0,0.65)] mb-1">
+              <div className="text-sm text-sw-ink-700 mb-1">
                 {formatTime12(s.start_time)} &ndash; {formatTime12(s.end_time)}
               </div>
-              <div className="text-xs text-[rgba(0,0,0,0.4)] mb-3">
+              <div className="text-xs text-sw-ink-500 mb-3">
                 {s.break_minutes} min break &middot; {s.grace_period_minutes}{" "}
                 min grace
               </div>
@@ -497,8 +497,8 @@ export default function SchedulesPage() {
                     key={d}
                     className={`text-[11px] font-medium px-1.5 py-0.5 rounded ${
                       s.work_days.includes(d)
-                        ? "bg-[rgba(255,198,113,0.25)] text-[#9a6d2a]"
-                        : "text-[rgba(0,0,0,0.2)]"
+                        ? "bg-[var(--color-sw-gold-100)] text-sw-gold-600"
+                        : "text-sw-ink-300"
                     }`}
                   >
                     {DAY_LABELS[d]}
@@ -507,16 +507,16 @@ export default function SchedulesPage() {
               </div>
 
               {/* actions */}
-              <div className="flex gap-3 pt-3 border-t border-[rgba(0,0,0,0.06)]">
+              <div className="flex gap-3 pt-3 border-t border-sw-ink-100">
                 <button
                   onClick={() => openEdit(s)}
-                  className="text-xs font-medium text-[#9a6d2a] hover:text-[#cf9358]"
+                  className="text-xs font-medium text-sw-gold-600 hover:text-sw-gold-600"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDeactivate(s.id)}
-                  className="text-xs font-medium text-[#8a3a34] hover:text-[rgba(138,58,52,0.7)]"
+                  className="text-xs font-medium text-sw-danger-500 hover:text-[rgba(138,58,52,0.7)]"
                 >
                   Deactivate
                 </button>
@@ -528,7 +528,7 @@ export default function SchedulesPage() {
 
       {/* ---- assign schedule section ---- */}
       <div className="mt-8">
-        <h2 className="text-lg font-medium text-[rgba(0,0,0,0.88)] mb-4">
+        <h2 className="text-lg font-medium text-sw-ink-900 mb-4">
           Assign Schedule
         </h2>
 
@@ -536,7 +536,7 @@ export default function SchedulesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
             {/* employee */}
             <div>
-              <label className="block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1">
+              <label className="block text-xs font-medium text-sw-ink-500 mb-1">
                 Employee
               </label>
               <select
@@ -555,7 +555,7 @@ export default function SchedulesPage() {
 
             {/* schedule */}
             <div>
-              <label className="block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1">
+              <label className="block text-xs font-medium text-sw-ink-500 mb-1">
                 Schedule
               </label>
               <select
@@ -574,7 +574,7 @@ export default function SchedulesPage() {
 
             {/* effective from */}
             <div>
-              <label className="block text-xs font-medium text-[rgba(0,0,0,0.5)] mb-1">
+              <label className="block text-xs font-medium text-sw-ink-500 mb-1">
                 Effective From
               </label>
               <input
@@ -592,9 +592,9 @@ export default function SchedulesPage() {
                 disabled={
                   assigning || !assignEmployee || !assignSchedule || !assignDate
                 }
-                className="w-full h-10 rounded-xl text-sm font-medium text-[#61474c] disabled:opacity-50"
+                className="w-full h-10 rounded-xl text-sm font-medium text-[#ffffff] disabled:opacity-50"
                 style={{
-                  background: "linear-gradient(to right, #ffc671, #cf9358)",
+                  background: "var(--color-sw-gold-500)",
                 }}
               >
                 {assigning ? "Assigning..." : "Assign"}
@@ -604,20 +604,20 @@ export default function SchedulesPage() {
 
           {/* recent assignments */}
           {recentAssignments.length > 0 && (
-            <div className="mt-5 pt-4 border-t border-[rgba(0,0,0,0.06)]">
-              <h4 className="text-xs font-medium text-[rgba(0,0,0,0.5)] mb-3 uppercase tracking-wider">
+            <div className="mt-5 pt-4 border-t border-sw-ink-100">
+              <h4 className="text-xs font-medium text-sw-ink-500 mb-3 uppercase tracking-wider">
                 Recent Assignments
               </h4>
               <div className="space-y-2">
                 {recentAssignments.map((a) => (
                   <div
                     key={a.id}
-                    className="flex items-center justify-between px-3 py-2 bg-[#fafaf2] rounded-xl text-sm"
+                    className="flex items-center justify-between px-3 py-2 bg-sw-cream-50 rounded-xl text-sm"
                   >
-                    <span className="text-[rgba(0,0,0,0.88)] font-medium">
+                    <span className="text-sw-ink-900 font-medium">
                       {a.employeeName}
                     </span>
-                    <span className="text-[rgba(0,0,0,0.65)]">
+                    <span className="text-sw-ink-700">
                       {a.work_schedules?.name ?? "Schedule"} &mdash; from{" "}
                       {a.effective_from}
                     </span>

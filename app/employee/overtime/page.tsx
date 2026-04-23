@@ -23,10 +23,10 @@ function fmtDate(d: string): string {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-[rgba(255,198,113,0.2)] text-[#9a6d2a]",
-  approved: "bg-[rgba(76,175,80,0.12)] text-[#2e7d32]",
-  rejected: "bg-[rgba(244,67,54,0.12)] text-[#c62828]",
-  cancelled: "bg-[rgba(0,0,0,0.06)] text-[rgba(0,0,0,0.4)]",
+  pending: "bg-[var(--color-sw-gold-50)] text-sw-gold-600",
+  approved: "bg-[rgba(76,175,80,0.12)] text-sw-success-500",
+  rejected: "bg-[rgba(244,67,54,0.12)] text-sw-danger-500",
+  cancelled: "bg-[rgba(28, 26, 22, 0.06)] text-sw-ink-500",
 };
 
 export default function EmployeeOvertimePage() {
@@ -108,13 +108,13 @@ export default function EmployeeOvertimePage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-semibold tracking-[-0.5px] text-[rgba(0,0,0,0.88)]">
+        <h1 className="t-display">
           My Overtime
         </h1>
         <button
           onClick={() => setShowModal(true)}
           className="px-5 py-2.5 rounded-full text-sm font-medium text-white"
-          style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+          style={{ background: "var(--color-sw-gold-500)" }}
         >
           File Overtime
         </button>
@@ -131,39 +131,39 @@ export default function EmployeeOvertimePage() {
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-[rgba(0,0,0,0.4)] text-sm">Loading...</div>
+        <div className="text-center py-12 text-sw-ink-500 text-sm">Loading...</div>
       ) : requests.length === 0 ? (
-        <div className="text-center py-12 text-[rgba(0,0,0,0.4)] text-sm">
+        <div className="text-center py-12 text-sw-ink-500 text-sm">
           No overtime requests yet. Click &quot;File Overtime&quot; to get started.
         </div>
       ) : (
         <div className="glass-card overflow-hidden mt-6">
           <table className="glass-table w-full text-sm">
             <thead>
-              <tr className="bg-[#f9f8f3] border-b border-[rgba(0,0,0,0.06)]">
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Date</th>
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Start Time</th>
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">End Time</th>
-                <th className="text-right px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">OT Hours</th>
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Reason</th>
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Status</th>
-                <th className="text-left px-5 py-3 font-medium text-[rgba(0,0,0,0.5)]">Filed</th>
+              <tr className="bg-sw-cream-25 border-b border-sw-ink-100">
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Date</th>
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Start Time</th>
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">End Time</th>
+                <th className="text-right px-6 py-4 font-medium text-sw-ink-500">OT Hours</th>
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Reason</th>
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Status</th>
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Filed</th>
               </tr>
             </thead>
             <tbody>
               {requests.map((r) => (
-                <tr key={r.id} className="border-b border-[rgba(0,0,0,0.04)] hover:bg-[#f9f8f3] transition-colors">
-                  <td className="px-5 py-3.5 text-[rgba(0,0,0,0.88)] font-medium">{fmtDate(r.date)}</td>
-                  <td className="px-5 py-3.5 text-[rgba(0,0,0,0.65)]">{r.start_time}</td>
-                  <td className="px-5 py-3.5 text-[rgba(0,0,0,0.65)]">{r.end_time}</td>
-                  <td className="px-5 py-3.5 text-right text-[rgba(0,0,0,0.65)]">{r.ot_hours}</td>
-                  <td className="px-5 py-3.5 text-[rgba(0,0,0,0.65)] max-w-[200px] truncate">{r.reason || "\u2014"}</td>
-                  <td className="px-5 py-3.5">
+                <tr key={r.id} className="border-b border-sw-ink-100 hover:bg-sw-cream-25 transition-colors">
+                  <td className="px-6 py-4.5 text-sw-ink-900 font-medium">{fmtDate(r.date)}</td>
+                  <td className="px-6 py-4.5 text-sw-ink-700">{r.start_time}</td>
+                  <td className="px-6 py-4.5 text-sw-ink-700">{r.end_time}</td>
+                  <td className="px-6 py-4.5 text-right text-sw-ink-700">{r.ot_hours}</td>
+                  <td className="px-6 py-4.5 text-sw-ink-700 max-w-[200px] truncate">{r.reason || "\u2014"}</td>
+                  <td className="px-6 py-4.5">
                     <span className={`px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-full ${STATUS_STYLES[r.status] ?? ""}`}>
                       {r.status}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-[rgba(0,0,0,0.4)] text-xs">{fmtDate(r.created_at.split("T")[0])}</td>
+                  <td className="px-6 py-4.5 text-sw-ink-500 text-xs">{fmtDate(r.created_at.split("T")[0])}</td>
                 </tr>
               ))}
             </tbody>
@@ -177,61 +177,61 @@ export default function EmployeeOvertimePage() {
           <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setShowModal(false)} />
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-              <h2 className="text-lg font-semibold text-[rgba(0,0,0,0.88)] mb-4">File Overtime Request</h2>
+              <h2 className="text-lg font-semibold text-sw-ink-900 mb-4">File Overtime Request</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Date</label>
+                  <label className="block text-sm font-medium text-sw-ink-700 mb-1">Date</label>
                   <input
                     type="date"
                     value={form.date}
                     onChange={(e) => setForm({ ...form, date: e.target.value })}
-                    className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                    className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Start Time</label>
+                    <label className="block text-sm font-medium text-sw-ink-700 mb-1">Start Time</label>
                     <input
                       type="time"
                       value={form.start_time}
                       onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-                      className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                      className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">End Time</label>
+                    <label className="block text-sm font-medium text-sw-ink-700 mb-1">End Time</label>
                     <input
                       type="time"
                       value={form.end_time}
                       onChange={(e) => setForm({ ...form, end_time: e.target.value })}
-                      className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                      className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">OT Hours</label>
+                  <label className="block text-sm font-medium text-sw-ink-700 mb-1">OT Hours</label>
                   <input
                     type="number"
                     step="0.25"
                     value={form.ot_hours}
                     onChange={(e) => setForm({ ...form, ot_hours: e.target.value })}
-                    className="w-full h-10 px-3 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671]"
+                    className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[rgba(0,0,0,0.65)] mb-1">Reason</label>
+                  <label className="block text-sm font-medium text-sw-ink-700 mb-1">Reason</label>
                   <textarea
                     value={form.reason}
                     onChange={(e) => setForm({ ...form, reason: e.target.value })}
                     rows={3}
-                    className="w-full px-3 py-2 rounded-xl border border-[rgba(0,0,0,0.12)] text-sm focus:outline-none focus:ring-2 focus:ring-[#ffc671] resize-none"
+                    className="w-full px-3 py-2 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)] resize-none"
                   />
                 </div>
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-full text-sm font-medium text-[rgba(0,0,0,0.65)] hover:bg-[#f4f1e6] transition-colors"
+                  className="px-4 py-2 rounded-full text-sm font-medium text-sw-ink-700 hover:bg-[var(--color-sw-ink-100)] transition-colors"
                 >
                   Cancel
                 </button>
@@ -239,7 +239,7 @@ export default function EmployeeOvertimePage() {
                   onClick={handleFileOvertime}
                   disabled={submitting || !form.date || !form.start_time || !form.end_time}
                   className="px-5 py-2 rounded-full text-sm font-medium text-white disabled:opacity-50"
-                  style={{ background: "linear-gradient(to right, #ffc671, #cf9358)" }}
+                  style={{ background: "var(--color-sw-gold-500)" }}
                 >
                   {submitting ? "Filing..." : "Submit"}
                 </button>

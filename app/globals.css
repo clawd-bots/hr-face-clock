@@ -1,92 +1,92 @@
 @import "tailwindcss";
-@import "./andyou-tokens.css";
+@import "./sweldo-tokens.css";
 
 body {
-  background: var(--color-andyou-cream);
-  color: var(--color-andyou-text-primary);
+  background: var(--color-sw-cream-50);
+  color: var(--color-sw-ink-900);
+  font-family: var(--font-sans);
+  font-feature-settings: "blwf", "cv03", "cv04", "cv09", "cv11";
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* ─── Liquid Glass Card ─── */
-.glass-card {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.04),
-    0 4px 16px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  transition: box-shadow 0.2s ease, background 0.2s ease;
+/* ─── Panel — the canonical Sweldo surface: 20px radius, hairline + shadow-1 ─── */
+.glass-card,
+.sw-panel {
+  background: var(--color-sw-white);
+  border: 1px solid var(--color-sw-ink-100);
+  border-radius: 20px;
+  box-shadow: var(--shadow-sw-1);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
-.glass-card:hover {
-  background: rgba(255, 255, 255, 0.65);
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.04),
-    0 8px 24px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+.glass-card:hover,
+.sw-panel-hover:hover {
+  box-shadow: var(--shadow-sw-2);
 }
 
-/* Stat card variant — slightly more tinted */
+/* ─── Panel item — smaller clickable row (12px radius, no shadow) ─── */
+.sw-panel-item {
+  background: var(--color-sw-white);
+  border: 1px solid var(--color-sw-ink-100);
+  border-radius: 12px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.sw-panel-item:hover {
+  border-color: var(--color-sw-ink-200);
+  background: var(--color-sw-cream-25);
+}
+.sw-panel-item[data-active="true"] {
+  border-color: var(--color-sw-gold-500);
+  background: var(--color-sw-gold-50);
+}
+
+/* ─── Stat card — cream-25 fill, hairline ink-100 ─── */
 .glass-stat {
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(16px) saturate(1.3);
-  -webkit-backdrop-filter: blur(16px) saturate(1.3);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.03),
-    0 4px 12px rgba(0, 0, 0, 0.03),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  transition: box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  background: var(--color-sw-cream-25);
+  border: 1px solid var(--color-sw-ink-100);
+  box-shadow: var(--shadow-sw-1);
+  transition: box-shadow 0.15s ease;
 }
 .glass-stat:hover {
-  background: rgba(255, 255, 255, 0.55);
-  transform: translateY(-1px);
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.04),
-    0 8px 20px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  box-shadow: var(--shadow-sw-2);
 }
 
-/* Table wrapper glass */
+/* ─── Table wrapper ─── */
 .glass-table {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(16px) saturate(1.3);
-  -webkit-backdrop-filter: blur(16px) saturate(1.3);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.03),
-    0 4px 16px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  background: var(--color-sw-white);
+  border: 1px solid var(--color-sw-ink-100);
+  box-shadow: var(--shadow-sw-1);
 }
 
-/* Sidebar glass */
+/* ─── Sidebar — white, hairline right border ─── */
 .glass-sidebar {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(24px) saturate(1.5);
-  -webkit-backdrop-filter: blur(24px) saturate(1.5);
-  border-right: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.03);
+  background: var(--color-sw-white);
+  border-right: 1px solid var(--color-sw-ink-200);
+  box-shadow: none;
 }
 
-/* Active nav item glass */
+/* ─── Active nav item — gold-50 wash + gold left indicator ─── */
 .glass-nav-active {
-  background: rgba(255, 198, 113, 0.18);
-  backdrop-filter: blur(12px) saturate(1.3);
-  -webkit-backdrop-filter: blur(12px) saturate(1.3);
-  border: 1px solid rgba(255, 198, 113, 0.25);
-  box-shadow:
-    0 1px 3px rgba(207, 147, 88, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  background: var(--color-sw-gold-50);
+  color: var(--color-sw-gold-600);
+  position: relative;
+}
+.glass-nav-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--color-sw-gold-500);
 }
 
-/* Modal glass backdrop */
+/* ─── Modal — white, shadow-3 ─── */
 .glass-modal {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.08),
-    0 12px 48px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  background: var(--color-sw-white);
+  border: 1px solid rgba(28, 26, 22, 0.06);
+  box-shadow: var(--shadow-sw-3);
 }

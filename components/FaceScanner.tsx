@@ -4,7 +4,10 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { loadModels, detectFace } from "@/lib/face-recognition";
 
 type FaceScannerProps = {
-  onFaceDetected?: (descriptor: Float32Array) => void;
+  onFaceDetected?: (
+    descriptor: Float32Array,
+    landmarks: { x: number; y: number }[]
+  ) => void;
   autoDetect?: boolean;
   detectInterval?: number;
   showOverlay?: boolean;
@@ -61,7 +64,11 @@ export default function FaceScanner({
       const result = await detectFace(videoRef.current);
       if (result) {
         setFaceFound(true);
-        onFaceDetectedRef.current?.(result.descriptor);
+        const lmPoints = result.landmarks.positions.map((p) => ({
+          x: p.x,
+          y: p.y,
+        }));
+        onFaceDetectedRef.current?.(result.descriptor, lmPoints);
 
         if (canvasRef.current && videoRef.current && showOverlay) {
           const canvas = canvasRef.current;

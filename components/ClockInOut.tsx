@@ -4,6 +4,11 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import FaceScanner from "./FaceScanner";
 import { findBestMatch, loadModels } from "@/lib/face-recognition";
+import {
+  analyzeLiveness,
+  LIVENESS_REQUIRED_FRAMES,
+  type LandmarkFrame,
+} from "@/lib/liveness";
 import { formatTime } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { LogIn, LogOut } from "@/components/ui/icons";
@@ -37,6 +42,9 @@ export default function ClockInOut() {
   const [paired, setPaired] = useState<boolean | null>(null);
   const [deviceName, setDeviceName] = useState<string>("");
   const cooldownRef = useRef(false);
+  // Sliding buffer of recent landmark frames for liveness analysis.
+  const livenessBufferRef = useRef<LandmarkFrame[]>([]);
+  const [livenessProgress, setLivenessProgress] = useState(0);
 
   // Pre-load face-api models in the background so they're ready by the
   // time the user clicks Clock In / Out.
@@ -68,17 +76,42 @@ export default function ClockInOut() {
   }, [router]);
 
   const handleFaceDetected = useCallback(
-    async (descriptor: Float32Array) => {
+    async (descriptor: Float32Array, landmarks: { x: number; y: number }[]) => {
       if (cooldownRef.current || processing || employees.length === 0 || !selectedAction) return;
 
+      // Push to liveness buffer (sliding window of the last N frames)
+      const buf = livenessBufferRef.current;
+      buf.push({ points: landmarks, timestamp: Date.now() });
+      if (buf.length > LIVENESS_REQUIRED_FRAMES) buf.shift();
+      setLivenessProgress(buf.length);
+
+      // Need full buffer before deciding anything
+      if (buf.length < LIVENESS_REQUIRED_FRAMES) return;
+
+      // Match against known employees using the latest descriptor
       const mappedEmployees = employees.map((emp) => ({
         ...emp,
         name: emp.name || [emp.first_name, emp.last_name].filter(Boolean).join(" ") || "Unknown",
       }));
-      const match = findBestMatch(descriptor, mappedEmployees as { id: string; name: string; face_descriptors: number[][] }[]);
+      const match = findBestMatch(
+        descriptor,
+        mappedEmployees as { id: string; name: string; face_descriptors: number[][] }[]
+      );
       if (!match.employee) return;
 
+      // Liveness check on the buffered frames
+      const liveness = analyzeLiveness(buf);
+      if (!liveness.pass) {
+        // Drop the oldest frame and let the next detection re-evaluate.
+        // Don't lock cooldown — we want to keep trying.
+        setError(liveness.reason ?? "Liveness check failed");
+        return;
+      }
+
+      // Both checks passed — commit the clock-in
       cooldownRef.current = true;
+      livenessBufferRef.current = [];
+      setLivenessProgress(0);
       setProcessing(true);
       setScanning(false);
       setError("");
@@ -127,12 +160,17 @@ export default function ClockInOut() {
     setSelectedAction(action);
     setScanning(true);
     setError("");
+    // Fresh liveness buffer for each session
+    livenessBufferRef.current = [];
+    setLivenessProgress(0);
   };
 
   const handleBack = () => {
     setSelectedAction(null);
     setScanning(false);
     setError("");
+    livenessBufferRef.current = [];
+    setLivenessProgress(0);
   };
 
   if (result) {
@@ -227,7 +265,7 @@ export default function ClockInOut() {
           <div className="w-[60px] sm:hidden" />
         </div>
         <p className="text-sm sm:text-base text-sw-ink-500 mb-4 sm:mb-6 text-center">
-          Look at the camera to scan your face
+          Look at the camera and slightly turn your head
         </p>
         {error && (
           <div className="w-full mb-4">
@@ -238,9 +276,25 @@ export default function ClockInOut() {
           <FaceScanner
             onFaceDetected={handleFaceDetected}
             autoDetect={scanning}
-            detectInterval={600}
+            detectInterval={400}
           />
         </div>
+        {scanning && livenessProgress > 0 && livenessProgress < LIVENESS_REQUIRED_FRAMES && !processing && (
+          <div className="mt-4 w-full max-w-xs">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium text-sw-ink-500">Verifying it&apos;s really you...</span>
+              <span className="text-xs font-medium text-sw-ink-500 tabular-nums">
+                {livenessProgress}/{LIVENESS_REQUIRED_FRAMES}
+              </span>
+            </div>
+            <div className="h-1.5 rounded-full bg-sw-ink-100 overflow-hidden">
+              <div
+                className="h-full bg-sw-gold-500 transition-all duration-200"
+                style={{ width: `${(livenessProgress / LIVENESS_REQUIRED_FRAMES) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
         {processing && (
           <div className="mt-4 flex items-center gap-2 text-sw-gold-600">
             <div className="animate-spin rounded-sw-full h-4 w-4 border-b-2 border-sw-gold-500" />

@@ -139,7 +139,21 @@ export async function PATCH(
   // away from department_manager
   const finalRole = (updateData.system_role as string) ?? target.system_role;
   if (syncManagedDepts || (role !== undefined && role !== "department_manager")) {
-    await supabase.from("user_managed_departments").delete().eq("user_id", id);
+    const { error: delErr } = await supabase
+      .from("user_managed_departments")
+      .delete()
+      .eq("user_id", id);
+    if (delErr) {
+      return NextResponse.json(
+        {
+          error:
+            "Failed to update managed departments: " +
+            delErr.message +
+            ". Did you run migration 078_department_managers.sql?",
+        },
+        { status: 500 }
+      );
+    }
     if (
       finalRole === "department_manager" &&
       Array.isArray(managed_department_ids) &&
@@ -153,7 +167,20 @@ export async function PATCH(
           company_id: ctx.companyId,
         }));
       if (rows.length > 0) {
-        await supabase.from("user_managed_departments").insert(rows);
+        const { error: insErr } = await supabase
+          .from("user_managed_departments")
+          .insert(rows);
+        if (insErr) {
+          return NextResponse.json(
+            {
+              error:
+                "Failed to set managed departments: " +
+                insErr.message +
+                ". Did you run migration 078_department_managers.sql?",
+            },
+            { status: 500 }
+          );
+        }
       }
     }
   }

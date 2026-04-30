@@ -67,10 +67,22 @@ export async function GET(req: NextRequest) {
     .map((u) => u.id);
   const linksByUser = new Map<string, string[]>();
   if (managerIds.length > 0) {
-    const { data: links } = await supabase
+    const { data: links, error: linksErr } = await supabase
       .from("user_managed_departments")
       .select("user_id, department_id")
       .in("user_id", managerIds);
+    if (linksErr) {
+      // Surface the error so the UI can show it instead of silently rendering "Not assigned"
+      return NextResponse.json(
+        {
+          error:
+            "Failed to load managed departments: " +
+            linksErr.message +
+            ". Did you run migration 078_department_managers.sql?",
+        },
+        { status: 500 }
+      );
+    }
     for (const l of links ?? []) {
       const arr = linksByUser.get(l.user_id) ?? [];
       arr.push(l.department_id);

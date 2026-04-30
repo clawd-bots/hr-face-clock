@@ -19,6 +19,7 @@ import {
   Star,
   LineChart,
   LogIn,
+  UserPlus,
 } from "@/components/ui/icons";
 
 const navItems: SidebarItem[] = [
@@ -34,6 +35,7 @@ const navItems: SidebarItem[] = [
   { href: "/admin/holidays", label: "Holidays", icon: Star },
   { href: "/admin/reports", label: "Reports", icon: LineChart },
   { href: "/admin/devices", label: "Devices", icon: LogIn },
+  { href: "/admin/users", label: "Users", icon: UserPlus },
 ];
 
 const extraLinks: SidebarItem[] = [

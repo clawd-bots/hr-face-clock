@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import TabNav from "@/components/TabNav";
 import DocumentUpload from "@/components/DocumentUpload";
+import FaceRegistration from "@/components/FaceRegistration";
 import { cachedFetch, invalidateCachePrefix } from "@/lib/swr-fetcher";
 import type {
   Employee,
@@ -19,6 +20,7 @@ const TABS = [
   { key: "personal", label: "Personal" },
   { key: "employment", label: "Employment" },
   { key: "government", label: "Gov IDs" },
+  { key: "face", label: "Face ID" },
   { key: "documents", label: "Documents" },
 ];
 
@@ -476,6 +478,15 @@ export default function EmployeeDetailPage({
         </div>
       )}
 
+      {/* Face ID */}
+      {activeTab === "face" && (
+        <FaceIdSection
+          employeeId={id}
+          employee={employee}
+          onUpdated={fetchEmployee}
+        />
+      )}
+
       {/* Documents */}
       {activeTab === "documents" && (
         <div className="space-y-6">
@@ -815,6 +826,178 @@ function SubTableSection({
         >
           + Add
         </button>
+      )}
+    </div>
+  );
+}
+
+// --- Face ID section: capture or replace face descriptors for an existing employee ---
+
+function FaceIdSection({
+  employeeId,
+  employee,
+  onUpdated,
+}: {
+  employeeId: string;
+  employee: Employee;
+  onUpdated: () => void;
+}) {
+  const [capturing, setCapturing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const captureCount = employee.face_descriptors?.length ?? 0;
+  const hasFace = captureCount > 0;
+
+  const handleComplete = async (descriptors: number[][], photoDataUrl: string) => {
+    setSaving(true);
+    setError("");
+    setSuccess("");
+    try {
+      const res = await fetch(`/api/employees/${employeeId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          face_descriptors: descriptors,
+          photo_url: photoDataUrl,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save face data");
+      }
+      setSuccess(`Saved ${descriptors.length} face captures`);
+      setCapturing(false);
+      onUpdated();
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleClear = async () => {
+    if (!confirm("Remove all face data for this employee? They won't be able to clock in via the kiosk until re-enrolled.")) return;
+    setSaving(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/employees/${employeeId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ face_descriptors: [], photo_url: null }),
+      });
+      if (!res.ok) throw new Error("Failed to clear face data");
+      setSuccess("Face data cleared");
+      onUpdated();
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl">
+      {/* Status card */}
+      <div className="bg-white rounded-2xl border border-sw-ink-100 p-6 mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {employee.photo_url ? (
+              // Use img instead of next/image for data URLs
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={employee.photo_url}
+                alt={employee.name ?? ""}
+                className="w-16 h-16 rounded-full object-cover border border-sw-ink-100"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-sw-cream-25 border border-sw-ink-100 flex items-center justify-center text-sw-ink-300 text-xs">
+                No photo
+              </div>
+            )}
+            <div>
+              <p className="text-sm font-medium text-sw-ink-900">
+                {hasFace ? `${captureCount} face captures registered` : "No face data"}
+              </p>
+              <p className="text-xs text-sw-ink-500 mt-0.5">
+                {hasFace
+                  ? "This employee can clock in/out via the kiosk."
+                  : "Capture their face below to enable kiosk clock-in."}
+              </p>
+            </div>
+          </div>
+          {hasFace && !capturing && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCapturing(true)}
+                className="h-9 px-4 rounded-full text-sm font-medium text-sw-ink-700 border border-sw-ink-200 hover:bg-sw-cream-25 transition-colors"
+              >
+                Re-capture
+              </button>
+              <button
+                onClick={handleClear}
+                disabled={saving}
+                className="h-9 px-4 rounded-full text-sm font-medium text-sw-danger-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+          {!hasFace && !capturing && (
+            <button
+              onClick={() => setCapturing(true)}
+              className="h-9 px-5 rounded-full text-sm font-medium text-white"
+              style={{ background: "var(--color-sw-gold-500)" }}
+            >
+              Capture Face
+            </button>
+          )}
+        </div>
+      </div>
+
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-sw-danger-100 border border-sw-danger-500/20 rounded-xl text-sm font-medium text-[#a11b35]">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="mb-4 px-4 py-3 bg-[rgba(76,175,80,0.12)] border border-[rgba(76,175,80,0.2)] rounded-xl text-sm font-medium text-sw-success-500">
+          {success}
+        </div>
+      )}
+
+      {/* Capture flow */}
+      {capturing && (
+        <div className="bg-white rounded-2xl border border-sw-ink-100 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-base font-semibold text-sw-ink-900">
+                Capture face for {employee.name || `${employee.first_name ?? ""} ${employee.last_name ?? ""}`.trim()}
+              </h2>
+              <p className="text-xs text-sw-ink-500 mt-1">
+                Capture 5 frames. Have the employee look at the camera and move their head slightly between captures.
+              </p>
+            </div>
+            <button
+              onClick={() => setCapturing(false)}
+              disabled={saving}
+              className="text-sm font-medium text-sw-ink-500 hover:text-sw-ink-900 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
+          {saving ? (
+            <div className="py-12 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sw-gold-500 mx-auto mb-3" />
+              <p className="text-sm text-sw-ink-500">Saving...</p>
+            </div>
+          ) : (
+            <FaceRegistration onComplete={handleComplete} requiredCaptures={5} />
+          )}
+        </div>
       )}
     </div>
   );

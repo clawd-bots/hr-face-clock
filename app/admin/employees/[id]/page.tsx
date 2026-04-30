@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import TabNav from "@/components/TabNav";
 import DocumentUpload from "@/components/DocumentUpload";
-import { cachedFetch } from "@/lib/swr-fetcher";
+import { cachedFetch, invalidateCachePrefix } from "@/lib/swr-fetcher";
 import type {
   Employee,
   EmergencyContact,
@@ -158,6 +158,9 @@ export default function EmployeeDetailPage({
         const data = await res.json();
         throw new Error(data.error);
       }
+      // Invalidate caches that depend on this employee so other pages
+      // (employees list, dashboard) re-fetch instead of showing stale data.
+      invalidateCachePrefix("/api/employees");
       setSuccess("Saved successfully");
       setTimeout(() => setSuccess(""), 2000);
     } catch (err) {

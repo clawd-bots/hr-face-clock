@@ -81,6 +81,29 @@ def normalize_civil(s):
     return s or None
 
 
+def parse_money(s):
+    """Parse '₱65,000.00' -> 65000.00, '' -> None."""
+    if not s:
+        return None
+    s = re.sub(r"[₱,$\s]", "", str(s).strip())
+    if not s:
+        return None
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
+def round_money(n):
+    if n is None:
+        return None
+    return round(n, 2)
+
+
+# CSV bank short code -> human readable. Stored as-is; this is a comment for readers.
+BANK_CODES = {"UB": "UnionBank", "BDO": "BDO", "BPI": "BPI", "SeaBank": "SeaBank"}
+
+
 def main():
     with CSV_PATH.open() as f:
         reader = csv.reader(f)
@@ -131,9 +154,30 @@ def main():
             f"ON CONFLICT DO NOTHING;"
         )
     sql.append("")
-    sql.append("  -- 2. Upsert employees")
+    sql.append("  -- 2. Upsert allowance types (de minimis + load/plan)")
+    sql.append(
+        "  INSERT INTO allowance_types (company_id, name, code, is_taxable, is_de_minimis) "
+        "VALUES (v_company_id, 'De Minimis', 'DE_MINIMIS', false, true) "
+        "ON CONFLICT (company_id, code) DO NOTHING;"
+    )
+    sql.append(
+        "  INSERT INTO allowance_types (company_id, name, code, is_taxable, is_de_minimis) "
+        "VALUES (v_company_id, 'Standard Allowance', 'ALLOWANCE', true, false) "
+        "ON CONFLICT (company_id, code) DO NOTHING;"
+    )
+    sql.append(
+        "  INSERT INTO allowance_types (company_id, name, code, is_taxable, is_de_minimis) "
+        "VALUES (v_company_id, 'Load/Plan Allowance', 'LOAD_PLAN', true, false) "
+        "ON CONFLICT (company_id, code) DO NOTHING;"
+    )
+    sql.append("")
+    sql.append("  -- 3. Upsert employees")
     sql.append("  -- Each row uses (company_id, employee_number) as the natural key.")
     sql.append("")
+
+    salary_records = []  # (emp_no, basic, hire_date)
+    allowance_records = []  # (emp_no, code, amount)
+    emergency_records = []  # (emp_no, name, phone)
 
     for r in valid_rows:
         emp_no = r[1].strip()
@@ -145,10 +189,16 @@ def main():
         rank = r[9].strip()  # legacy 'role' field
         emp_type = r[10].strip()
         hire_date = parse_date(r[12]) or parse_date(r[13])
+        basic_salary = parse_money(r[15])
+        de_minimis = parse_money(r[16])
+        allowance = parse_money(r[17])
+        load_plan = parse_money(r[18])
         sss = r[20].strip()
         tin = r[21].strip()
         pagibig = r[22].strip()
         philhealth = r[23].strip()
+        payroll_account = r[25].strip()
+        payroll_bank = r[26].strip()
         gender = r[27].strip()
         citizenship = r[28].strip()
         work_email = r[29].strip()
@@ -160,12 +210,12 @@ def main():
         birthdate = parse_date(r[35])
         civil = r[37].strip()
         personal_email = r[38].strip()
+        emergency_name = r[39].strip()
+        emergency_phone = r[40].strip()
 
-        # Combine address line 1 + barangay if address is short
         address_line1 = address or None
         address_line2 = barangay or None
 
-        # Build full name for legacy 'name' field
         parts = [first_name]
         if middle_name:
             parts.append(middle_name)
@@ -178,6 +228,7 @@ def main():
             f"position_title, role, department, department_id, "
             f"employment_status, hire_date, "
             f"sss_number, tin_number, pagibig_number, philhealth_number, "
+            f"payroll_account_number, payroll_bank, "
             f"gender, nationality, work_email, personal_email, phone, "
             f"address_line1, address_line2, city, province, "
             f"date_of_birth, civil_status, active"
@@ -189,6 +240,7 @@ def main():
             f"{sql_text(normalize_employment(emp_type))}, "
             f"{sql_text(hire_date)}::date, "
             f"{sql_text(sss)}, {sql_text(tin)}, {sql_text(pagibig)}, {sql_text(philhealth)}, "
+            f"{sql_text(payroll_account)}, {sql_text(payroll_bank)}, "
             f"{sql_text(normalize_gender(gender))}, {sql_text(citizenship)}, "
             f"{sql_text(work_email)}, {sql_text(personal_email)}, {sql_text(phone)}, "
             f"{sql_text(address_line1)}, {sql_text(address_line2)}, {sql_text(city)}, {sql_text(province)}, "
@@ -208,6 +260,8 @@ def main():
             f" tin_number = COALESCE(EXCLUDED.tin_number, employees.tin_number),"
             f" pagibig_number = COALESCE(EXCLUDED.pagibig_number, employees.pagibig_number),"
             f" philhealth_number = COALESCE(EXCLUDED.philhealth_number, employees.philhealth_number),"
+            f" payroll_account_number = COALESCE(EXCLUDED.payroll_account_number, employees.payroll_account_number),"
+            f" payroll_bank = COALESCE(EXCLUDED.payroll_bank, employees.payroll_bank),"
             f" gender = COALESCE(EXCLUDED.gender, employees.gender),"
             f" nationality = COALESCE(EXCLUDED.nationality, employees.nationality),"
             f" work_email = COALESCE(EXCLUDED.work_email, employees.work_email),"
@@ -222,15 +276,94 @@ def main():
             f" active = true;"
         )
 
+        # Stage related rows for inserts after employees exist
+        if basic_salary and basic_salary > 0:
+            salary_records.append((emp_no, basic_salary, hire_date))
+        if de_minimis and de_minimis > 0:
+            allowance_records.append((emp_no, "DE_MINIMIS", de_minimis))
+        if allowance and allowance > 0:
+            allowance_records.append((emp_no, "ALLOWANCE", allowance))
+        if load_plan and load_plan > 0:
+            allowance_records.append((emp_no, "LOAD_PLAN", load_plan))
+        if emergency_name:
+            emergency_records.append((emp_no, emergency_name, emergency_phone))
+
+    # 4. Salary records
+    sql.append("")
+    sql.append("  -- 4. Salary records (one per employee, monthly basis)")
+    for emp_no, basic, hire_dt in salary_records:
+        # daily_rate = basic / 22, hourly_rate = daily / 8
+        daily = round_money(basic / 22)
+        hourly = round_money(daily / 8) if daily else None
+        eff_from = hire_dt or "1900-01-01"
+        sql.append(
+            f"  INSERT INTO salary_records (company_id, employee_id, basic_salary, daily_rate, hourly_rate, effective_from, pay_basis, days_per_month) "
+            f"SELECT v_company_id, e.id, {basic:.2f}, {daily:.2f}, {hourly:.2f}, {sql_text(eff_from)}::date, 'monthly', 22 "
+            f"FROM employees e WHERE e.company_id = v_company_id AND e.employee_number = {sql_text(emp_no)} "
+            f"ON CONFLICT (company_id, employee_id, effective_from) DO UPDATE SET "
+            f"basic_salary = EXCLUDED.basic_salary, daily_rate = EXCLUDED.daily_rate, hourly_rate = EXCLUDED.hourly_rate;"
+        )
+
+    # 5. Employee allowances
+    sql.append("")
+    sql.append("  -- 5. Employee allowances")
+    for emp_no, code, amount in allowance_records:
+        sql.append(
+            f"  INSERT INTO employee_allowances (company_id, employee_id, allowance_type_id, amount, frequency, active) "
+            f"SELECT v_company_id, e.id, t.id, {amount:.2f}, 'monthly', true "
+            f"FROM employees e, allowance_types t "
+            f"WHERE e.company_id = v_company_id AND e.employee_number = {sql_text(emp_no)} "
+            f"AND t.company_id = v_company_id AND t.code = {sql_text(code)} "
+            f"ON CONFLICT (company_id, employee_id, allowance_type_id) DO UPDATE SET "
+            f"amount = EXCLUDED.amount, active = true;"
+        )
+
+    # 6. Emergency contacts
+    # Replace existing primary contacts so re-running the import doesn't accumulate duplicates.
+    sql.append("")
+    sql.append("  -- 6. Emergency contacts (delete existing primary, then insert from CSV)")
+    sql.append(
+        "  DELETE FROM employee_emergency_contacts ec USING employees e "
+        "WHERE ec.employee_id = e.id AND e.company_id = v_company_id AND ec.is_primary = true;"
+    )
+    for emp_no, name, phone in emergency_records:
+        sql.append(
+            f"  INSERT INTO employee_emergency_contacts (employee_id, name, relationship, phone, is_primary) "
+            f"SELECT e.id, {sql_text(name)}, 'Not specified', {sql_text(phone or 'N/A')}, true "
+            f"FROM employees e WHERE e.company_id = v_company_id AND e.employee_number = {sql_text(emp_no)};"
+        )
+
     sql.append("")
     sql.append(f"  RAISE NOTICE 'Imported % active employees', {len(valid_rows)};")
+    sql.append(f"  RAISE NOTICE 'Imported % salary records', {len(salary_records)};")
+    sql.append(f"  RAISE NOTICE 'Imported % allowance assignments', {len(allowance_records)};")
+    sql.append(f"  RAISE NOTICE 'Imported % emergency contacts', {len(emergency_records)};")
     sql.append("END $$;")
+    sql.append("")
+
+    # Add tenure helper function for derived display
+    sql.append("")
+    sql.append("-- ============================================================")
+    sql.append("-- Tenure helper: completed months between hire_date and today.")
+    sql.append("-- Use as: SELECT employee_tenure_months(hire_date) FROM employees;")
+    sql.append("-- ============================================================")
+    sql.append("CREATE OR REPLACE FUNCTION employee_tenure_months(hire date)")
+    sql.append("RETURNS integer LANGUAGE sql IMMUTABLE AS $f$")
+    sql.append("  SELECT CASE")
+    sql.append("    WHEN hire IS NULL THEN NULL")
+    sql.append("    ELSE EXTRACT(YEAR FROM AGE(CURRENT_DATE, hire))::int * 12")
+    sql.append("       + EXTRACT(MONTH FROM AGE(CURRENT_DATE, hire))::int")
+    sql.append("  END")
+    sql.append("$f$;")
     sql.append("")
 
     OUT_PATH.write_text("\n".join(sql))
     print(f"Wrote {OUT_PATH}", file=sys.stderr)
     print(f"  - {len(departments)} departments", file=sys.stderr)
     print(f"  - {len(valid_rows)} employees", file=sys.stderr)
+    print(f"  - {len(salary_records)} salary records", file=sys.stderr)
+    print(f"  - {len(allowance_records)} allowances", file=sys.stderr)
+    print(f"  - {len(emergency_records)} emergency contacts", file=sys.stderr)
 
 
 if __name__ == "__main__":

@@ -73,8 +73,11 @@ export async function GET(req: NextRequest) {
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
+  // No HTTP cache: the browser cache is keyed on URL, not user. If an admin
+  // signs out and a different user signs in within the cache window, they'd
+  // get the previous user's data back from the browser.
   return NextResponse.json(data, {
-    headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=60" },
+    headers: { "Cache-Control": "no-store" },
   });
 }
 

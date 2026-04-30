@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import { invalidateCache } from "@/lib/swr-fetcher";
 import type { User, Session, SupabaseClient } from "@supabase/supabase-js";
 import type { UserProfile, SystemRole } from "@/lib/types/database";
 
@@ -85,6 +86,13 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     const uid = user?.id ?? null;
     // Skip if this is the initial load (already fetched above) or same user
     if (uid === prevUserRef.current) return;
+
+    // Whenever the user changes (sign in, sign out, switch account), nuke
+    // every client-side cache so we don't show the previous user's data.
+    if (prevUserRef.current !== null) {
+      invalidateCache();
+    }
+
     prevUserRef.current = uid;
     if (uid) {
       setProfile(null); // clear stale profile before fetching new one
@@ -143,6 +151,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     if (client) {
       await client.auth.signOut();
     }
+    // Clear in-memory cache so next sign-in starts fresh
+    invalidateCache();
     setUser(null);
     setSession(null);
     setProfile(null);

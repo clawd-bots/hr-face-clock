@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseService } from "@/lib/supabase-service";
 import { getSupabaseServer } from "@/lib/supabase-server";
+import { getKioskDevice } from "@/lib/kiosk-auth";
 
 /**
- * Time logs API — used by both the kiosk (unauthenticated) and admin dashboard.
- * Always uses service client for kiosk clock operations;
- * uses server client for authenticated admin queries.
+ * Time logs API.
+ * - GET: authenticated admin/employee dashboards (company-scoped).
+ * - POST: kiosk clock in/out — requires either an authenticated user OR
+ *   a valid kiosk device token (cookie). The device's company_id pins
+ *   the log so kiosks can only clock in their own company's employees.
  */
 async function getClientAndContext() {
   try {
@@ -64,10 +67,41 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  // Clock in/out always uses service client (kiosk has no auth)
+  // Resolve the company that "owns" this clock event.
+  // Either an authenticated user (admin/employee) or a paired kiosk device.
+  const { isAuthenticated, companyId: authCompanyId } = await getClientAndContext();
+  let companyId = authCompanyId;
+
+  if (!isAuthenticated) {
+    const device = await getKioskDevice(req);
+    if (!device) {
+      return NextResponse.json({ error: "Kiosk not paired or revoked" }, { status: 401 });
+    }
+    companyId = device.company_id;
+  }
+
+  if (!companyId) {
+    return NextResponse.json({ error: "No company context" }, { status: 401 });
+  }
+
   const supabase = getSupabaseService();
   const body = await req.json();
   const { employee_id, action } = body;
+
+  if (!employee_id) {
+    return NextResponse.json({ error: "employee_id is required" }, { status: 400 });
+  }
+
+  // Verify employee belongs to the same company as the caller
+  const { data: employee } = await supabase
+    .from("employees")
+    .select("company_id")
+    .eq("id", employee_id)
+    .single();
+
+  if (!employee || employee.company_id !== companyId) {
+    return NextResponse.json({ error: "Employee not in this company" }, { status: 403 });
+  }
 
   if (action === "clock_in") {
     const today = new Date().toISOString().split("T")[0];
@@ -86,13 +120,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get employee's company_id for the new log
-    const { data: employee } = await supabase
-      .from("employees")
-      .select("company_id")
-      .eq("id", employee_id)
-      .single();
-
     const now = new Date().toISOString();
     const { data, error } = await supabase
       .from("time_logs")
@@ -100,7 +127,7 @@ export async function POST(req: NextRequest) {
         employee_id,
         clock_in: now,
         date: today,
-        company_id: employee?.company_id ?? null,
+        company_id: companyId,
       })
       .select("*, employee:employees(id, employee_number, first_name, last_name, name, position_title)")
       .single();

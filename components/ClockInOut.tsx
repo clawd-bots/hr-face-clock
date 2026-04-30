@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import FaceScanner from "./FaceScanner";
 import { findBestMatch } from "@/lib/face-recognition";
 import { formatTime } from "@/lib/utils";
@@ -26,20 +27,37 @@ function ErrorBanner({ message }: { message: string }) {
 }
 
 export default function ClockInOut() {
+  const router = useRouter();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedAction, setSelectedAction] = useState<ClockAction | null>(null);
   const [result, setResult] = useState<ClockResult | null>(null);
   const [error, setError] = useState<string>("");
   const [processing, setProcessing] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [paired, setPaired] = useState<boolean | null>(null);
+  const [deviceName, setDeviceName] = useState<string>("");
   const cooldownRef = useRef(false);
 
+  // Verify the device is paired before loading employees.
   useEffect(() => {
-    fetch("/api/employees")
+    fetch("/api/kiosk/whoami")
       .then((r) => r.json())
-      .then(setEmployees)
-      .catch(() => setError("Failed to load employees"));
-  }, []);
+      .then((data) => {
+        if (!data.paired) {
+          router.replace("/kiosk/pair");
+          return;
+        }
+        setPaired(true);
+        setDeviceName(data.device?.name ?? "");
+        return fetch("/api/employees")
+          .then((r) => r.json())
+          .then((emps) => {
+            if (Array.isArray(emps)) setEmployees(emps);
+            else setError("Failed to load employees");
+          });
+      })
+      .catch(() => setError("Failed to verify device"));
+  }, [router]);
 
   const handleFaceDetected = useCallback(
     async (descriptor: Float32Array) => {

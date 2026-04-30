@@ -33,6 +33,7 @@ const navItems: SidebarItem[] = [
   { href: "/admin/schedules", label: "Schedules", icon: List },
   { href: "/admin/holidays", label: "Holidays", icon: Star },
   { href: "/admin/reports", label: "Reports", icon: LineChart },
+  { href: "/admin/devices", label: "Devices", icon: LogIn },
 ];
 
 const extraLinks: SidebarItem[] = [

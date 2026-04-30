@@ -482,6 +482,27 @@ export type TimeDeclaration = {
   employee?: Employee;
 };
 
+// ---------------------------------------------------------------------------
+// Kiosk Devices
+// ---------------------------------------------------------------------------
+
+export type KioskDevice = {
+  id: string;
+  company_id: string;
+  name: string;
+  description: string | null;
+  pairing_code: string | null;
+  pairing_code_expires_at: string | null;
+  ip_allowlist: string[] | null;
+  paired_at: string | null;
+  last_seen_at: string | null;
+  last_seen_ip: string | null;
+  revoked_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type OvertimeRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
 export type OvertimeRequest = {

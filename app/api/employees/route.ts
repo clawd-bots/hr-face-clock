@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseService } from "@/lib/supabase-service";
 import { getSupabaseServer } from "@/lib/supabase-server";
+import { getKioskDevice } from "@/lib/kiosk-auth";
 import { logAudit } from "@/lib/audit";
 
 /**
@@ -47,11 +48,26 @@ async function getClientAndContext(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const { supabase } = await getClientAndContext(req);
+  const ctx = await getClientAndContext(req);
+  let companyId = ctx.companyId;
 
-  const { data, error } = await supabase
+  // Unauthenticated request → must be a paired kiosk device
+  if (!ctx.isAuthenticated) {
+    const device = await getKioskDevice(req);
+    if (!device) {
+      return NextResponse.json({ error: "Kiosk not paired or revoked" }, { status: 401 });
+    }
+    companyId = device.company_id;
+  }
+
+  if (!companyId) {
+    return NextResponse.json({ error: "No company context" }, { status: 401 });
+  }
+
+  const { data, error } = await ctx.supabase
     .from("employees")
     .select("*")
+    .eq("company_id", companyId)
     .or("active.eq.true,active.is.null")
     .order("name");
 

@@ -3,9 +3,9 @@
 --   2. Merge case-variant duplicates into the canonical row.
 --   3. Delete any department NOT in the CSV.
 --   4. Re-link employees from CSV mapping.
--- Generated: 2026-04-30T14:29:54
+-- Generated: 2026-04-30T14:33:43
 
-DO $$
+DO $proc$
 DECLARE
   v_company_id uuid;
   v_canonical_id uuid;
@@ -257,4 +257,4 @@ BEGIN
   UPDATE employees SET department_id = (SELECT id FROM departments WHERE company_id = v_company_id AND name = 'Medical' LIMIT 1), department = 'Medical' WHERE company_id = v_company_id AND employee_number = 'F006';
 
   RAISE NOTICE 'Department cleanup complete: % canonical departments, % employees re-linked', 12, 51;
-END $$;
+END $proc$;

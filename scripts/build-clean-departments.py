@@ -54,7 +54,7 @@ def main():
     sql.append("--   4. Re-link employees from CSV mapping.")
     sql.append(f"-- Generated: {datetime.now().isoformat(timespec='seconds')}")
     sql.append("")
-    sql.append("DO $$")
+    sql.append("DO $proc$")
     sql.append("DECLARE")
     sql.append("  v_company_id uuid;")
     sql.append("  v_canonical_id uuid;")
@@ -151,7 +151,7 @@ def main():
 
     sql.append("")
     sql.append(f"  RAISE NOTICE 'Department cleanup complete: % canonical departments, % employees re-linked', {len(depts)}, {len(valid_rows)};")
-    sql.append("END $$;")
+    sql.append("END $proc$;")
     sql.append("")
 
     OUT_PATH.write_text("\n".join(sql))

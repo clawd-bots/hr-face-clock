@@ -65,7 +65,7 @@ export async function PATCH(
       token_hash: null,
     };
     auditAction = "revoke";
-    auditChanges = { revoked_at: { old: null, new: updateData.revoked_at } };
+    auditChanges.revoked_at = { old: null, new: updateData.revoked_at };
   } else if (action === "regenerate_code") {
     // Issue a fresh pairing code (e.g. if the old one expired or device needs re-pair)
     const code = generatePairingCode();
@@ -79,7 +79,7 @@ export async function PATCH(
       revoked_at: null,
     };
     auditAction = "regenerate";
-    auditChanges = { pairing_code: { old: null, new: "regenerated" } };
+    auditChanges.pairing_code = { old: null, new: "regenerated" };
   } else {
     // Plain update: name / description / ip_allowlist
     if (name !== undefined) {

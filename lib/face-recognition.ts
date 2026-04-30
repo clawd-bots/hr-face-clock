@@ -1,19 +1,36 @@
 import * as faceapi from "face-api.js";
 
 let modelsLoaded = false;
+let modelsLoading: Promise<void> | null = null;
 
-export async function loadModels() {
+/**
+ * Loads face-api models. Safe to call multiple times — coalesces concurrent
+ * calls and skips work after the first successful load.
+ */
+export async function loadModels(): Promise<void> {
   if (modelsLoaded) return;
-  await Promise.all([
-    faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
-    faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
-    faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
-  ]);
-  modelsLoaded = true;
+  if (modelsLoading) return modelsLoading;
+
+  modelsLoading = (async () => {
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
+      faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
+      faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
+    ]);
+    modelsLoaded = true;
+  })();
+
+  try {
+    await modelsLoading;
+  } finally {
+    modelsLoading = null;
+  }
 }
 
+// Smaller inputSize → faster detection. 320 is ~2x faster than 416 with
+// negligible accuracy loss for face-recognition use cases.
 const tinyFaceOptions = new faceapi.TinyFaceDetectorOptions({
-  inputSize: 416,
+  inputSize: 320,
   scoreThreshold: 0.3,
 });
 

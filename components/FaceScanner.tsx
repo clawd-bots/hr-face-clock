@@ -89,6 +89,8 @@ export default function FaceScanner({
 
   useEffect(() => {
     if (!ready || !autoDetect) return;
+    // Fire immediately — don't wait for the first interval tick.
+    runDetection();
     const interval = setInterval(runDetection, detectInterval);
     return () => clearInterval(interval);
   }, [ready, autoDetect, detectInterval, runDetection]);

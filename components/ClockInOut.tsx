@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import FaceScanner from "./FaceScanner";
-import { findBestMatch } from "@/lib/face-recognition";
+import { findBestMatch, loadModels } from "@/lib/face-recognition";
 import { formatTime } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { LogIn, LogOut } from "@/components/ui/icons";
@@ -37,6 +37,14 @@ export default function ClockInOut() {
   const [paired, setPaired] = useState<boolean | null>(null);
   const [deviceName, setDeviceName] = useState<string>("");
   const cooldownRef = useRef(false);
+
+  // Pre-load face-api models in the background so they're ready by the
+  // time the user clicks Clock In / Out.
+  useEffect(() => {
+    loadModels().catch(() => {
+      /* model loading errors will surface in FaceScanner */
+    });
+  }, []);
 
   // Verify the device is paired before loading employees.
   useEffect(() => {
@@ -230,7 +238,7 @@ export default function ClockInOut() {
           <FaceScanner
             onFaceDetected={handleFaceDetected}
             autoDetect={scanning}
-            detectInterval={2000}
+            detectInterval={600}
           />
         </div>
         {processing && (

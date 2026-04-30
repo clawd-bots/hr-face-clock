@@ -145,7 +145,25 @@ export default function EmployeesPage() {
                     {emp.position_title || emp.role || "—"}
                   </td>
                   <td className="px-6 py-4 text-sw-caption text-sw-ink-700">
-                    {emp.department || "—"}
+                    {(() => {
+                      const dept = emp.department_id
+                        ? departments.find((d) => d.id === emp.department_id)
+                        : null;
+                      if (dept) {
+                        return (
+                          <span>
+                            {dept.name}
+                            {dept.code && (
+                              <span className="ml-1 text-sw-micro text-sw-ink-300">
+                                ({dept.code})
+                              </span>
+                            )}
+                          </span>
+                        );
+                      }
+                      // Fallback to legacy free-text department field
+                      return emp.department || "—";
+                    })()}
                   </td>
                   <td className="px-6 py-4">
                     {emp.employment_status && (

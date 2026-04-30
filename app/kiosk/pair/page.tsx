@@ -36,9 +36,9 @@ export default function KioskPairPage() {
   }
 
   return (
-    <div className="min-h-screen bg-sw-cream-50 flex items-center justify-center p-6">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        <h1 className="text-2xl font-semibold tracking-[-0.5px] text-sw-ink-900 mb-1">
+    <div className="min-h-[100dvh] bg-sw-cream-50 flex items-center justify-center px-4 py-6 sm:p-6">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 sm:p-8">
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-[-0.5px] text-sw-ink-900 mb-1">
           Pair this Kiosk
         </h1>
         <p className="text-sm text-sw-ink-500 mb-6">

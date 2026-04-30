@@ -131,22 +131,25 @@ export default function ClockInOut() {
     const isIn = result.action === "clock_in";
     const tone = isIn ? "bg-sw-gold-500 text-sw-white" : "bg-sw-lilac-500 text-sw-white";
     return (
-      <div className="min-h-screen flex items-center justify-center bg-sw-cream-50 p-6">
-        <div className={`text-center p-12 rounded-sw-xl max-w-lg w-full shadow-sw-2 ${tone}`}>
-          <div className="t-h3 mb-2 opacity-90">{isIn ? "Welcome" : "Goodbye"}</div>
-          <h2 className="t-display mb-2 text-current">{result.employeeName}</h2>
-          <p className="text-sw-body-lg font-medium mb-6 opacity-90">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-sw-cream-50 px-4 py-6 sm:p-6">
+        <div className={`text-center px-6 py-10 sm:px-12 sm:py-12 rounded-sw-xl max-w-lg w-full shadow-sw-2 ${tone}`}>
+          <div className="text-base sm:text-lg font-medium mb-2 opacity-90">{isIn ? "Welcome" : "Goodbye"}</div>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-2 break-words text-current">{result.employeeName}</h2>
+          <p className="text-base sm:text-lg font-medium mb-4 sm:mb-6 opacity-90">
             {isIn ? "Clocked In" : "Clocked Out"}
           </p>
-          <p className="t-display text-current my-6" style={{ fontVariantNumeric: "tabular-nums" }}>
+          <p
+            className="text-3xl sm:text-4xl md:text-5xl font-semibold text-current my-4 sm:my-6"
+            style={{ fontVariantNumeric: "tabular-nums" }}
+          >
             {result.time}
           </p>
           {result.hoursWorked && (
-            <p className="t-body opacity-80">
+            <p className="text-sm sm:text-base opacity-80">
               Hours today: {result.hoursWorked.toFixed(1)}h
             </p>
           )}
-          <div className="mt-6 text-sw-caption font-medium opacity-70">
+          <div className="mt-5 sm:mt-6 text-xs sm:text-sm font-medium opacity-70">
             Returning to home...
           </div>
         </div>
@@ -156,25 +159,46 @@ export default function ClockInOut() {
 
   if (!selectedAction) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-sw-cream-50 p-6">
-        <h1 className="t-display mb-2">Sweldo HR</h1>
-        <p className="t-body text-sw-ink-500 mb-10">Select an action to begin</p>
-        {error && <div className="mb-6"><ErrorBanner message={error} /></div>}
-        <div className="flex gap-4">
-          <button
-            onClick={() => handleSelectAction("clock_in")}
-            className="group w-56 h-56 rounded-sw-xl bg-sw-gold-500 text-sw-white shadow-sw-1 hover:shadow-sw-2 transition-shadow duration-sw-fast flex flex-col items-center justify-center gap-4"
-          >
-            <LogIn className="w-12 h-12 stroke-[1.5]" strokeWidth={1.5} />
-            <span className="t-h3 text-sw-white">Clock In</span>
-          </button>
-          <button
-            onClick={() => handleSelectAction("clock_out")}
-            className="group w-56 h-56 rounded-sw-xl bg-sw-cream-50 text-sw-ink-900 border border-sw-ink-200 shadow-sw-1 hover:shadow-sw-2 transition-shadow duration-sw-fast flex flex-col items-center justify-center gap-4"
-          >
-            <LogOut className="w-12 h-12" strokeWidth={1.5} />
-            <span className="t-h3">Clock Out</span>
-          </button>
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-sw-cream-50 px-4 py-6 sm:p-6">
+        <div className="w-full max-w-md sm:max-w-2xl flex flex-col items-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-[-0.5px] text-center mb-2">
+            Sweldo HR
+          </h1>
+          <p className="text-sm sm:text-base text-sw-ink-500 text-center mb-6 sm:mb-10">
+            Select an action to begin
+          </p>
+          {error && (
+            <div className="w-full mb-5 sm:mb-6">
+              <ErrorBanner message={error} />
+            </div>
+          )}
+          {/*
+            Layout rules:
+              • Default (narrow phones, portrait):  stack vertically, full-width tappable cards
+              • >= 640px (sm) OR landscape phones:   side-by-side, fixed square buttons
+            `landscape:` ensures phones held sideways get the row layout even below sm.
+          */}
+          <div className="w-full flex flex-col gap-3 sm:flex-row sm:gap-4 sm:justify-center landscape:flex-row landscape:gap-3">
+            <button
+              onClick={() => handleSelectAction("clock_in")}
+              className="group w-full h-28 landscape:h-24 landscape:flex-1 sm:w-56 sm:h-56 rounded-sw-xl bg-sw-gold-500 text-sw-white shadow-sw-1 active:scale-[0.98] hover:shadow-sw-2 transition-all duration-sw-fast flex flex-row landscape:flex-col sm:flex-col items-center justify-center gap-3 sm:gap-4 px-6 sm:px-0"
+            >
+              <LogIn className="w-9 h-9 sm:w-12 sm:h-12 shrink-0" strokeWidth={1.5} />
+              <span className="text-xl sm:text-2xl font-semibold text-sw-white">Clock In</span>
+            </button>
+            <button
+              onClick={() => handleSelectAction("clock_out")}
+              className="group w-full h-28 landscape:h-24 landscape:flex-1 sm:w-56 sm:h-56 rounded-sw-xl bg-sw-cream-50 text-sw-ink-900 border border-sw-ink-200 shadow-sw-1 active:scale-[0.98] hover:shadow-sw-2 transition-all duration-sw-fast flex flex-row landscape:flex-col sm:flex-col items-center justify-center gap-3 sm:gap-4 px-6 sm:px-0"
+            >
+              <LogOut className="w-9 h-9 sm:w-12 sm:h-12 shrink-0" strokeWidth={1.5} />
+              <span className="text-xl sm:text-2xl font-semibold">Clock Out</span>
+            </button>
+          </div>
+          {deviceName && (
+            <p className="mt-6 sm:mt-10 text-xs text-sw-ink-500/70">
+              Device: <span className="font-medium">{deviceName}</span>
+            </p>
+          )}
         </div>
       </div>
     );
@@ -182,30 +206,40 @@ export default function ClockInOut() {
 
   const isIn = selectedAction === "clock_in";
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-sw-cream-50 p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="secondary" size="sm" onClick={handleBack}>
-          Back
-        </Button>
-        <h1 className={`t-h3 ${isIn ? "text-sw-gold-600" : "text-sw-lilac-500"}`}>
-          {isIn ? "Clock In" : "Clock Out"}
-        </h1>
-      </div>
-      <p className="t-body text-sw-ink-500 mb-6">Look at the camera to scan your face</p>
-      {error && <div className="mb-4"><ErrorBanner message={error} /></div>}
-      <div className="w-full max-w-xl">
-        <FaceScanner
-          onFaceDetected={handleFaceDetected}
-          autoDetect={scanning}
-          detectInterval={2000}
-        />
-      </div>
-      {processing && (
-        <div className="mt-4 flex items-center gap-2 text-sw-gold-600">
-          <div className="animate-spin rounded-sw-full h-4 w-4 border-b-2 border-sw-gold-500" />
-          <span className="text-sw-caption font-medium">Processing...</span>
+    <div className="min-h-[100dvh] flex flex-col items-center justify-start sm:justify-center bg-sw-cream-50 px-4 py-6 sm:p-6">
+      <div className="w-full max-w-xl flex flex-col items-center">
+        <div className="w-full flex items-center justify-between sm:justify-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <Button variant="secondary" size="sm" onClick={handleBack}>
+            Back
+          </Button>
+          <h1 className={`text-lg sm:text-2xl font-semibold ${isIn ? "text-sw-gold-600" : "text-sw-lilac-500"}`}>
+            {isIn ? "Clock In" : "Clock Out"}
+          </h1>
+          {/* Spacer to balance flex on mobile */}
+          <div className="w-[60px] sm:hidden" />
         </div>
-      )}
+        <p className="text-sm sm:text-base text-sw-ink-500 mb-4 sm:mb-6 text-center">
+          Look at the camera to scan your face
+        </p>
+        {error && (
+          <div className="w-full mb-4">
+            <ErrorBanner message={error} />
+          </div>
+        )}
+        <div className="w-full">
+          <FaceScanner
+            onFaceDetected={handleFaceDetected}
+            autoDetect={scanning}
+            detectInterval={2000}
+          />
+        </div>
+        {processing && (
+          <div className="mt-4 flex items-center gap-2 text-sw-gold-600">
+            <div className="animate-spin rounded-sw-full h-4 w-4 border-b-2 border-sw-gold-500" />
+            <span className="text-xs sm:text-sm font-medium">Processing...</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

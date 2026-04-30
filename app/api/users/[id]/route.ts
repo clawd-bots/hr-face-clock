@@ -55,7 +55,7 @@ export async function PATCH(
   }
 
   const body = await req.json();
-  const { role, active } = body;
+  const { role, active, managed_department_ids } = body;
 
   const supabase = getSupabaseService();
 
@@ -110,18 +110,53 @@ export async function PATCH(
     }
   }
 
-  if (Object.keys(updateData).length === 0) {
+  // Sync managed-department links when explicitly provided OR when role flips
+  let syncManagedDepts = false;
+  if (Array.isArray(managed_department_ids)) {
+    syncManagedDepts = true;
+  }
+
+  if (Object.keys(updateData).length === 0 && !syncManagedDepts) {
     return NextResponse.json({ message: "No changes" });
   }
 
-  const { data, error } = await supabase
-    .from("user_profiles")
-    .update(updateData)
-    .eq("id", id)
-    .select()
-    .single();
+  const { data, error } = Object.keys(updateData).length > 0
+    ? await supabase
+        .from("user_profiles")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single()
+    : await supabase
+        .from("user_profiles")
+        .select()
+        .eq("id", id)
+        .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Replace managed-department rows if provided, OR clear them if role changed
+  // away from department_manager
+  const finalRole = (updateData.system_role as string) ?? target.system_role;
+  if (syncManagedDepts || (role !== undefined && role !== "department_manager")) {
+    await supabase.from("user_managed_departments").delete().eq("user_id", id);
+    if (
+      finalRole === "department_manager" &&
+      Array.isArray(managed_department_ids) &&
+      managed_department_ids.length > 0
+    ) {
+      const rows = managed_department_ids
+        .filter((dId: unknown): dId is string => typeof dId === "string" && !!dId)
+        .map((department_id: string) => ({
+          user_id: id,
+          department_id,
+          company_id: ctx.companyId,
+        }));
+      if (rows.length > 0) {
+        await supabase.from("user_managed_departments").insert(rows);
+      }
+    }
+  }
 
   await logAudit({
     companyId: ctx.companyId,

@@ -53,6 +53,7 @@ export default function EmployeeDetailPage({
   const [accountEmail, setAccountEmail] = useState("");
   const [accountPassword, setAccountPassword] = useState("");
   const [accountRole, setAccountRole] = useState("employee");
+  const [managedDeptIds, setManagedDeptIds] = useState<string[]>([]);
   const [accountLoading, setAccountLoading] = useState(false);
   const [accountMsg, setAccountMsg] = useState("");
 
@@ -127,7 +128,12 @@ export default function EmployeeDetailPage({
       const res = await fetch(`/api/employees/${id}/create-account`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: accountEmail, password: accountPassword, role: accountRole }),
+        body: JSON.stringify({
+          email: accountEmail,
+          password: accountPassword,
+          role: accountRole,
+          managed_department_ids: accountRole === "department_manager" ? managedDeptIds : [],
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -137,6 +143,7 @@ export default function EmployeeDetailPage({
       setAccountEmail("");
       setAccountPassword("");
       setAccountRole("employee");
+      setManagedDeptIds([]);
     } catch (err) {
       setAccountMsg(err instanceof Error ? err.message : "Failed to create account");
     } finally {
@@ -580,6 +587,43 @@ export default function EmployeeDetailPage({
                   <option value="company_admin">Company Admin</option>
                 </select>
               </div>
+
+              {/* Department picker — only for department_manager */}
+              {accountRole === "department_manager" && (
+                <div>
+                  <label className={labelClass}>
+                    Departments in charge of <span className="text-sw-danger-500">*</span>
+                  </label>
+                  <p className="text-xs text-sw-ink-500 mb-2">
+                    Can approve leaves, OT, and time declarations for employees in these departments.
+                  </p>
+                  <div className="space-y-1 max-h-40 overflow-y-auto rounded-xl border border-sw-ink-200 p-3 bg-sw-cream-50">
+                    {departments.length === 0 ? (
+                      <p className="text-xs text-sw-ink-500">No departments yet.</p>
+                    ) : (
+                      departments.map((d) => (
+                        <label
+                          key={d.id}
+                          className="flex items-center gap-2 text-sm text-sw-ink-700 cursor-pointer hover:bg-white/60 px-2 py-1 rounded-lg"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={managedDeptIds.includes(d.id)}
+                            onChange={(e) => {
+                              setManagedDeptIds((prev) =>
+                                e.target.checked
+                                  ? [...prev, d.id]
+                                  : prev.filter((x) => x !== d.id)
+                              );
+                            }}
+                          />
+                          {d.name}
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
@@ -591,7 +635,12 @@ export default function EmployeeDetailPage({
               </button>
               <button
                 onClick={createAccount}
-                disabled={accountLoading || !accountEmail || !accountPassword}
+                disabled={
+                  accountLoading ||
+                  !accountEmail ||
+                  !accountPassword ||
+                  (accountRole === "department_manager" && managedDeptIds.length === 0)
+                }
                 className="h-10 px-5 rounded-full text-sm font-medium text-[#ffffff] disabled:opacity-50"
                 style={{ background: "var(--color-sw-gold-500)" }}
               >

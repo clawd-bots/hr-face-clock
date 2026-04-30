@@ -40,7 +40,7 @@ export async function POST(
 
   const { id: employeeId } = await params;
   const body = await req.json();
-  const { email, password, role } = body;
+  const { email, password, role, managed_department_ids } = body;
 
   if (!email || !password) {
     return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
@@ -120,6 +120,24 @@ export async function POST(
       { error: "Failed to create profile: " + profileError.message },
       { status: 500 }
     );
+  }
+
+  // For department_manager role: write managed-department links
+  if (
+    accountRole === "department_manager" &&
+    Array.isArray(managed_department_ids) &&
+    managed_department_ids.length > 0
+  ) {
+    const rows = managed_department_ids
+      .filter((id: unknown): id is string => typeof id === "string" && !!id)
+      .map((department_id: string) => ({
+        user_id: authData.user.id,
+        department_id,
+        company_id: ctx.companyId,
+      }));
+    if (rows.length > 0) {
+      await supabase.from("user_managed_departments").insert(rows);
+    }
   }
 
   await logAudit({

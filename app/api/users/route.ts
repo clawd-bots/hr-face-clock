@@ -61,9 +61,27 @@ export async function GET(req: NextRequest) {
     authById.set(u.id, { last_sign_in_at: u.last_sign_in_at ?? null });
   }
 
+  // Pull managed-department links for any department managers
+  const managerIds = (data ?? [])
+    .filter((u) => u.system_role === "department_manager")
+    .map((u) => u.id);
+  const linksByUser = new Map<string, string[]>();
+  if (managerIds.length > 0) {
+    const { data: links } = await supabase
+      .from("user_managed_departments")
+      .select("user_id, department_id")
+      .in("user_id", managerIds);
+    for (const l of links ?? []) {
+      const arr = linksByUser.get(l.user_id) ?? [];
+      arr.push(l.department_id);
+      linksByUser.set(l.user_id, arr);
+    }
+  }
+
   const merged = (data ?? []).map((u) => ({
     ...u,
     last_sign_in_at: authById.get(u.id)?.last_sign_in_at ?? null,
+    managed_department_ids: linksByUser.get(u.id) ?? [],
   }));
 
   return NextResponse.json(merged);

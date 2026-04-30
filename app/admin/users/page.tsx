@@ -12,6 +12,7 @@ type User = {
   created_at: string;
   last_sign_in_at: string | null;
   employee_id: string | null;
+  managed_department_ids?: string[];
   employee?: {
     id: string;
     employee_number?: string;
@@ -21,6 +22,8 @@ type User = {
     position_title?: string;
   } | null;
 };
+
+type Department = { id: string; name: string };
 
 const ROLE_OPTIONS: { value: string; label: string }[] = [
   { value: "employee", label: "Employee" },
@@ -62,6 +65,12 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
+  const [departments, setDepartments] = useState<Department[]>([]);
+
+  // Managed-departments edit modal
+  const [deptTarget, setDeptTarget] = useState<User | null>(null);
+  const [deptDraft, setDeptDraft] = useState<string[]>([]);
+  const [deptSaving, setDeptSaving] = useState(false);
 
   // Reset password modal
   const [resetTarget, setResetTarget] = useState<User | null>(null);
@@ -89,6 +98,41 @@ export default function UsersPage() {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  useEffect(() => {
+    fetch("/api/departments")
+      .then((r) => r.json())
+      .then((d) => setDepartments(Array.isArray(d) ? d : []))
+      .catch(() => {});
+  }, []);
+
+  async function handleSaveManagedDepts() {
+    if (!deptTarget) return;
+    setDeptSaving(true);
+    try {
+      const res = await fetch(`/api/users/${deptTarget.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ managed_department_ids: deptDraft }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed");
+      }
+      setDeptTarget(null);
+      setDeptDraft([]);
+      fetchUsers();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setDeptSaving(false);
+    }
+  }
+
+  function openDeptModal(u: User) {
+    setDeptTarget(u);
+    setDeptDraft(u.managed_department_ids ?? []);
+  }
 
   async function handleRoleChange(u: User, newRole: string) {
     if (newRole === u.system_role) return;
@@ -248,6 +292,7 @@ export default function UsersPage() {
                 <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Email</th>
                 <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Linked Employee</th>
                 <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Role</th>
+                <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Manages</th>
                 <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Status</th>
                 <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Last Sign-in</th>
                 <th className="text-left px-6 py-4 font-medium text-sw-ink-500">Actions</th>
@@ -285,6 +330,30 @@ export default function UsersPage() {
                         </select>
                       ) : (
                         <span className="text-xs text-sw-ink-700">{ROLE_LABEL[u.system_role] ?? u.system_role}</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-xs">
+                      {u.system_role === "department_manager" ? (
+                        <button
+                          onClick={() => openDeptModal(u)}
+                          disabled={!editable}
+                          className="text-left hover:underline disabled:no-underline disabled:cursor-default"
+                        >
+                          {u.managed_department_ids && u.managed_department_ids.length > 0 ? (
+                            <span className="text-sw-ink-700">
+                              {u.managed_department_ids
+                                .map(
+                                  (id) =>
+                                    departments.find((d) => d.id === id)?.name ?? "?"
+                                )
+                                .join(", ")}
+                            </span>
+                          ) : (
+                            <span className="text-sw-danger-500 font-medium">Not assigned</span>
+                          )}
+                        </button>
+                      ) : (
+                        <span className="text-sw-ink-300">—</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -333,6 +402,62 @@ export default function UsersPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Managed-departments modal */}
+      {deptTarget && (
+        <>
+          <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setDeptTarget(null)} />
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+              <h2 className="text-lg font-semibold text-sw-ink-900 mb-1">Departments in charge of</h2>
+              <p className="text-sm text-sw-ink-500 mb-4">
+                <span className="font-medium">{deptTarget.display_name}</span> can approve leaves, OT, and time declarations for employees in the selected departments.
+              </p>
+              <div className="space-y-1 max-h-64 overflow-y-auto rounded-xl border border-sw-ink-200 p-3 bg-sw-cream-50 mb-2">
+                {departments.length === 0 ? (
+                  <p className="text-sm text-sw-ink-500">No departments yet.</p>
+                ) : (
+                  departments.map((d) => (
+                    <label
+                      key={d.id}
+                      className="flex items-center gap-2 text-sm text-sw-ink-700 cursor-pointer hover:bg-white/60 px-2 py-1 rounded-lg"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={deptDraft.includes(d.id)}
+                        onChange={(e) => {
+                          setDeptDraft((prev) =>
+                            e.target.checked
+                              ? [...prev, d.id]
+                              : prev.filter((x) => x !== d.id)
+                          );
+                        }}
+                      />
+                      {d.name}
+                    </label>
+                  ))
+                )}
+              </div>
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  onClick={() => setDeptTarget(null)}
+                  className="px-4 py-2 rounded-full text-sm font-medium text-sw-ink-700 hover:bg-sw-cream-25"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveManagedDepts}
+                  disabled={deptSaving}
+                  className="px-5 py-2 rounded-full text-sm font-medium text-white disabled:opacity-50"
+                  style={{ background: "var(--color-sw-gold-500)" }}
+                >
+                  {deptSaving ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Reset password modal */}

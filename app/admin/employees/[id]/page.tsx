@@ -85,11 +85,23 @@ export default function EmployeeDetailPage({
       fetch(`/api/employees/${id}/work-history`).then((r) => r.json()),
       fetch(`/api/employees/${id}/documents`).then((r) => r.json()),
     ]);
-    setContacts(c);
-    setDependents(d);
-    setEducation(e);
-    setWorkHistory(w);
-    setDocuments(doc);
+    const contactsArr = Array.isArray(c) ? c : [];
+    const dependentsArr = Array.isArray(d) ? d : [];
+    const educationArr = Array.isArray(e) ? e : [];
+    const workArr = Array.isArray(w) ? w : [];
+    setContacts(contactsArr);
+    setDependents(dependentsArr);
+    setEducation(educationArr);
+    setWorkHistory(workArr);
+    setDocuments(Array.isArray(doc) ? doc : []);
+
+    // Auto-expand any sub-section that has records on first load.
+    setExpanded((prev) => ({
+      contacts: prev.contacts || contactsArr.length > 0,
+      dependents: prev.dependents || dependentsArr.length > 0,
+      education: prev.education || educationArr.length > 0,
+      history: prev.history || workArr.length > 0,
+    }));
   }, [id]);
 
   const checkAccount = useCallback(async () => {
@@ -248,9 +260,30 @@ export default function EmployeeDetailPage({
             <Field label="Middle Name" value={employee.middle_name} onChange={(v) => updateField("middle_name", v)} />
             <Field label="Last Name" value={employee.last_name} onChange={(v) => updateField("last_name", v)} />
             <Field label="Suffix" value={employee.suffix} onChange={(v) => updateField("suffix", v)} />
-            <SelectField label="Gender" value={employee.gender} onChange={(v) => updateField("gender", v)} options={["", "Male", "Female", "Other"]} />
+            <SelectField
+              label="Gender"
+              value={employee.gender}
+              onChange={(v) => updateField("gender", v)}
+              options={[
+                { value: "", label: "—" },
+                { value: "male", label: "Male" },
+                { value: "female", label: "Female" },
+                { value: "other", label: "Other" },
+              ]}
+            />
             <Field label="Date of Birth" value={employee.date_of_birth} onChange={(v) => updateField("date_of_birth", v)} type="date" />
-            <SelectField label="Civil Status" value={employee.civil_status} onChange={(v) => updateField("civil_status", v)} options={["", "Single", "Married", "Widowed", "Separated"]} />
+            <SelectField
+              label="Civil Status"
+              value={employee.civil_status}
+              onChange={(v) => updateField("civil_status", v)}
+              options={[
+                { value: "", label: "—" },
+                { value: "single", label: "Single" },
+                { value: "married", label: "Married" },
+                { value: "widowed", label: "Widowed" },
+                { value: "separated", label: "Separated" },
+              ]}
+            />
             <Field label="Nationality" value={employee.nationality} onChange={(v) => updateField("nationality", v)} />
             <Field label="Phone" value={employee.phone} onChange={(v) => updateField("phone", v)} />
             <Field label="Personal Email" value={employee.personal_email} onChange={(v) => updateField("personal_email", v)} type="email" />
@@ -410,7 +443,16 @@ export default function EmployeeDetailPage({
             label="Employment Status"
             value={employee.employment_status}
             onChange={(v) => updateField("employment_status", v)}
-            options={["", "probationary", "regular", "contractual", "consultant", "intern"]}
+            options={[
+              { value: "", label: "—" },
+              { value: "probationary", label: "Probationary" },
+              { value: "extended_proby", label: "Extended Probationary" },
+              { value: "regular", label: "Regular" },
+              { value: "contractual", label: "Contractual" },
+              { value: "consultant", label: "Consultant" },
+              { value: "intern", label: "Intern" },
+              { value: "ic", label: "Independent Contractor" },
+            ]}
           />
           <SelectField
             label="Pay Frequency"

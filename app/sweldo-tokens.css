@@ -1,7 +1,10 @@
 /**
- * Sweldo Design System — design tokens (Tailwind v4 @theme).
+ * &you Design System — design tokens (Tailwind v4 @theme).
  *
- * Utilities use the `sw-` prefix. Examples:
+ * Brand: &you (warm cream + amber gold + Sofia Pro).
+ *
+ * Utilities use the `sw-` prefix internally as a token namespace.
+ * Examples:
  *   bg-sw-cream-50, text-sw-ink-900, bg-sw-gold-500,
  *   rounded-sw-lg, shadow-sw-2, duration-sw-fast,
  *   text-sw-body, leading-sw-relaxed, tracking-sw-h2.
@@ -11,23 +14,23 @@
  */
 
 @theme {
-  /* ── Colors: brand gold ─────────────────────────────── */
-  --color-sw-gold-600: #a27420;
-  --color-sw-gold-500: #c9972e;
-  --color-sw-gold-100: #f4e3b8;
+  /* ── Colors: &you signature gold (amber) ────────────── */
+  --color-sw-gold-600: #996430;  /* &you cocoa-700 — dark amber link */
+  --color-sw-gold-500: #ffc671;  /* &you amber-300 — hero gold (signature) */
+  --color-sw-gold-100: #fff5d4;  /* &you sand-100 — tinted highlight */
   --color-sw-gold-50:  #faf2dc;
 
-  /* ── Colors: warm ink neutrals ──────────────────────── */
-  --color-sw-ink-900: #1c1a16;
-  --color-sw-ink-700: #3a362f;
-  --color-sw-ink-500: #76726a;
+  /* ── Colors: warm ink neutrals (&you espresso/plum/stone) ── */
+  --color-sw-ink-900: #392e25;  /* espresso-900 — primary text */
+  --color-sw-ink-700: #61474c;  /* plum-700 — secondary */
+  --color-sw-ink-500: #757575;  /* stone — captions */
   --color-sw-ink-300: #b9b5ad;
   --color-sw-ink-200: #d9d5cc;
   --color-sw-ink-100: #ece8df;
 
-  /* ── Colors: surfaces ───────────────────────────────── */
-  --color-sw-cream-50: #fefefd;
-  --color-sw-cream-25: #f6f5f1;
+  /* ── Colors: surfaces (&you cream canvas) ───────────── */
+  --color-sw-cream-50: #faf8f2;  /* &you cream-50 — page bg */
+  --color-sw-cream-25: #f5f0e8;  /* &you cream-100 — modals */
   --color-sw-white:    #ffffff;
 
   /* ── Colors: feature tints ──────────────────────────── */
@@ -45,10 +48,10 @@
 
   --color-sw-link: #6b5cf0;
 
-  /* ── Font family (wired to next/font/local --font-figtree) ── */
+  /* ── Font family — &you Sofia Pro (loaded via next/font/local) ── */
   --font-sans:
-    var(--font-figtree),
-    "Figtree",
+    var(--font-sofia-pro),
+    "Sofia Pro",
     ui-sans-serif,
     system-ui,
     -apple-system,

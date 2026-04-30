@@ -11,9 +11,9 @@ import { Label } from "@/components/ui/Label";
 function Brand({ tagline }: { tagline: string }) {
   return (
     <div className="text-center mb-8">
-      <div className="inline-flex items-center gap-2.5 mb-3">
-        <SweldoLogo width={28} height={30} />
-        <span className="t-h3 text-sw-ink-900">Sweldo</span>
+      <div className="inline-flex items-center gap-2.5 mb-3 text-sw-ink-900">
+        <SweldoLogo width={96} height={26} />
+        <span className="sr-only">&you</span>
       </div>
       <p className="t-body text-sw-ink-500">{tagline}</p>
     </div>

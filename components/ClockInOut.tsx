@@ -208,7 +208,7 @@ export default function ClockInOut() {
       <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-sw-cream-50 px-4 py-6 sm:p-6">
         <div className="w-full max-w-md sm:max-w-2xl flex flex-col items-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-[-0.5px] text-center mb-2">
-            Sweldo HR
+            &you HR
           </h1>
           <p className="text-sm sm:text-base text-sw-ink-500 text-center mb-6 sm:mb-10">
             Select an action to begin

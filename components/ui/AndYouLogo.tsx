@@ -1,0 +1,61 @@
+/**
+ * &you brand mark.
+ *
+ * - `wordmark` (default): full "&you" wordmark, ideal for headers
+ * - `glyph`: square ampersand mark, ideal for tight spaces / favicons
+ *
+ * Uses currentColor so callers can recolor via Tailwind text-* classes.
+ */
+
+type Props = {
+  variant?: "wordmark" | "glyph";
+  className?: string;
+  width?: number;
+  height?: number;
+};
+
+export function AndYouLogo({
+  variant = "wordmark",
+  className,
+  width,
+  height,
+}: Props) {
+  if (variant === "glyph") {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 72 72"
+        width={width ?? 28}
+        height={height ?? 28}
+        fill="currentColor"
+        aria-label="&you"
+        className={className}
+      >
+        <path d="M49.5 53.6c-4.2 4.6-9.7 7.5-16.7 7.5-10.6 0-18.5-6.9-18.5-17.2 0-7 3.7-11.4 9.3-15.2-3.1-3.5-4.6-7.5-4.6-11.8C19 8.7 26.3 2.3 36.9 2.3c10 0 16.3 6 16.3 13.6 0 6.5-4.3 10.9-10.1 14.6l9.7 11.4c1.2-2.8 2-5.9 2.3-9.4h11.5c-.5 6.3-2.6 11.9-5.7 16.3L69.8 61H55.9l-6.4-7.4zM28 42.8c0 4.7 3.5 7.8 8.8 7.8 3.8 0 7.1-1.7 9.5-4.3L34.9 33.1c-4.7 2.7-6.9 5.6-6.9 9.7zm8.8-22.3c2.8-1.8 4.9-3.5 4.9-6.3 0-2.2-1.7-3.9-4.5-3.9-3 0-5 1.8-5 4.6 0 2 .7 3.8 2.3 5.6h.1l2.2 0z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 240 64"
+      width={width ?? 96}
+      height={height ?? 26}
+      fill="currentColor"
+      aria-label="&you"
+      className={className}
+    >
+      <g>
+        <path d="M48.5 52.6c-4.2 4.6-9.7 7.5-16.7 7.5-10.6 0-18.5-6.9-18.5-17.2 0-7 3.7-11.4 9.3-15.2-3.1-3.5-4.6-7.5-4.6-11.8C18 7.7 25.3 1.3 35.9 1.3c10 0 16.3 6 16.3 13.6 0 6.5-4.3 10.9-10.1 14.6l9.7 11.4c1.2-2.8 2-5.9 2.3-9.4h11.5c-.5 6.3-2.6 11.9-5.7 16.3L68.8 60H54.9l-6.4-7.4zM27 41.8c0 4.7 3.5 7.8 8.8 7.8 3.8 0 7.1-1.7 9.5-4.3L33.9 32.1c-4.7 2.7-6.9 5.6-6.9 9.7zm8.8-22.3c2.8-1.8 4.9-3.5 4.9-6.3 0-2.2-1.7-3.9-4.5-3.9-3 0-5 1.8-5 4.6 0 2 .7 3.8 2.3 5.6h.1l2.2 0z" />
+        <path d="M103.5 17.4l-16.3 43.4C83.3 71.3 78.9 74 72 74c-2.5 0-5-.5-6.7-1.1v-9.3c1.4.5 3.1.9 5 .9 3 0 5-1 6.1-4L63.3 17.4h13.2l8.3 27.1 8.3-27.1h10.4z" />
+        <path d="M107.8 38.8c0-13.4 9.7-22.4 22.7-22.4 13 0 22.6 9 22.6 22.4S143.4 61.2 130.4 61.2c-12.9 0-22.6-9-22.6-22.4zm33.3 0c0-7-4.3-11.5-10.6-11.5-6.4 0-10.6 4.5-10.6 11.5s4.2 11.6 10.6 11.6c6.3 0 10.6-4.6 10.6-11.6z" />
+        <path d="M160 43.5V17.4h11.8v24.2c0 5.4 2.7 8.2 7.3 8.2 4.7 0 7.8-3.2 7.8-8.8V17.4h11.8V60h-11.8v-5.4c-2.4 4-6.5 6.6-12.2 6.6-9.4 0-14.7-6.4-14.7-17.7z" />
+      </g>
+    </svg>
+  );
+}
+
+// Back-compat shim: existing imports of `SweldoLogo` still work,
+// just rendering the &you mark now.
+export const SweldoLogo = AndYouLogo;

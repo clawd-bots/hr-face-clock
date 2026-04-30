@@ -22,16 +22,19 @@ export default function DesignSpecPage() {
         <Header />
         <Section id="logo" title="Logo">
           <div className="flex items-center gap-10 flex-wrap">
-            <LogoSwatch label="gold (default) — on cream/white">
-              <SweldoLogo width={32} height={35} />
+            <LogoSwatch label="wordmark — default on cream/white">
+              <div className="text-sw-ink-900">
+                <SweldoLogo width={140} height={36} />
+              </div>
             </LogoSwatch>
-            <LogoSwatch label='variant="white" — on gold/dark' dark>
-              <SweldoLogo variant="white" width={32} height={35} />
+            <LogoSwatch label="wordmark on dark surface" dark>
+              <div className="text-sw-white">
+                <SweldoLogo width={140} height={36} />
+              </div>
             </LogoSwatch>
-            <LogoSwatch label="with wordmark">
-              <div className="inline-flex items-center gap-2.5">
-                <SweldoLogo width={28} height={30} />
-                <span className="t-h3 text-sw-ink-900">Sweldo</span>
+            <LogoSwatch label="glyph — square mark for tight spaces">
+              <div className="text-sw-ink-900">
+                <SweldoLogo variant="glyph" width={48} height={48} />
               </div>
             </LogoSwatch>
           </div>
@@ -86,7 +89,7 @@ export default function DesignSpecPage() {
             One system from clock-in to payslip, built for Philippine HR teams.
           </TypeRow>
           <TypeRow cls="t-body" spec="16 / 400 / -0.32">
-            Sweldo cut our monthly payroll close from three days to one afternoon.
+            &you cut our monthly payroll close from three days to one afternoon.
           </TypeRow>
           <TypeRow cls="t-caption" spec="14 / 400 / -0.28">
             Labels, meta, form labels
@@ -287,9 +290,9 @@ export default function DesignSpecPage() {
 function Header() {
   return (
     <header className="mb-12">
-      <div className="inline-flex items-center gap-2.5 mb-4">
-        <SweldoLogo width={28} height={30} />
-        <span className="t-h3 text-sw-ink-900">Sweldo</span>
+      <div className="inline-flex items-center gap-2.5 mb-4 text-sw-ink-900">
+        <SweldoLogo width={120} height={32} />
+        <span className="sr-only">&you</span>
       </div>
       <h1 className="t-display mb-2">Design system</h1>
       <p className="t-body-lg text-sw-ink-500 max-w-[56ch]">

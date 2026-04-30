@@ -78,13 +78,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const brand = (
-    <Link href="/admin" className="flex items-center gap-3 overflow-hidden">
-      <SweldoLogo width={22} height={24} className="shrink-0" />
-      {!collapsed && (
-        <span className="text-[18px] font-semibold tracking-[-0.5px] text-sw-ink-900 whitespace-nowrap">
-          Sweldo
-        </span>
+    <Link href="/admin" className="flex items-center gap-3 overflow-hidden text-sw-ink-900">
+      {collapsed ? (
+        <SweldoLogo variant="glyph" width={28} height={28} className="shrink-0" />
+      ) : (
+        <SweldoLogo width={84} height={22} className="shrink-0" />
       )}
+      <span className="sr-only">&you</span>
     </Link>
   );
 

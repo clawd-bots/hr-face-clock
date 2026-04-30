@@ -63,6 +63,20 @@ export async function PATCH(
   const body = await req.json();
   const supabase = getSupabaseService();
 
+  // Coerce empty strings to null for UUID + date columns. Postgres rejects
+  // "" with `invalid input syntax for type uuid/date` — this happens when
+  // a "None" option in a dropdown sends "" instead of null.
+  const UUID_FIELDS = ["department_id", "manager_id"] as const;
+  const DATE_FIELDS = [
+    "date_of_birth",
+    "hire_date",
+    "regularization_date",
+    "separation_date",
+  ] as const;
+  for (const f of [...UUID_FIELDS, ...DATE_FIELDS]) {
+    if (body[f] === "") body[f] = null;
+  }
+
   // Get old values for audit
   const { data: oldData } = await supabase
     .from("employees")

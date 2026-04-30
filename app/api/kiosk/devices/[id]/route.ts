@@ -56,7 +56,7 @@ export async function PATCH(
 
   let updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
   let auditAction: "update" | "revoke" | "regenerate" = "update";
-  let auditChanges: Record<string, unknown> = {};
+  const auditChanges: Record<string, { old: unknown; new: unknown }> = {};
 
   if (action === "revoke") {
     updateData = {

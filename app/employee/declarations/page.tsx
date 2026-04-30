@@ -65,9 +65,14 @@ export default function EmployeeDeclarationsPage() {
     setError("");
     try {
       const res = await fetch("/api/employee/me/time-declarations");
-      if (!res.ok) throw new Error("Failed to load");
-      const data = await res.json();
-      setDeclarations(Array.isArray(data) ? data : data.declarations ?? []);
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(
+          (data && data.error) ||
+            `Failed to load (HTTP ${res.status})`
+        );
+      }
+      setDeclarations(Array.isArray(data) ? data : data?.declarations ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     } finally {

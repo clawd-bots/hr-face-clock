@@ -86,7 +86,13 @@ export async function POST(req: NextRequest) {
 
   const supabase = getSupabaseService();
   const body = await req.json();
-  const { employee_id, action } = body;
+  const {
+    employee_id,
+    action,
+    match_distance,
+    match_runner_up_distance,
+    match_margin,
+  } = body;
 
   if (!employee_id) {
     return NextResponse.json({ error: "employee_id is required" }, { status: 400 });
@@ -128,6 +134,10 @@ export async function POST(req: NextRequest) {
         clock_in: now,
         date: today,
         company_id: companyId,
+        match_distance: typeof match_distance === "number" ? match_distance : null,
+        match_runner_up_distance:
+          typeof match_runner_up_distance === "number" ? match_runner_up_distance : null,
+        match_margin: typeof match_margin === "number" ? match_margin : null,
       })
       .select("*, employee:employees(id, employee_number, first_name, last_name, name, position_title)")
       .single();

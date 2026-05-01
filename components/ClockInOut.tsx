@@ -97,7 +97,14 @@ export default function ClockInOut() {
         descriptor,
         mappedEmployees as { id: string; name: string; face_descriptors: number[][] }[]
       );
-      if (!match.employee) return;
+      if (!match.employee) {
+        // Distinguish "ambiguous" (close to two people) from "no match" (just unknown)
+        if (match.reason === "ambiguous") {
+          setError("Match unclear — two profiles look similar. Please look directly at the camera and try again.");
+        }
+        // Otherwise stay silent and keep scanning
+        return;
+      }
 
       // Liveness check on the buffered frames
       const liveness = analyzeLiveness(buf);
@@ -123,6 +130,11 @@ export default function ClockInOut() {
           body: JSON.stringify({
             employee_id: match.employee.id,
             action: selectedAction,
+            // Include match telemetry so we can post-mortem any future
+            // mis-identification by querying time_logs.
+            match_distance: Number(match.distance.toFixed(4)),
+            match_runner_up_distance: Number(match.runnerUpDistance.toFixed(4)),
+            match_margin: Number(match.margin.toFixed(4)),
           }),
         });
 

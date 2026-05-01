@@ -27,11 +27,13 @@ export async function loadModels(): Promise<void> {
   }
 }
 
-// Smaller inputSize → faster detection. 320 is ~2x faster than 416 with
-// negligible accuracy loss for face-recognition use cases.
+// inputSize controls detector accuracy vs speed. 416 produces noticeably
+// better landmark localization than 320, which feeds higher-quality
+// descriptors into the recognition step. After the Paul/Ariyelle
+// mis-match, we prioritize accuracy over the small speed gain.
 const tinyFaceOptions = new faceapi.TinyFaceDetectorOptions({
-  inputSize: 320,
-  scoreThreshold: 0.3,
+  inputSize: 416,
+  scoreThreshold: 0.5,
 });
 
 export async function detectFace(
@@ -44,43 +46,122 @@ export async function detectFace(
   return detection || null;
 }
 
+// ----------------------------------------------------------------------
+// Matching thresholds.
+//
+// MAX_DISTANCE: face-api Euclidean distance for a confident accept.
+//   The library's usual default is 0.6, but the original face-api paper
+//   reports EER around 0.6, meaning at 0.6 you get noticeable false
+//   positives on look-alikes. For an HR kiosk we want very few false
+//   accepts even at the cost of a slightly higher rejection rate.
+//
+// MIN_MARGIN: how much closer the best match must be vs the second-best.
+//   This is the bigger fix for the Paul/Ariyelle case: without a margin
+//   check, a 0.46 vs 0.47 result still "matches" the closer one even
+//   though both are essentially the same distance. The margin guards
+//   against ambiguous matches by rejecting them and asking the user
+//   to retry.
+// ----------------------------------------------------------------------
+export const MAX_DISTANCE = 0.45;
+export const MIN_MARGIN = 0.06;
+
+/** Per-employee distance: median over enrolled descriptors instead of
+ *  bare minimum. Median is robust to a single bad/blurry enrollment
+ *  frame whose descriptor happens to land near the wrong person. */
+function employeeDistance(
+  query: Float32Array,
+  stored: number[][]
+): number {
+  if (stored.length === 0) return Infinity;
+  const ds: number[] = [];
+  for (const s of stored) {
+    ds.push(faceapi.euclideanDistance(query, new Float32Array(s)));
+  }
+  ds.sort((a, b) => a - b);
+  // Pick the lower-median: for 5 captures, that's the 3rd-best.
+  // Less generous than min(), more tolerant than mean().
+  return ds[Math.floor(ds.length / 2)] ?? Infinity;
+}
+
 export function matchFace(
   queryDescriptor: Float32Array,
   storedDescriptors: number[][],
-  threshold = 0.5
+  threshold = MAX_DISTANCE
 ): { matched: boolean; distance: number } {
-  let bestDistance = Infinity;
-  for (const stored of storedDescriptors) {
-    const distance = faceapi.euclideanDistance(
-      queryDescriptor,
-      new Float32Array(stored)
-    );
-    if (distance < bestDistance) {
-      bestDistance = distance;
-    }
-  }
-  return { matched: bestDistance < threshold, distance: bestDistance };
+  const distance = employeeDistance(queryDescriptor, storedDescriptors);
+  return { matched: distance < threshold, distance };
 }
+
+export type MatchResult = {
+  employee: { id: string; name: string } | null;
+  /** distance to the chosen employee, or to the closest if none chosen */
+  distance: number;
+  /** distance to the runner-up, useful for audit logging */
+  runnerUpDistance: number;
+  /** runnerUp − best; small values => ambiguous match */
+  margin: number;
+  /** human-readable reason if employee is null */
+  reason?: "no_employees" | "too_far" | "ambiguous";
+};
 
 export function findBestMatch(
   queryDescriptor: Float32Array,
   employees: { id: string; name: string; face_descriptors: number[][] }[],
-  threshold = 0.5
-): { employee: { id: string; name: string } | null; distance: number } {
-  let bestMatch: { id: string; name: string } | null = null;
+  threshold = MAX_DISTANCE,
+  minMargin = MIN_MARGIN
+): MatchResult {
+  let bestEmp: { id: string; name: string } | null = null;
   let bestDistance = Infinity;
+  let secondBestDistance = Infinity;
 
   for (const emp of employees) {
     if (!emp.face_descriptors || emp.face_descriptors.length === 0) continue;
-    const { distance } = matchFace(queryDescriptor, emp.face_descriptors, threshold);
+    const distance = employeeDistance(queryDescriptor, emp.face_descriptors);
+
     if (distance < bestDistance) {
+      secondBestDistance = bestDistance;
       bestDistance = distance;
-      bestMatch = { id: emp.id, name: emp.name };
+      bestEmp = { id: emp.id, name: emp.name };
+    } else if (distance < secondBestDistance) {
+      secondBestDistance = distance;
     }
   }
 
+  const margin = secondBestDistance - bestDistance;
+
+  if (!bestEmp) {
+    return {
+      employee: null,
+      distance: bestDistance,
+      runnerUpDistance: secondBestDistance,
+      margin,
+      reason: "no_employees",
+    };
+  }
+  if (bestDistance >= threshold) {
+    return {
+      employee: null,
+      distance: bestDistance,
+      runnerUpDistance: secondBestDistance,
+      margin,
+      reason: "too_far",
+    };
+  }
+  if (margin < minMargin) {
+    // Best and runner-up are too close — reject to avoid mis-identification
+    return {
+      employee: null,
+      distance: bestDistance,
+      runnerUpDistance: secondBestDistance,
+      margin,
+      reason: "ambiguous",
+    };
+  }
+
   return {
-    employee: bestDistance < threshold ? bestMatch : null,
+    employee: bestEmp,
     distance: bestDistance,
+    runnerUpDistance: secondBestDistance,
+    margin,
   };
 }

@@ -1,0 +1,219 @@
+/**
+ * Remote clock-in / clock-out for the authenticated employee.
+ *
+ * POST /api/employee/me/remote-clock
+ *   body: { action: "clock_in" | "clock_out", lat, lng, accuracy }
+ *
+ * Requires:
+ *   - Authenticated user with a linked employee record
+ *   - employee.remote_clock_in_enabled = true (HR opt-in)
+ *
+ * Stores GPS coordinates on the resulting time_log so admins can audit.
+ */
+
+import { NextRequest, NextResponse } from "next/server";
+import { getSupabaseService } from "@/lib/supabase-service";
+import { getEmployeeContext } from "@/lib/employee-context";
+import { logAudit } from "@/lib/audit";
+
+type Coords = { lat: number; lng: number; accuracy: number | null };
+
+function parseCoords(body: Record<string, unknown>): Coords | { error: string } {
+  const lat = Number(body.lat);
+  const lng = Number(body.lng);
+  const accuracy =
+    body.accuracy === null || body.accuracy === undefined
+      ? null
+      : Number(body.accuracy);
+
+  if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
+    return { error: "Invalid latitude" };
+  }
+  if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
+    return { error: "Invalid longitude" };
+  }
+  if (accuracy !== null && (!Number.isFinite(accuracy) || accuracy < 0)) {
+    return { error: "Invalid accuracy" };
+  }
+  return { lat, lng, accuracy };
+}
+
+export async function POST(req: NextRequest) {
+  const ctx = await getEmployeeContext();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const body = await req.json().catch(() => ({}));
+  const action = body?.action;
+
+  if (action !== "clock_in" && action !== "clock_out") {
+    return NextResponse.json(
+      { error: "action must be 'clock_in' or 'clock_out'" },
+      { status: 400 }
+    );
+  }
+
+  const coords = parseCoords(body);
+  if ("error" in coords) {
+    return NextResponse.json({ error: coords.error }, { status: 400 });
+  }
+
+  const supabase = getSupabaseService();
+
+  // Verify the employee is opted in for remote clock-in
+  const { data: emp, error: empErr } = await supabase
+    .from("employees")
+    .select("id, company_id, remote_clock_in_enabled, first_name, last_name, name")
+    .eq("id", ctx.employeeId)
+    .eq("company_id", ctx.companyId)
+    .single();
+
+  if (empErr || !emp) {
+    return NextResponse.json({ error: "Employee not found" }, { status: 404 });
+  }
+  if (!emp.remote_clock_in_enabled) {
+    return NextResponse.json(
+      {
+        error:
+          "Remote clock-in is not enabled for your account. Ask HR to turn it on if you need to clock in from the field.",
+      },
+      { status: 403 }
+    );
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+
+  if (action === "clock_in") {
+    // Don't allow double clock-in
+    const { data: open } = await supabase
+      .from("time_logs")
+      .select("*")
+      .eq("employee_id", emp.id)
+      .eq("date", today)
+      .is("clock_out", null)
+      .maybeSingle();
+
+    if (open) {
+      return NextResponse.json(
+        { error: "You're already clocked in", log: open },
+        { status: 400 }
+      );
+    }
+
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from("time_logs")
+      .insert({
+        employee_id: emp.id,
+        clock_in: now,
+        date: today,
+        company_id: emp.company_id,
+        remote: true,
+        clock_in_lat: coords.lat,
+        clock_in_lng: coords.lng,
+        clock_in_accuracy: coords.accuracy,
+      })
+      .select(
+        "*, employee:employees(id, employee_number, first_name, last_name, name, position_title)"
+      )
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    await logAudit({
+      companyId: emp.company_id,
+      userId: ctx.userId,
+      action: "create",
+      entityType: "time_log",
+      entityId: data.id,
+      changes: {
+        type: { old: null, new: "remote_clock_in" },
+        lat: { old: null, new: coords.lat },
+        lng: { old: null, new: coords.lng },
+      },
+    });
+
+    return NextResponse.json({ action: "clock_in", log: data });
+  }
+
+  // clock_out
+  const { data: openLog } = await supabase
+    .from("time_logs")
+    .select("*")
+    .eq("employee_id", emp.id)
+    .eq("date", today)
+    .is("clock_out", null)
+    .maybeSingle();
+
+  if (!openLog) {
+    return NextResponse.json(
+      { error: "You don't have an open clock-in for today" },
+      { status: 400 }
+    );
+  }
+
+  const now = new Date().toISOString();
+  const hoursWorked =
+    (new Date(now).getTime() - new Date(openLog.clock_in).getTime()) / (1000 * 60 * 60);
+
+  const { data, error } = await supabase
+    .from("time_logs")
+    .update({
+      clock_out: now,
+      hours_worked: Math.round(hoursWorked * 100) / 100,
+      clock_out_lat: coords.lat,
+      clock_out_lng: coords.lng,
+      clock_out_accuracy: coords.accuracy,
+    })
+    .eq("id", openLog.id)
+    .select(
+      "*, employee:employees(id, employee_number, first_name, last_name, name, position_title)"
+    )
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  await logAudit({
+    companyId: emp.company_id,
+    userId: ctx.userId,
+    action: "update",
+    entityType: "time_log",
+    entityId: data.id,
+    changes: {
+      type: { old: null, new: "remote_clock_out" },
+      lat: { old: null, new: coords.lat },
+      lng: { old: null, new: coords.lng },
+    },
+  });
+
+  return NextResponse.json({ action: "clock_out", log: data });
+}
+
+export async function GET() {
+  // Convenience endpoint: returns whether the user is opted in + their
+  // current open log (if any) so the dashboard card knows what to render.
+  const ctx = await getEmployeeContext();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const supabase = getSupabaseService();
+
+  const { data: emp } = await supabase
+    .from("employees")
+    .select("remote_clock_in_enabled")
+    .eq("id", ctx.employeeId)
+    .eq("company_id", ctx.companyId)
+    .single();
+
+  const today = new Date().toISOString().split("T")[0];
+  const { data: open } = await supabase
+    .from("time_logs")
+    .select("id, clock_in, clock_out, remote, clock_in_lat, clock_in_lng")
+    .eq("employee_id", ctx.employeeId)
+    .eq("date", today)
+    .is("clock_out", null)
+    .maybeSingle();
+
+  return NextResponse.json({
+    enabled: !!emp?.remote_clock_in_enabled,
+    open_log: open ?? null,
+  });
+}

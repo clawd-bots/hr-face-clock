@@ -472,6 +472,27 @@ export default function EmployeeDetailPage({
           <Field label="Work Location" value={employee.work_location} onChange={(v) => updateField("work_location", v)} />
           <Field label="Hire Date" value={employee.hire_date} onChange={(v) => updateField("hire_date", v)} type="date" />
           <Field label="Regularization Date" value={employee.regularization_date} onChange={(v) => updateField("regularization_date", v)} type="date" />
+
+          {/* Remote clock-in opt-in */}
+          <div className="col-span-3 mt-2">
+            <label className="flex items-start gap-3 p-4 rounded-xl border border-sw-ink-200 bg-sw-cream-50 cursor-pointer hover:bg-sw-cream-25 transition-colors">
+              <input
+                type="checkbox"
+                checked={!!employee.remote_clock_in_enabled}
+                onChange={(e) => updateField("remote_clock_in_enabled", e.target.checked as unknown as string)}
+                className="mt-0.5"
+              />
+              <div>
+                <div className="text-sm font-medium text-sw-ink-900">
+                  Allow remote clock-in
+                </div>
+                <p className="text-xs text-sw-ink-500 mt-0.5">
+                  Lets this employee clock in / out from the employee portal away from the kiosk.
+                  Their GPS location is recorded with each entry. Use for field workers, sales, or remote staff.
+                </p>
+              </div>
+            </label>
+          </div>
         </div>
       )}
 

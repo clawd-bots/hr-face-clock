@@ -82,6 +82,7 @@ export type Employee = {
   department_id: string | null;
   reporting_to: string | null;
   work_location: string | null;
+  remote_clock_in_enabled?: boolean;
   pay_frequency: PayFrequency | null;
 };
 

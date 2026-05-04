@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { RemoteClockCard } from "@/components/RemoteClockCard";
 
 type Employee = {
   first_name?: string;
@@ -124,6 +125,11 @@ export default function EmployeeDashboard() {
             {employee.department ? ` · ${employee.department.name}` : ""}
           </p>
         )}
+      </div>
+
+      {/* Remote clock-in (only renders if HR enabled it for this employee) */}
+      <div className="mb-6">
+        <RemoteClockCard />
       </div>
 
       {/* Quick Stats */}

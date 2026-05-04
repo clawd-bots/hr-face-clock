@@ -83,14 +83,19 @@ export async function GET(
       return items ?? [];
     }
 
-    // Helper: fetch payroll items for a year
+    // Helper: fetch payroll items for a year.
+    // Uses overlap semantics so cutoffs straddling year boundaries
+    // (e.g. Dec 26 – Jan 10) are correctly attributed.
     async function getPayrollItemsForYear(y: number) {
+      const yearStart = `${y}-01-01`;
+      const yearEnd = `${y}-12-31`;
+
       const { data: runs } = await supabase
         .from("payroll_runs")
         .select("id")
         .eq("company_id", ctx.companyId!)
-        .gte("period_start", `${y}-01-01`)
-        .lte("period_end", `${y}-12-31`);
+        .lte("period_start", yearEnd)
+        .gte("period_end", yearStart);
 
       if (!runs || runs.length === 0) return [];
 
@@ -103,14 +108,21 @@ export async function GET(
       return items ?? [];
     }
 
-    // Helper: fetch active loans for a period
+    // Helper: fetch loans relevant to the given month.
+    // A loan is "active in month X" if it was started on or before the
+    // last day of X, is still flagged active, and has remaining balance.
     async function getActiveLoansForPeriod(companyId: string, m: number, y: number) {
+      const monthStr = `${y}-${String(m).padStart(2, "0")}`;
+      const lastDay = `${monthStr}-${new Date(y, m, 0).getDate()}`;
+
       const { data } = await supabase
         .from("employee_loans")
         .select("*, loan_type:loan_types(name, code), employee:employees(id, employee_number, first_name, last_name, name, sss_number, pagibig_number)")
         .eq("company_id", companyId)
         .eq("active", true)
-        .gt("remaining_balance", 0);
+        .gt("remaining_balance", 0)
+        .lte("start_date", lastDay);
+
       return data ?? [];
     }
 

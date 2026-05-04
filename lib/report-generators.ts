@@ -122,19 +122,79 @@ function round2(n: number): number {
 // Government Reports
 // ──────────────────────────────────────────────
 
-export function generateSSSReport(items: PayrollItemRow[], period: string): ReportData {
-  const rows = items.map((i) => [
-    i.employee?.employee_number ?? "—",
-    empName(i.employee),
-    i.employee?.sss_number ?? "—",
-    fmt(i.basic_pay * 2), // monthly salary credit (semi-monthly × 2)
-    fmt(i.sss_employee),
-    fmt(i.sss_employer),
-    fmt(i.sss_employee + i.sss_employer),
-  ]);
+/**
+ * Aggregate payroll items by employee for the given period.
+ * Sums basic_pay, gross_pay, and all contribution fields so the report
+ * shows one row per employee per month — not one row per cutoff.
+ */
+type AggregatedPayroll = {
+  employee: EmployeeRow | undefined;
+  basic_pay: number;
+  gross_pay: number;
+  net_pay: number;
+  sss_employee: number;
+  sss_employer: number;
+  philhealth_employee: number;
+  philhealth_employer: number;
+  pagibig_employee: number;
+  pagibig_employer: number;
+  withholding_tax: number;
+};
 
-  const totalEE = round2(items.reduce((s, i) => s + i.sss_employee, 0));
-  const totalER = round2(items.reduce((s, i) => s + i.sss_employer, 0));
+function aggregateByEmployee(
+  items: PayrollItemRow[]
+): Map<string, AggregatedPayroll> {
+  const agg = new Map<string, AggregatedPayroll>();
+  for (const i of items) {
+    const cur = agg.get(i.employee_id);
+    if (cur) {
+      cur.basic_pay += i.basic_pay ?? 0;
+      cur.gross_pay += i.gross_pay ?? 0;
+      cur.net_pay += i.net_pay ?? 0;
+      cur.sss_employee += i.sss_employee ?? 0;
+      cur.sss_employer += i.sss_employer ?? 0;
+      cur.philhealth_employee += i.philhealth_employee ?? 0;
+      cur.philhealth_employer += i.philhealth_employer ?? 0;
+      cur.pagibig_employee += i.pagibig_employee ?? 0;
+      cur.pagibig_employer += i.pagibig_employer ?? 0;
+      cur.withholding_tax += i.withholding_tax ?? 0;
+    } else {
+      agg.set(i.employee_id, {
+        employee: i.employee,
+        basic_pay: i.basic_pay ?? 0,
+        gross_pay: i.gross_pay ?? 0,
+        net_pay: i.net_pay ?? 0,
+        sss_employee: i.sss_employee ?? 0,
+        sss_employer: i.sss_employer ?? 0,
+        philhealth_employee: i.philhealth_employee ?? 0,
+        philhealth_employer: i.philhealth_employer ?? 0,
+        pagibig_employee: i.pagibig_employee ?? 0,
+        pagibig_employer: i.pagibig_employer ?? 0,
+        withholding_tax: i.withholding_tax ?? 0,
+      });
+    }
+  }
+  return agg;
+}
+
+export function generateSSSReport(items: PayrollItemRow[], period: string): ReportData {
+  const agg = aggregateByEmployee(items);
+  const rows: (string | number)[][] = [];
+
+  for (const [, a] of agg) {
+    rows.push([
+      a.employee?.employee_number ?? "—",
+      empName(a.employee),
+      a.employee?.sss_number ?? "—",
+      fmt(round2(a.basic_pay)),
+      fmt(round2(a.sss_employee)),
+      fmt(round2(a.sss_employer)),
+      fmt(round2(a.sss_employee + a.sss_employer)),
+    ]);
+  }
+
+  const totalEE = round2([...agg.values()].reduce((s, a) => s + a.sss_employee, 0));
+  const totalER = round2([...agg.values()].reduce((s, a) => s + a.sss_employer, 0));
 
   return {
     title: "SSS Monthly Contribution Report (R3/R5)",
@@ -145,24 +205,29 @@ export function generateSSSReport(items: PayrollItemRow[], period: string): Repo
       "Total EE": fmt(totalEE),
       "Total ER": fmt(totalER),
       "Grand Total": fmt(round2(totalEE + totalER)),
-      Employees: items.length,
+      Employees: agg.size,
     },
   };
 }
 
 export function generatePhilHealthReport(items: PayrollItemRow[], period: string): ReportData {
-  const rows = items.map((i) => [
-    i.employee?.employee_number ?? "—",
-    empName(i.employee),
-    i.employee?.philhealth_number ?? "—",
-    fmt(i.basic_pay * 2),
-    fmt(i.philhealth_employee),
-    fmt(i.philhealth_employer),
-    fmt(i.philhealth_employee + i.philhealth_employer),
-  ]);
+  const agg = aggregateByEmployee(items);
+  const rows: (string | number)[][] = [];
 
-  const totalEE = round2(items.reduce((s, i) => s + i.philhealth_employee, 0));
-  const totalER = round2(items.reduce((s, i) => s + i.philhealth_employer, 0));
+  for (const [, a] of agg) {
+    rows.push([
+      a.employee?.employee_number ?? "—",
+      empName(a.employee),
+      a.employee?.philhealth_number ?? "—",
+      fmt(round2(a.basic_pay)),
+      fmt(round2(a.philhealth_employee)),
+      fmt(round2(a.philhealth_employer)),
+      fmt(round2(a.philhealth_employee + a.philhealth_employer)),
+    ]);
+  }
+
+  const totalEE = round2([...agg.values()].reduce((s, a) => s + a.philhealth_employee, 0));
+  const totalER = round2([...agg.values()].reduce((s, a) => s + a.philhealth_employer, 0));
 
   return {
     title: "PhilHealth Monthly Remittance Report (RF-1)",
@@ -173,24 +238,29 @@ export function generatePhilHealthReport(items: PayrollItemRow[], period: string
       "Total EE": fmt(totalEE),
       "Total ER": fmt(totalER),
       "Grand Total": fmt(round2(totalEE + totalER)),
-      Employees: items.length,
+      Employees: agg.size,
     },
   };
 }
 
 export function generatePagibigReport(items: PayrollItemRow[], period: string): ReportData {
-  const rows = items.map((i) => [
-    i.employee?.employee_number ?? "—",
-    empName(i.employee),
-    i.employee?.pagibig_number ?? "—",
-    fmt(i.basic_pay * 2),
-    fmt(i.pagibig_employee),
-    fmt(i.pagibig_employer),
-    fmt(i.pagibig_employee + i.pagibig_employer),
-  ]);
+  const agg = aggregateByEmployee(items);
+  const rows: (string | number)[][] = [];
 
-  const totalEE = round2(items.reduce((s, i) => s + i.pagibig_employee, 0));
-  const totalER = round2(items.reduce((s, i) => s + i.pagibig_employer, 0));
+  for (const [, a] of agg) {
+    rows.push([
+      a.employee?.employee_number ?? "—",
+      empName(a.employee),
+      a.employee?.pagibig_number ?? "—",
+      fmt(round2(a.basic_pay)),
+      fmt(round2(a.pagibig_employee)),
+      fmt(round2(a.pagibig_employer)),
+      fmt(round2(a.pagibig_employee + a.pagibig_employer)),
+    ]);
+  }
+
+  const totalEE = round2([...agg.values()].reduce((s, a) => s + a.pagibig_employee, 0));
+  const totalER = round2([...agg.values()].reduce((s, a) => s + a.pagibig_employer, 0));
 
   return {
     title: "Pag-IBIG Monthly Contribution Schedule",
@@ -201,22 +271,27 @@ export function generatePagibigReport(items: PayrollItemRow[], period: string): 
       "Total EE": fmt(totalEE),
       "Total ER": fmt(totalER),
       "Grand Total": fmt(round2(totalEE + totalER)),
-      Employees: items.length,
+      Employees: agg.size,
     },
   };
 }
 
 export function generateBIR1601C(items: PayrollItemRow[], period: string): ReportData {
-  const totalTax = round2(items.reduce((s, i) => s + i.withholding_tax, 0));
-  const totalGross = round2(items.reduce((s, i) => s + i.gross_pay, 0));
+  const agg = aggregateByEmployee(items);
+  const rows: (string | number)[][] = [];
 
-  const rows = items.map((i) => [
-    i.employee?.employee_number ?? "—",
-    empName(i.employee),
-    i.employee?.tin_number ?? "—",
-    fmt(i.gross_pay),
-    fmt(i.withholding_tax),
-  ]);
+  for (const [, a] of agg) {
+    rows.push([
+      a.employee?.employee_number ?? "—",
+      empName(a.employee),
+      a.employee?.tin_number ?? "—",
+      fmt(round2(a.gross_pay)),
+      fmt(round2(a.withholding_tax)),
+    ]);
+  }
+
+  const totalGross = round2([...agg.values()].reduce((s, a) => s + a.gross_pay, 0));
+  const totalTax = round2([...agg.values()].reduce((s, a) => s + a.withholding_tax, 0));
 
   return {
     title: "BIR Form 1601-C — Monthly Withholding Tax Remittance",
@@ -226,7 +301,7 @@ export function generateBIR1601C(items: PayrollItemRow[], period: string): Repor
     summary: {
       "Total Gross": fmt(totalGross),
       "Total Tax Withheld": fmt(totalTax),
-      Employees: items.length,
+      Employees: agg.size,
     },
   };
 }
@@ -236,6 +311,27 @@ export function generateBIR2316(
   employee: EmployeeRow,
   year: number
 ): ReportData {
+  if (items.length === 0) {
+    return {
+      title: "BIR Form 2316 — Certificate of Compensation Payment/Tax Withheld",
+      subtitle: `${empName(employee)} — Year ${year}`,
+      headers: ["Notice"],
+      rows: [
+        [
+          `No payroll records found for ${empName(employee)} in ${year}. ` +
+            `Either no payroll has been run for this employee, or the runs fall outside the selected year.`,
+        ],
+      ],
+      summary: {
+        Employee: empName(employee),
+        "Employee No.": employee.employee_number ?? "—",
+        TIN: employee.tin_number ?? "—",
+        Year: year,
+        "Pay Periods": 0,
+      },
+    };
+  }
+
   const totalGross = round2(items.reduce((s, i) => s + i.gross_pay, 0));
   const totalSSS = round2(items.reduce((s, i) => s + i.sss_employee, 0));
   const totalPhil = round2(items.reduce((s, i) => s + i.philhealth_employee, 0));
@@ -262,6 +358,7 @@ export function generateBIR2316(
       "Employee No.": employee.employee_number ?? "—",
       TIN: employee.tin_number ?? "—",
       Year: year,
+      "Pay Periods": items.length,
     },
   };
 }
@@ -417,16 +514,24 @@ export function generateSSSR5(loans: LoanRow[], period: string): ReportData {
   };
 }
 
+// Format an ISO date (YYYY-MM-DD) to MM/DD/YYYY for PhilHealth/BIR forms.
+function fmtDate(d?: string | null): string {
+  if (!d) return "—";
+  const [y, m, day] = d.split("-");
+  if (!y || !m || !day) return d;
+  return `${m}/${day}/${y}`;
+}
+
 export function generatePhilHealthER2(employees: EmployeeRow[], year: number): ReportData {
   const rows = employees.map((e) => [
     e.employee_number ?? "—",
     empName(e),
     e.philhealth_number ?? "—",
-    e.date_of_birth ?? "—",
+    fmtDate(e.date_of_birth),
     e.gender ?? "—",
     e.civil_status ?? "—",
     e.employment_status ?? "—",
-    e.hire_date ?? "—",
+    fmtDate(e.hire_date),
   ]);
 
   return {
@@ -441,18 +546,23 @@ export function generatePhilHealthER2(employees: EmployeeRow[], year: number): R
 }
 
 export function generatePagibigMCRF(items: PayrollItemRow[], period: string): ReportData {
-  const rows = items.map((i) => [
-    i.employee?.pagibig_number ?? "—",
-    i.employee?.employee_number ?? "—",
-    empName(i.employee),
-    fmt(i.basic_pay * 2), // monthly compensation (semi-monthly assumption)
-    fmt(i.pagibig_employee),
-    fmt(i.pagibig_employer),
-    fmt(i.pagibig_employee + i.pagibig_employer),
-  ]);
+  const agg = aggregateByEmployee(items);
+  const rows: (string | number)[][] = [];
 
-  const totalEE = round2(items.reduce((s, i) => s + i.pagibig_employee, 0));
-  const totalER = round2(items.reduce((s, i) => s + i.pagibig_employer, 0));
+  for (const [, a] of agg) {
+    rows.push([
+      a.employee?.pagibig_number ?? "—",
+      a.employee?.employee_number ?? "—",
+      empName(a.employee),
+      fmt(round2(a.basic_pay)),
+      fmt(round2(a.pagibig_employee)),
+      fmt(round2(a.pagibig_employer)),
+      fmt(round2(a.pagibig_employee + a.pagibig_employer)),
+    ]);
+  }
+
+  const totalEE = round2([...agg.values()].reduce((s, a) => s + a.pagibig_employee, 0));
+  const totalER = round2([...agg.values()].reduce((s, a) => s + a.pagibig_employer, 0));
 
   return {
     title: "Pag-IBIG MCRF — Monthly Contribution Remittance Form",
@@ -463,7 +573,7 @@ export function generatePagibigMCRF(items: PayrollItemRow[], period: string): Re
       "Total EE": fmt(totalEE),
       "Total ER": fmt(totalER),
       "Grand Total": fmt(round2(totalEE + totalER)),
-      Employees: items.length,
+      Employees: agg.size,
     },
   };
 }

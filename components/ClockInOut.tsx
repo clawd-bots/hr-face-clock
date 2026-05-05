@@ -218,7 +218,7 @@ export default function ClockInOut() {
   if (!selectedAction) {
     return (
       <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-sw-cream-50 px-4 py-6 sm:p-6">
-        <div className="w-full max-w-md sm:max-w-2xl flex flex-col items-center">
+        <div className="w-full max-w-md sm:max-w-3xl flex flex-col items-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-[-0.5px] text-center mb-2">
             &you HR
           </h1>
@@ -236,24 +236,24 @@ export default function ClockInOut() {
               • >= 640px (sm) OR landscape phones:   side-by-side, fixed square buttons
             `landscape:` ensures phones held sideways get the row layout even below sm.
           */}
-          <div className="w-full flex flex-col gap-3 sm:flex-row sm:gap-4 sm:justify-center landscape:flex-row landscape:gap-3">
+          <div className="w-full flex flex-col gap-5 sm:flex-row sm:gap-10 sm:justify-center landscape:flex-row landscape:gap-6 px-4 sm:px-8">
             <button
               onClick={() => handleSelectAction("clock_in")}
-              className="group w-full h-28 landscape:h-24 landscape:flex-1 sm:w-56 sm:h-56 rounded-sw-xl bg-sw-gold-500 text-sw-white shadow-sw-1 active:scale-[0.98] hover:shadow-sw-2 transition-all duration-sw-fast flex flex-row landscape:flex-col sm:flex-col items-center justify-center gap-3 sm:gap-4 px-6 sm:px-0"
+              className="group w-full h-32 landscape:h-28 landscape:flex-1 sm:w-64 sm:h-64 rounded-sw-xl bg-sw-gold-500 text-sw-white shadow-sw-1 active:scale-[0.98] hover:shadow-sw-2 transition-all duration-sw-fast flex flex-row landscape:flex-col sm:flex-col items-center justify-center gap-4 sm:gap-5 px-8 sm:px-0"
             >
-              <LogIn className="w-9 h-9 sm:w-12 sm:h-12 shrink-0" strokeWidth={1.5} />
+              <LogIn className="w-10 h-10 sm:w-14 sm:h-14 shrink-0" strokeWidth={1.5} />
               <span className="text-xl sm:text-2xl font-semibold text-sw-white">Clock In</span>
             </button>
             <button
               onClick={() => handleSelectAction("clock_out")}
-              className="group w-full h-28 landscape:h-24 landscape:flex-1 sm:w-56 sm:h-56 rounded-sw-xl bg-sw-cream-50 text-sw-ink-900 border border-sw-ink-200 shadow-sw-1 active:scale-[0.98] hover:shadow-sw-2 transition-all duration-sw-fast flex flex-row landscape:flex-col sm:flex-col items-center justify-center gap-3 sm:gap-4 px-6 sm:px-0"
+              className="group w-full h-32 landscape:h-28 landscape:flex-1 sm:w-64 sm:h-64 rounded-sw-xl bg-sw-cream-50 text-sw-ink-900 border border-sw-ink-200 shadow-sw-1 active:scale-[0.98] hover:shadow-sw-2 transition-all duration-sw-fast flex flex-row landscape:flex-col sm:flex-col items-center justify-center gap-4 sm:gap-5 px-8 sm:px-0"
             >
-              <LogOut className="w-9 h-9 sm:w-12 sm:h-12 shrink-0" strokeWidth={1.5} />
+              <LogOut className="w-10 h-10 sm:w-14 sm:h-14 shrink-0" strokeWidth={1.5} />
               <span className="text-xl sm:text-2xl font-semibold">Clock Out</span>
             </button>
           </div>
           {deviceName && (
-            <p className="mt-6 sm:mt-10 text-xs text-sw-ink-500/70">
+            <p className="mt-10 sm:mt-14 text-xs text-sw-ink-500/70">
               Device: <span className="font-medium">{deviceName}</span>
             </p>
           )}

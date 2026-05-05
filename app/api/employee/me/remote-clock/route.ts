@@ -83,13 +83,17 @@ export async function POST(req: NextRequest) {
   const today = new Date().toISOString().split("T")[0];
 
   if (action === "clock_in") {
-    // Don't allow double clock-in
+    // Block double clock-in only for today. A forgotten session from a
+    // previous day shouldn't prevent today's clock-in; admin can fix
+    // orphans from /admin/attendance.
     const { data: open } = await supabase
       .from("time_logs")
       .select("*")
       .eq("employee_id", emp.id)
       .eq("date", today)
       .is("clock_out", null)
+      .order("clock_in", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     if (open) {
@@ -135,18 +139,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ action: "clock_in", log: data });
   }
 
-  // clock_out
+  // clock_out — find the most recent open log within the last 36 hours,
+  // NOT restricted to today. A clock-in at 11pm yesterday must close
+  // cleanly when the user clocks out at 7am today.
+  const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
   const { data: openLog } = await supabase
     .from("time_logs")
     .select("*")
     .eq("employee_id", emp.id)
-    .eq("date", today)
     .is("clock_out", null)
+    .gte("clock_in", cutoff)
+    .order("clock_in", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (!openLog) {
     return NextResponse.json(
-      { error: "You don't have an open clock-in for today" },
+      { error: "You don't have an open clock-in to close" },
       { status: 400 }
     );
   }

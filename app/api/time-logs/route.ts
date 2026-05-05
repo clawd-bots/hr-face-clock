@@ -111,17 +111,22 @@ export async function POST(req: NextRequest) {
 
   if (action === "clock_in") {
     const today = new Date().toISOString().split("T")[0];
-    const { data: existing } = await supabase
+    // Block re-clock-in only if there's already an open log for *today*.
+    // If yesterday's clock-out was forgotten, the user can still start
+    // today; admins can fix the orphan from /admin/attendance.
+    const { data: existingToday } = await supabase
       .from("time_logs")
       .select("*")
       .eq("employee_id", employee_id)
       .eq("date", today)
       .is("clock_out", null)
-      .single();
+      .order("clock_in", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (existing) {
+    if (existingToday) {
       return NextResponse.json(
-        { error: "Already clocked in", log: existing },
+        { error: "Already clocked in", log: existingToday },
         { status: 400 }
       );
     }
@@ -148,14 +153,22 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === "clock_out") {
-    const today = new Date().toISOString().split("T")[0];
+    // Find the most recent open log for this employee — NOT scoped to
+    // today. A graveyard-shift clock-in at 11:50pm yesterday must close
+    // cleanly when the person clocks out at 7am today.
+    //
+    // Cap the lookback to the last 36 hours so a forgotten week-old
+    // session doesn't get accidentally closed at hours_worked = 200h.
+    const cutoff = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
     const { data: openLog } = await supabase
       .from("time_logs")
       .select("*")
       .eq("employee_id", employee_id)
-      .eq("date", today)
       .is("clock_out", null)
-      .single();
+      .gte("clock_in", cutoff)
+      .order("clock_in", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (!openLog) {
       return NextResponse.json({ error: "Not clocked in" }, { status: 400 });

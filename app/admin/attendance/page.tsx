@@ -499,7 +499,7 @@ export default function AttendancePage() {
                 {filtered.map((r) => (
                   <tr
                     key={r.id}
-                    className="border-b border-sw-ink-100 last:border-0 hover:bg-sw-cream-25 transition-colors duration-150 cursor-pointer"
+                    className="border-b border-sw-ink-100 last:border-0 hover:bg-sw-cream-25 transition-colors duration-150"
                   >
                     <td className="px-6 py-4">
                       <span className="text-sm font-medium text-sw-ink-900">
@@ -526,20 +526,31 @@ export default function AttendancePage() {
                     <td className="px-6 py-4 text-sm text-sw-ink-700 whitespace-nowrap">
                       {formatTime(r.first_in)}
                     </td>
-                    <td
-                      className="px-6 py-4 text-sm text-sw-ink-700 whitespace-nowrap"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEditModal(r);
-                      }}
-                    >
-                      <span className="hover:bg-sw-cream-25 hover:underline px-2 py-1 -mx-2 -my-1 rounded cursor-pointer inline-block">
-                        {formatTime(r.last_out) === "—" ? (
-                          <span className="text-sw-ink-300">+ set</span>
-                        ) : (
-                          formatTime(r.last_out)
-                        )}
-                      </span>
+                    <td className="px-6 py-4 text-sm whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditModal(r);
+                        }}
+                        title="Click to edit clock-out"
+                        className={`group inline-flex items-center gap-1.5 px-2.5 py-1 -mx-2.5 -my-1 rounded-lg border border-dashed transition-colors cursor-pointer ${
+                          r.last_out
+                            ? "border-transparent text-sw-ink-700 hover:bg-[var(--color-sw-gold-50)] hover:border-[var(--color-sw-gold-500)] hover:text-sw-gold-600"
+                            : "border-sw-ink-200 text-sw-ink-300 hover:bg-[var(--color-sw-gold-50)] hover:border-[var(--color-sw-gold-500)] hover:text-sw-gold-600"
+                        }`}
+                      >
+                        {r.last_out ? formatTime(r.last_out) : "+ set"}
+                        <svg
+                          className="w-3 h-3 opacity-0 group-hover:opacity-70 transition-opacity"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                        </svg>
+                      </button>
                     </td>
                     <td className="px-6 py-4 text-sm text-sw-ink-900 font-medium">
                       {formatHours(r.total_hours_worked)}

@@ -105,9 +105,10 @@ export default function AttendancePage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showMoot, setShowMoot] = useState(false);
 
-  // Edit-clock-out modal state
+  // Edit-clock modal state — handles both clock-in and clock-out edits
   const [editTarget, setEditTarget] = useState<DailyTimeRecord | null>(null);
-  const [editLastOut, setEditLastOut] = useState("");
+  const [editField, setEditField] = useState<"first_in" | "last_out">("last_out");
+  const [editValue, setEditValue] = useState("");
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState("");
 
@@ -214,46 +215,54 @@ export default function AttendancePage() {
     }
   };
 
-  // ---- Edit clock-out -------------------------------------------------------
+  // ---- Edit clock-in / clock-out -------------------------------------------
 
-  function openEditModal(r: DailyTimeRecord) {
+  function openEditModal(r: DailyTimeRecord, field: "first_in" | "last_out") {
     setEditTarget(r);
+    setEditField(field);
     setEditError("");
-    // Convert last_out (ISO timestamp) to a HH:MM string for the input.
-    if (r.last_out) {
-      const d = new Date(r.last_out);
+    const iso = field === "first_in" ? r.first_in : r.last_out;
+    if (iso) {
+      const d = new Date(iso);
       const hh = String(d.getHours()).padStart(2, "0");
       const mm = String(d.getMinutes()).padStart(2, "0");
-      setEditLastOut(`${hh}:${mm}`);
+      setEditValue(`${hh}:${mm}`);
     } else {
-      setEditLastOut("");
+      setEditValue("");
     }
   }
 
   function closeEditModal() {
     setEditTarget(null);
-    setEditLastOut("");
+    setEditValue("");
     setEditError("");
   }
 
-  async function saveEditClockOut() {
+  async function saveEdit() {
     if (!editTarget) return;
-    if (!editLastOut) {
-      setEditError("Pick a clock-out time");
+    if (!editValue) {
+      setEditError(`Pick a ${editField === "first_in" ? "clock-in" : "clock-out"} time`);
       return;
     }
     setEditSaving(true);
     try {
-      // Build an ISO timestamp pinned to the record's date in local time.
-      const [hh, mm] = editLastOut.split(":").map(Number);
+      const [hh, mm] = editValue.split(":").map(Number);
       const [y, m, d] = editTarget.date.split("-").map(Number);
       const local = new Date(y, m - 1, d, hh, mm, 0, 0);
+      const localIso = local.toISOString();
 
-      // Recompute total_hours_worked if first_in is present.
-      const updates: Record<string, unknown> = { last_out: local.toISOString() };
-      if (editTarget.first_in) {
-        const inMs = new Date(editTarget.first_in).getTime();
-        const outMs = local.getTime();
+      const updates: Record<string, unknown> = { [editField]: localIso };
+
+      // Recompute total_hours_worked using the OTHER endpoint as fixed.
+      const otherIso =
+        editField === "first_in" ? editTarget.last_out : editTarget.first_in;
+
+      if (otherIso) {
+        const inMs =
+          editField === "first_in" ? local.getTime() : new Date(otherIso).getTime();
+        const outMs =
+          editField === "first_in" ? new Date(otherIso).getTime() : local.getTime();
+
         if (outMs <= inMs) {
           setEditError("Clock-out must be after clock-in");
           setEditSaving(false);
@@ -523,15 +532,38 @@ export default function AttendancePage() {
                             ? "Regular"
                             : "—"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-sw-ink-700 whitespace-nowrap">
-                      {formatTime(r.first_in)}
+                    <td className="px-6 py-4 text-sm whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditModal(r, "first_in");
+                        }}
+                        title="Click to edit clock-in"
+                        className={`group inline-flex items-center gap-1.5 px-2.5 py-1 -mx-2.5 -my-1 rounded-lg border border-dashed transition-colors cursor-pointer ${
+                          r.first_in
+                            ? "border-transparent text-sw-ink-700 hover:bg-[var(--color-sw-gold-50)] hover:border-[var(--color-sw-gold-500)] hover:text-sw-gold-600"
+                            : "border-sw-ink-200 text-sw-ink-300 hover:bg-[var(--color-sw-gold-50)] hover:border-[var(--color-sw-gold-500)] hover:text-sw-gold-600"
+                        }`}
+                      >
+                        {r.first_in ? formatTime(r.first_in) : "+ set"}
+                        <svg
+                          className="w-3 h-3 opacity-0 group-hover:opacity-70 transition-opacity"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                        </svg>
+                      </button>
                     </td>
                     <td className="px-6 py-4 text-sm whitespace-nowrap">
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          openEditModal(r);
+                          openEditModal(r, "last_out");
                         }}
                         title="Click to edit clock-out"
                         className={`group inline-flex items-center gap-1.5 px-2.5 py-1 -mx-2.5 -my-1 rounded-lg border border-dashed transition-colors cursor-pointer ${
@@ -596,34 +628,42 @@ export default function AttendancePage() {
         </div>
       )}
 
-      {/* Edit clock-out modal */}
+      {/* Edit clock-in / clock-out modal */}
       {editTarget && (
         <>
           <div className="fixed inset-0 bg-black/30 z-40" onClick={closeEditModal} />
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
               <h2 className="text-lg font-semibold text-sw-ink-900 mb-1">
-                Adjust Clock-Out
+                Adjust {editField === "first_in" ? "Clock-In" : "Clock-Out"}
               </h2>
               <p className="text-sm text-sw-ink-500 mb-4">
                 <span className="font-medium">{editTarget.employee?.name ?? "—"}</span> · {formatShortDate(editTarget.date)}
               </p>
 
-              <div className="text-xs text-sw-ink-500 mb-3 px-3 py-2 rounded-lg bg-sw-cream-25">
-                Clocked in: <span className="font-medium text-sw-ink-700">{formatTime(editTarget.first_in)}</span>
-              </div>
+              {/* Show the OTHER endpoint for context */}
+              {editField === "first_in" && editTarget.last_out && (
+                <div className="text-xs text-sw-ink-500 mb-3 px-3 py-2 rounded-lg bg-sw-cream-25">
+                  Clocked out: <span className="font-medium text-sw-ink-700">{formatTime(editTarget.last_out)}</span>
+                </div>
+              )}
+              {editField === "last_out" && editTarget.first_in && (
+                <div className="text-xs text-sw-ink-500 mb-3 px-3 py-2 rounded-lg bg-sw-cream-25">
+                  Clocked in: <span className="font-medium text-sw-ink-700">{formatTime(editTarget.first_in)}</span>
+                </div>
+              )}
 
               <label className="block text-sm font-medium text-sw-ink-700 mb-1">
-                Clock-out time
+                {editField === "first_in" ? "Clock-in time" : "Clock-out time"}
               </label>
               <input
                 type="time"
-                value={editLastOut}
-                onChange={(e) => setEditLastOut(e.target.value)}
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
                 className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
               />
               <p className="text-xs text-sw-ink-500 mt-1">
-                Hours worked will be recomputed from the existing clock-in.
+                Hours worked will be recomputed automatically.
               </p>
 
               {editError && (
@@ -640,7 +680,7 @@ export default function AttendancePage() {
                   Cancel
                 </button>
                 <button
-                  onClick={saveEditClockOut}
+                  onClick={saveEdit}
                   disabled={editSaving}
                   className="px-5 py-2 rounded-full text-sm font-medium text-white disabled:opacity-50"
                   style={{ background: "var(--color-sw-gold-500)" }}

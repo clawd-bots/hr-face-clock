@@ -60,7 +60,12 @@ export async function recomputeDTR(
       return true;
     });
 
-    const schedule = (assignment?.schedule as ComputeWorkSchedule | null) ?? null;
+    // Supabase types `schedule` as an array because work_schedules is joined
+    // via foreign key. In practice there's always 0 or 1 row per assignment.
+    const rawSchedule = assignment?.schedule as unknown;
+    const schedule: ComputeWorkSchedule | null = Array.isArray(rawSchedule)
+      ? ((rawSchedule[0] as ComputeWorkSchedule | undefined) ?? null)
+      : ((rawSchedule as ComputeWorkSchedule | null) ?? null);
 
     // Fetch all time_logs for this employee+date.
     // Include logs whose `date` matches OR whose clock_in falls on this date —

@@ -161,8 +161,23 @@ export async function POST(req: NextRequest) {
   }
 
   const now = new Date().toISOString();
-  const hoursWorked =
-    (new Date(now).getTime() - new Date(openLog.clock_in).getTime()) / (1000 * 60 * 60);
+  const sessionMs = new Date(now).getTime() - new Date(openLog.clock_in).getTime();
+
+  // Same minimum-session guard as kiosk: prevent accidental rapid clock-out
+  // immediately after clock-in.
+  const MIN_SESSION_MS = 60 * 1000;
+  if (sessionMs < MIN_SESSION_MS) {
+    const seconds = Math.max(1, Math.round((MIN_SESSION_MS - sessionMs) / 1000));
+    return NextResponse.json(
+      {
+        error: `You just clocked in. Wait ${seconds}s before clocking out.`,
+        log: openLog,
+      },
+      { status: 400 }
+    );
+  }
+
+  const hoursWorked = sessionMs / (1000 * 60 * 60);
 
   const { data, error } = await supabase
     .from("time_logs")

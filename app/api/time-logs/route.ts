@@ -175,9 +175,27 @@ export async function POST(req: NextRequest) {
     }
 
     const now = new Date().toISOString();
-    const hoursWorked =
-      (new Date(now).getTime() - new Date(openLog.clock_in).getTime()) /
-      (1000 * 60 * 60);
+    const sessionMs = new Date(now).getTime() - new Date(openLog.clock_in).getTime();
+
+    // Reject clock-outs that happen too fast after clock-in. This is almost
+    // always an accidental double-tap on the kiosk (the result screen clears
+    // after 2s and someone — often the next person walking up — taps Clock
+    // Out while the previous person's face is still in frame). 60 seconds is
+    // an aggressive floor; if a real shift legitimately needs to be < 1
+    // minute long, an admin can adjust the DTR.
+    const MIN_SESSION_MS = 60 * 1000;
+    if (sessionMs < MIN_SESSION_MS) {
+      const seconds = Math.max(1, Math.round((MIN_SESSION_MS - sessionMs) / 1000));
+      return NextResponse.json(
+        {
+          error: `You just clocked in. Wait ${seconds}s before clocking out.`,
+          log: openLog,
+        },
+        { status: 400 }
+      );
+    }
+
+    const hoursWorked = sessionMs / (1000 * 60 * 60);
 
     const { data, error } = await supabase
       .from("time_logs")

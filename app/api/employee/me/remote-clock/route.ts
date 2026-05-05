@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseService } from "@/lib/supabase-service";
 import { getEmployeeContext } from "@/lib/employee-context";
 import { logAudit } from "@/lib/audit";
+import { recomputeDTR } from "@/lib/dtr-recompute";
 
 type Coords = { lat: number; lng: number; accuracy: number | null };
 
@@ -136,6 +137,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    void recomputeDTR(supabase, emp.company_id, emp.id, today);
     return NextResponse.json({ action: "clock_in", log: data });
   }
 
@@ -209,6 +211,7 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  void recomputeDTR(supabase, emp.company_id, emp.id, openLog.date);
   return NextResponse.json({ action: "clock_out", log: data });
 }
 

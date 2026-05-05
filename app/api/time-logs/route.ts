@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseService } from "@/lib/supabase-service";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { getKioskDevice } from "@/lib/kiosk-auth";
+import { recomputeDTR } from "@/lib/dtr-recompute";
 
 /**
  * Time logs API.
@@ -149,6 +150,8 @@ export async function POST(req: NextRequest) {
 
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
+    // Reflect the new clock_in into DTR immediately. Best-effort.
+    void recomputeDTR(supabase, companyId, employee_id, today);
     return NextResponse.json({ action: "clock_in", log: data });
   }
 
@@ -209,6 +212,9 @@ export async function POST(req: NextRequest) {
 
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
+    // Recompute the DTR for the day this log started — this also handles
+    // cross-midnight sessions because openLog.date is the start day.
+    void recomputeDTR(supabase, companyId, employee_id, openLog.date);
     return NextResponse.json({ action: "clock_out", log: data });
   }
 

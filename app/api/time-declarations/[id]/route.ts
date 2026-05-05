@@ -3,6 +3,7 @@ import { getSupabaseService } from "@/lib/supabase-service";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { logAudit } from "@/lib/audit";
 import { canApproveForEmployee } from "@/lib/approval-auth";
+import { recomputeDTR } from "@/lib/dtr-recompute";
 
 async function getContext() {
   try {
@@ -98,6 +99,14 @@ export async function PATCH(
         date: declaration.date,
         company_id: ctx.companyId,
       });
+
+      // Reflect the new log in DTR right away so attendance/payroll views match.
+      void recomputeDTR(
+        supabase,
+        ctx.companyId,
+        declaration.employee_id,
+        declaration.date,
+      );
 
       break;
     }

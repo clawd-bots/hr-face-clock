@@ -113,8 +113,6 @@ export async function POST(req: NextRequest) {
   if (action === "clock_in") {
     const today = new Date().toISOString().split("T")[0];
     // Block re-clock-in only if there's already an open log for *today*.
-    // If yesterday's clock-out was forgotten, the user can still start
-    // today; admins can fix the orphan from /admin/attendance.
     const { data: existingToday } = await supabase
       .from("time_logs")
       .select("*")
@@ -130,6 +128,52 @@ export async function POST(req: NextRequest) {
         { error: "Already clocked in", log: existingToday },
         { status: 400 }
       );
+    }
+
+    // If yesterday (or earlier) has an open log because the user forgot to
+    // clock out, auto-close it at +12h after clock-in (capped at 23:59 of
+    // its own day). This preserves yesterday's DTR with a reasonable
+    // approximation while letting the user clock in for today.
+    const { data: staleOpen } = await supabase
+      .from("time_logs")
+      .select("id, clock_in, date")
+      .eq("employee_id", employee_id)
+      .lt("date", today)
+      .is("clock_out", null)
+      .order("clock_in", { ascending: false });
+
+    if (staleOpen && staleOpen.length > 0) {
+      for (const stale of staleOpen) {
+        const clockInMs = new Date(stale.clock_in).getTime();
+        // Cap auto-clock-out at 12 hours after the clock-in
+        const twelveHoursLater = clockInMs + 12 * 60 * 60 * 1000;
+        // ...or end-of-day (23:59:59) of its date — whichever comes first
+        const eod = new Date(`${stale.date}T23:59:59Z`).getTime();
+        const closeMs = Math.min(twelveHoursLater, eod);
+        const closeIso = new Date(closeMs).toISOString();
+        const hoursWorked = Math.round(((closeMs - clockInMs) / 3_600_000) * 100) / 100;
+
+        await supabase
+          .from("time_logs")
+          .update({
+            clock_out: closeIso,
+            hours_worked: hoursWorked,
+          })
+          .eq("id", stale.id);
+
+        // Mark the DTR with a remark so admins can see this was auto-closed
+        // and adjust to the real time if needed.
+        void recomputeDTR(supabase, companyId, employee_id, stale.date);
+        await supabase
+          .from("daily_time_records")
+          .update({
+            remarks:
+              "Auto-closed at +12h: employee did not clock out and has clocked in for the next day. Please verify the actual clock-out time.",
+          })
+          .eq("company_id", companyId)
+          .eq("employee_id", employee_id)
+          .eq("date", stale.date);
+      }
     }
 
     const now = new Date().toISOString();

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseService } from "@/lib/supabase-service";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { logAudit } from "@/lib/audit";
+import { canApproveForEmployee } from "@/lib/approval-auth";
 
 // ---------------------------------------------------------------------------
 // Auth context
@@ -14,13 +15,17 @@ async function getContext() {
     if (user) {
       const { data: profile } = await serverClient
         .from("user_profiles")
-        .select("company_id")
+        .select("company_id, system_role")
         .eq("id", user.id)
         .single();
-      return { userId: user.id, companyId: profile?.company_id ?? null };
+      return {
+        userId: user.id,
+        companyId: profile?.company_id ?? null,
+        role: profile?.system_role ?? null,
+      };
     }
   } catch {}
-  return { userId: null, companyId: null };
+  return { userId: null, companyId: null, role: null };
 }
 
 // ---------------------------------------------------------------------------
@@ -32,7 +37,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const { userId, companyId } = await getContext();
+  const { userId, companyId, role } = await getContext();
 
   if (!companyId || !userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -50,6 +55,13 @@ export async function PATCH(
 
   if (fetchError || !existing) {
     return NextResponse.json({ error: "Record not found" }, { status: 404 });
+  }
+
+  // Authorization: HR+ always; department_manager only for their own
+  // department's employees. Same rules as leave/OT/declaration approval.
+  const allowed = await canApproveForEmployee(userId, role, existing.employee_id);
+  if (!allowed) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const body = await req.json();

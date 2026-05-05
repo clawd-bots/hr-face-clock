@@ -84,9 +84,7 @@ export async function POST(req: NextRequest) {
   const today = new Date().toISOString().split("T")[0];
 
   if (action === "clock_in") {
-    // Block double clock-in only for today. A forgotten session from a
-    // previous day shouldn't prevent today's clock-in; admin can fix
-    // orphans from /admin/attendance.
+    // Block double clock-in only for today.
     const { data: open } = await supabase
       .from("time_logs")
       .select("*")
@@ -102,6 +100,45 @@ export async function POST(req: NextRequest) {
         { error: "You're already clocked in", log: open },
         { status: 400 }
       );
+    }
+
+    // Auto-close any stale open logs from previous days (forgot to clock out).
+    // Same +12h capped at end-of-day rule as the kiosk.
+    const { data: staleOpen } = await supabase
+      .from("time_logs")
+      .select("id, clock_in, date")
+      .eq("employee_id", emp.id)
+      .lt("date", today)
+      .is("clock_out", null);
+
+    if (staleOpen && staleOpen.length > 0) {
+      for (const stale of staleOpen) {
+        const clockInMs = new Date(stale.clock_in).getTime();
+        const twelveHoursLater = clockInMs + 12 * 60 * 60 * 1000;
+        const eod = new Date(`${stale.date}T23:59:59Z`).getTime();
+        const closeMs = Math.min(twelveHoursLater, eod);
+        const closeIso = new Date(closeMs).toISOString();
+        const hoursWorked = Math.round(((closeMs - clockInMs) / 3_600_000) * 100) / 100;
+
+        await supabase
+          .from("time_logs")
+          .update({
+            clock_out: closeIso,
+            hours_worked: hoursWorked,
+          })
+          .eq("id", stale.id);
+
+        void recomputeDTR(supabase, emp.company_id, emp.id, stale.date);
+        await supabase
+          .from("daily_time_records")
+          .update({
+            remarks:
+              "Auto-closed at +12h: employee did not clock out and has clocked in for the next day. Please verify the actual clock-out time.",
+          })
+          .eq("company_id", emp.company_id)
+          .eq("employee_id", emp.id)
+          .eq("date", stale.date);
+      }
     }
 
     const now = new Date().toISOString();

@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import FaceScanner from "./FaceScanner";
 import { findBestMatch, loadModels } from "@/lib/face-recognition";
 import {
+  buildClusters,
+  findBestMatchV2,
+  type EmployeeCluster,
+} from "@/lib/face-recognition-v2";
+import {
   analyzeLiveness,
   LIVENESS_REQUIRED_FRAMES,
   type LandmarkFrame,
@@ -45,6 +50,8 @@ export default function ClockInOut() {
   // Sliding buffer of recent landmark frames for liveness analysis.
   const livenessBufferRef = useRef<LandmarkFrame[]>([]);
   const [livenessProgress, setLivenessProgress] = useState(0);
+  // v2 cluster matcher state (shadow mode — computed but not acted on)
+  const clustersRef = useRef<EmployeeCluster[]>([]);
 
   // Pre-load face-api models in the background so they're ready by the
   // time the user clicks Clock In / Out.
@@ -68,8 +75,21 @@ export default function ClockInOut() {
         return fetch("/api/employees")
           .then((r) => r.json())
           .then((emps) => {
-            if (Array.isArray(emps)) setEmployees(emps);
-            else setError("Failed to load employees");
+            if (Array.isArray(emps)) {
+              setEmployees(emps);
+              // Pre-compute v2 clusters from the same enrolled descriptors
+              // so they're ready when the first detection fires.
+              clustersRef.current = buildClusters(
+                emps.map((e: Employee) => ({
+                  id: e.id,
+                  name:
+                    e.name ||
+                    [e.first_name, e.last_name].filter(Boolean).join(" ") ||
+                    "Unknown",
+                  face_descriptors: e.face_descriptors ?? [],
+                }))
+              );
+            } else setError("Failed to load employees");
           });
       })
       .catch(() => setError("Failed to verify device"));
@@ -88,7 +108,10 @@ export default function ClockInOut() {
       // Need full buffer before deciding anything
       if (buf.length < LIVENESS_REQUIRED_FRAMES) return;
 
-      // Match against known employees using the latest descriptor
+      // Match against known employees using the latest descriptor.
+      // v1 is the live matcher (acts on the result). v2 runs in the
+      // background and we ship both to /api/face-match-shadow for
+      // accuracy comparison.
       const mappedEmployees = employees.map((emp) => ({
         ...emp,
         name: emp.name || [emp.first_name, emp.last_name].filter(Boolean).join(" ") || "Unknown",
@@ -97,6 +120,10 @@ export default function ClockInOut() {
         descriptor,
         mappedEmployees as { id: string; name: string; face_descriptors: number[][] }[]
       );
+
+      // v2 shadow match — fire-and-forget, can't block clock-in
+      const matchV2 = findBestMatchV2(descriptor, clustersRef.current);
+
       if (!match.employee) {
         // Distinguish "ambiguous" (close to two people) from "no match" (just unknown)
         if (match.reason === "ambiguous") {
@@ -140,6 +167,28 @@ export default function ClockInOut() {
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
+
+        // Shadow-log the v1 vs v2 comparison. Fire-and-forget; never blocks
+        // the result render.
+        void fetch("/api/face-match-shadow", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            time_log_id: data.log?.id ?? null,
+            v1_employee_id: match.employee.id,
+            v1_distance: Number(match.distance.toFixed(4)),
+            v1_runner_up_distance: Number(match.runnerUpDistance.toFixed(4)),
+            v1_margin: Number(match.margin.toFixed(4)),
+            v1_reason: "matched",
+            v2_employee_id: matchV2.employee?.id ?? null,
+            v2_score: Number(matchV2.score.toFixed(4)),
+            v2_runner_up_score: Number(matchV2.runnerUpScore.toFixed(4)),
+            v2_margin: Number(matchV2.margin.toFixed(4)),
+            v2_reason: matchV2.reason ?? "matched",
+          }),
+        }).catch(() => {
+          /* shadow log is best-effort */
+        });
 
         setResult({
           action: selectedAction,

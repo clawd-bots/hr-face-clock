@@ -36,6 +36,7 @@ const navItems: SidebarItem[] = [
   { href: "/admin/reports", label: "Reports", icon: LineChart },
   { href: "/admin/devices", label: "Devices", icon: LogIn },
   { href: "/admin/users", label: "Users", icon: UserPlus },
+  { href: "/admin/face-match-audit", label: "Face Audit", icon: LineChart },
 ];
 
 const extraLinks: SidebarItem[] = [

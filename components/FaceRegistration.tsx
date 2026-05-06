@@ -9,6 +9,21 @@ type FaceRegistrationProps = {
   requiredCaptures?: number;
 };
 
+// Varied-prompt enrollment. Each capture should look slightly different
+// from the previous so the resulting Gaussian cluster (v2 matcher)
+// captures the employee's natural variance — lighting, angle, expression.
+// Without this, all 5 captures are essentially identical and the cluster
+// is too tight to absorb day-to-day variation (makeup, glasses, etc.).
+const CAPTURE_PROMPTS: { title: string; hint: string }[] = [
+  { title: "Look straight at the camera", hint: "Neutral face, eyes on the lens" },
+  { title: "Smile naturally", hint: "Relaxed smile, mouth slightly open is fine" },
+  { title: "Tilt your head slightly to the right", hint: "Just a small natural tilt — like you're listening" },
+  { title: "Tilt your head slightly to the left", hint: "Mirror of the last one" },
+  { title: "Look slightly up", hint: "Chin up about an inch, eyes still on the camera" },
+  { title: "Look slightly down", hint: "Tuck your chin a little" },
+  { title: "One more — natural expression", hint: "How you'll usually look at the kiosk" },
+];
+
 export default function FaceRegistration({
   onComplete,
   requiredCaptures = 5,
@@ -45,11 +60,25 @@ export default function FaceRegistration({
   };
 
   const progress = (captures.length / requiredCaptures) * 100;
+  const currentPromptIndex = Math.min(captures.length, CAPTURE_PROMPTS.length - 1);
+  const currentPrompt = CAPTURE_PROMPTS[currentPromptIndex]!;
 
   return (
     <div>
       <FaceScanner onFaceDetected={handleFaceDetected} autoDetect showOverlay>
         <div className="mt-5">
+          {/* Varied-prompt instruction */}
+          {captures.length < requiredCaptures && (
+            <div className="mb-4 px-4 py-3 rounded-[12px] bg-[var(--color-sw-gold-50)] border border-[var(--color-sw-gold-500)]/25">
+              <p className="text-sw-caption font-semibold text-sw-gold-600">
+                {currentPrompt.title}
+              </p>
+              <p className="text-sw-micro text-sw-ink-700 mt-0.5">
+                {currentPrompt.hint}
+              </p>
+            </div>
+          )}
+
           <div className="flex items-center justify-between mb-3">
             <span className="text-sw-caption font-medium text-sw-ink-700">
               Captures: {captures.length} / {requiredCaptures}
@@ -73,12 +102,12 @@ export default function FaceRegistration({
           </div>
           {captures.length < requiredCaptures && (
             <Button variant="primary" size="lg" className="w-full" onClick={captureCurrentFace}>
-              Capture Face ({captures.length + 1}/{requiredCaptures})
+              Capture ({captures.length + 1}/{requiredCaptures})
             </Button>
           )}
           {captures.length > 0 && captures.length < requiredCaptures && (
             <p className="text-sw-micro font-medium text-sw-ink-500 mt-2 text-center">
-              Move your head slightly between captures for better accuracy
+              Variation between captures = better recognition later (handles makeup, glasses, lighting changes).
             </p>
           )}
           {captures.length >= requiredCaptures && (

@@ -508,11 +508,18 @@ export default function EmployeeDetailPage({
 
       {/* Face ID */}
       {activeTab === "face" && (
-        <FaceIdSection
-          employeeId={id}
-          employee={employee}
-          onUpdated={fetchEmployee}
-        />
+        <div className="space-y-6">
+          <FaceIdSection
+            employeeId={id}
+            employee={employee}
+            onUpdated={fetchEmployee}
+          />
+          <PinSection
+            employeeId={id}
+            employee={employee}
+            onUpdated={fetchEmployee}
+          />
+        </div>
       )}
 
       {/* Documents */}
@@ -1048,7 +1055,7 @@ function FaceIdSection({
                 Capture face for {employee.name || `${employee.first_name ?? ""} ${employee.last_name ?? ""}`.trim()}
               </h2>
               <p className="text-xs text-sw-ink-500 mt-1">
-                Capture 5 frames. Have the employee look at the camera and move their head slightly between captures.
+                Capture 5 frames with deliberate variation — the system uses these to build a model of how this person&apos;s face naturally varies (lighting, makeup, angle).
               </p>
             </div>
             <button
@@ -1069,6 +1076,159 @@ function FaceIdSection({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// --- PIN management section: HR-side set / reset / clear --------------------
+
+function PinSection({
+  employeeId,
+  employee,
+  onUpdated,
+}: {
+  employeeId: string;
+  employee: Employee;
+  onUpdated: () => void;
+}) {
+  const [pin, setPin] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  const hasPin = !!employee.pin_set_at;
+
+  async function handleSet() {
+    if (!/^\d{4,6}$/.test(pin)) {
+      setMsg({ kind: "err", text: "PIN must be 4-6 digits" });
+      return;
+    }
+    if (pin !== confirm) {
+      setMsg({ kind: "err", text: "PINs don't match" });
+      return;
+    }
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch(`/api/employees/${employeeId}/pin`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      setMsg({ kind: "ok", text: "PIN saved. Share it securely with the employee." });
+      setPin("");
+      setConfirm("");
+      onUpdated();
+    } catch (err) {
+      setMsg({ kind: "err", text: err instanceof Error ? err.message : "Failed" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleClear() {
+    if (!confirm("Clear this employee's PIN? They won't be able to use Not Me until a new one is set.")) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/employees/${employeeId}/pin`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed");
+      }
+      setMsg({ kind: "ok", text: "PIN cleared" });
+      onUpdated();
+    } catch (err) {
+      setMsg({ kind: "err", text: err instanceof Error ? err.message : "Failed" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="max-w-2xl bg-white rounded-2xl border border-sw-ink-100 p-6">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h2 className="text-base font-semibold text-sw-ink-900">Kiosk PIN</h2>
+          <p className="text-xs text-sw-ink-500 mt-1">
+            Used in the &ldquo;Not me&rdquo; flow when the kiosk mis-identifies them.
+            4-6 digits. The employee can change this themselves from their profile.
+          </p>
+        </div>
+        <span
+          className={`px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-full ${
+            hasPin
+              ? "bg-[rgba(76,175,80,0.12)] text-sw-success-500"
+              : "bg-[rgba(28,26,22,0.06)] text-sw-ink-500"
+          }`}
+        >
+          {hasPin ? "Set" : "Not set"}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label className="block text-xs font-medium text-sw-ink-500 mb-1">
+            New PIN
+          </label>
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={6}
+            value={pin}
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+            placeholder="4-6 digits"
+            className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm tracking-widest"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-sw-ink-500 mb-1">
+            Confirm
+          </label>
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={6}
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value.replace(/\D/g, ""))}
+            placeholder="Re-enter"
+            className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm tracking-widest"
+          />
+        </div>
+      </div>
+
+      {msg && (
+        <div
+          className={`mb-3 px-3 py-2 rounded-xl text-xs ${
+            msg.kind === "ok"
+              ? "bg-[rgba(76,175,80,0.1)] text-sw-success-500"
+              : "bg-red-50 text-red-700"
+          }`}
+        >
+          {msg.text}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <button
+          onClick={handleSet}
+          disabled={busy || pin.length < 4}
+          className="h-9 px-4 rounded-full text-sm font-medium text-white disabled:opacity-50"
+          style={{ background: "var(--color-sw-gold-500)" }}
+        >
+          {busy ? "Saving..." : hasPin ? "Reset PIN" : "Set PIN"}
+        </button>
+        {hasPin && (
+          <button
+            onClick={handleClear}
+            disabled={busy}
+            className="h-9 px-4 rounded-full text-sm font-medium text-sw-danger-500 hover:bg-red-50"
+          >
+            Clear PIN
+          </button>
+        )}
+      </div>
     </div>
   );
 }

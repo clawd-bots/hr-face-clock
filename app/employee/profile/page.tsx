@@ -243,6 +243,156 @@ export default function EmployeeProfilePage() {
             </button>
           </div>
         </div>
+
+        {/* Kiosk PIN — used for "Not me" corrections */}
+        <PinSelfService />
+      </div>
+    </div>
+  );
+}
+
+function PinSelfService() {
+  const [hasPin, setHasPin] = useState<boolean | null>(null);
+  const [currentPin, setCurrentPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/employee/me/pin")
+      .then((r) => r.json())
+      .then((d) => setHasPin(!!d.has_pin))
+      .catch(() => setHasPin(false));
+  }, []);
+
+  async function handleSubmit() {
+    if (!/^\d{4,6}$/.test(newPin)) {
+      setMsg({ kind: "err", text: "PIN must be 4-6 digits" });
+      return;
+    }
+    if (newPin !== confirmPin) {
+      setMsg({ kind: "err", text: "PINs don't match" });
+      return;
+    }
+    if (hasPin && !/^\d{4,6}$/.test(currentPin)) {
+      setMsg({ kind: "err", text: "Enter your current PIN" });
+      return;
+    }
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/employee/me/pin", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          current_pin: hasPin ? currentPin : undefined,
+          new_pin: newPin,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      setMsg({ kind: "ok", text: "PIN updated" });
+      setHasPin(true);
+      setCurrentPin("");
+      setNewPin("");
+      setConfirmPin("");
+    } catch (err) {
+      setMsg({ kind: "err", text: err instanceof Error ? err.message : "Failed" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h2 className="text-base font-semibold text-sw-ink-900">Kiosk PIN</h2>
+          <p className="text-xs text-sw-ink-500 mt-1 max-w-md">
+            Used for the &ldquo;Not me&rdquo; flow at the kiosk if it ever
+            mis-identifies you. 4-6 digits. Don&apos;t share it with anyone.
+          </p>
+        </div>
+        <span
+          className={`px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-full ${
+            hasPin
+              ? "bg-[rgba(76,175,80,0.12)] text-sw-success-500"
+              : "bg-[rgba(28,26,22,0.06)] text-sw-ink-500"
+          }`}
+        >
+          {hasPin === null ? "…" : hasPin ? "Set" : "Not set"}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 max-w-md">
+        {hasPin && (
+          <div className="col-span-2">
+            <label className="block text-xs font-medium text-sw-ink-500 mb-1">
+              Current PIN
+            </label>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={6}
+              value={currentPin}
+              onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, ""))}
+              placeholder="Current 4-6 digit PIN"
+              className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm tracking-widest"
+            />
+          </div>
+        )}
+        <div>
+          <label className="block text-xs font-medium text-sw-ink-500 mb-1">
+            New PIN
+          </label>
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={6}
+            value={newPin}
+            onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
+            placeholder="4-6 digits"
+            className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm tracking-widest"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-sw-ink-500 mb-1">
+            Confirm
+          </label>
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={6}
+            value={confirmPin}
+            onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
+            placeholder="Re-enter"
+            className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm tracking-widest"
+          />
+        </div>
+      </div>
+
+      {msg && (
+        <div
+          className={`mt-3 px-3 py-2 rounded-xl text-xs max-w-md ${
+            msg.kind === "ok"
+              ? "bg-[rgba(76,175,80,0.1)] text-sw-success-500"
+              : "bg-red-50 text-red-700"
+          }`}
+        >
+          {msg.text}
+        </div>
+      )}
+
+      <div className="mt-4">
+        <button
+          onClick={handleSubmit}
+          disabled={busy || newPin.length < 4}
+          className="h-10 px-5 rounded-full text-sm font-medium text-white disabled:opacity-50"
+          style={{ background: "var(--color-sw-gold-500)" }}
+        >
+          {busy ? "Saving..." : hasPin ? "Change PIN" : "Set PIN"}
+        </button>
       </div>
     </div>
   );

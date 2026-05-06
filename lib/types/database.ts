@@ -83,6 +83,9 @@ export type Employee = {
   reporting_to: string | null;
   work_location: string | null;
   remote_clock_in_enabled?: boolean;
+  needs_face_reenroll?: boolean;
+  face_reenroll_reason?: string | null;
+  pin_set_at?: string | null;
   pay_frequency: PayFrequency | null;
 };
 

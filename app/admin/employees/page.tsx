@@ -60,12 +60,29 @@ export default function EmployeesPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="t-display">Employees</h1>
-        <Button asChild variant="primary">
-          <Link href="/admin/employees/register">
-            <Plus className="w-4 h-4" strokeWidth={2} />
-            Register Employee
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <button
+            onClick={async () => {
+              const res = await fetch("/api/face-reenroll-flags", { method: "POST" });
+              const data = await res.json().catch(() => null);
+              if (res.ok && data) {
+                alert(`Refreshed: ${data.flagged} flagged, ${data.cleared} cleared`);
+                window.location.reload();
+              } else {
+                alert(data?.error ?? "Failed to refresh flags");
+              }
+            }}
+            className="h-10 px-4 rounded-full text-sw-caption font-medium text-sw-ink-700 border border-sw-ink-200 hover:bg-[var(--color-sw-ink-100)]"
+          >
+            Refresh re-enroll flags
+          </button>
+          <Button asChild variant="primary">
+            <Link href="/admin/employees/register">
+              <Plus className="w-4 h-4" strokeWidth={2} />
+              Register Employee
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-3 mb-6">
@@ -174,6 +191,20 @@ export default function EmployeesPage() {
                     <Chip tone={emp.face_descriptors?.length > 0 ? "success" : "danger"}>
                       {emp.face_descriptors?.length || 0} captures
                     </Chip>
+                    {emp.needs_face_reenroll && (
+                      <div className="mt-1.5 flex items-start gap-1">
+                        <span
+                          className="inline-block w-1.5 h-1.5 rounded-full bg-sw-danger-500 mt-1 shrink-0"
+                          aria-hidden
+                        />
+                        <span
+                          className="text-[11px] text-sw-danger-500 leading-tight"
+                          title={emp.face_reenroll_reason ?? "Re-enroll recommended"}
+                        >
+                          Re-enroll recommended
+                        </span>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sw-caption text-sw-ink-500">
                     {formatDate(emp.created_at)}

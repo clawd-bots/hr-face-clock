@@ -26,6 +26,7 @@ type ClockResult = {
   employeeName: string;
   time: string;
   hoursWorked?: number;
+  timeLogId?: string;
 };
 
 function ErrorBanner({ message }: { message: string }) {
@@ -52,6 +53,19 @@ export default function ClockInOut() {
   const [livenessProgress, setLivenessProgress] = useState(0);
   // v2 cluster matcher state (shadow mode — computed but not acted on)
   const clustersRef = useRef<EmployeeCluster[]>([]);
+  // Auto-clear timer for the success screen so we can cancel if the user
+  // opens the Not Me modal.
+  const resultTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Not Me correction flow
+  const [correcting, setCorrecting] = useState<{
+    timeLogId: string;
+    matchedName: string;
+  } | null>(null);
+  const [correctEmpNo, setCorrectEmpNo] = useState("");
+  const [correctPin, setCorrectPin] = useState("");
+  const [correctSubmitting, setCorrectSubmitting] = useState(false);
+  const [correctError, setCorrectError] = useState("");
 
   // Pre-load face-api models in the background so they're ready by the
   // time the user clicks Clock In / Out.
@@ -197,13 +211,16 @@ export default function ClockInOut() {
             selectedAction === "clock_in" ? data.log.clock_in : data.log.clock_out
           ),
           hoursWorked: data.log.hours_worked,
+          timeLogId: data.log?.id,
         });
 
-        setTimeout(() => {
+        if (resultTimerRef.current) clearTimeout(resultTimerRef.current);
+        resultTimerRef.current = setTimeout(() => {
           setResult(null);
           setSelectedAction(null);
           cooldownRef.current = false;
-        }, 2000);
+          resultTimerRef.current = null;
+        }, 4000);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
         setScanning(true);
@@ -216,6 +233,75 @@ export default function ClockInOut() {
     },
     [employees, processing, selectedAction]
   );
+
+  const openNotMe = () => {
+    if (!result?.timeLogId) return;
+    if (resultTimerRef.current) {
+      clearTimeout(resultTimerRef.current);
+      resultTimerRef.current = null;
+    }
+    setCorrecting({ timeLogId: result.timeLogId, matchedName: result.employeeName });
+    setCorrectEmpNo("");
+    setCorrectPin("");
+    setCorrectError("");
+  };
+
+  const closeNotMe = () => {
+    setCorrecting(null);
+    setCorrectError("");
+    setCorrectEmpNo("");
+    setCorrectPin("");
+    // Resume auto-clear from where we paused
+    if (!resultTimerRef.current && result) {
+      resultTimerRef.current = setTimeout(() => {
+        setResult(null);
+        setSelectedAction(null);
+        cooldownRef.current = false;
+        resultTimerRef.current = null;
+      }, 3000);
+    }
+  };
+
+  const submitNotMe = async () => {
+    if (!correcting) return;
+    if (!correctEmpNo.trim() || !/^\d{4,6}$/.test(correctPin)) {
+      setCorrectError("Enter your employee number and a 4-6 digit PIN");
+      return;
+    }
+    setCorrectSubmitting(true);
+    setCorrectError("");
+    try {
+      const res = await fetch("/api/kiosk/correct-match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          time_log_id: correcting.timeLogId,
+          employee_number: correctEmpNo.trim(),
+          pin: correctPin,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Correction failed");
+
+      // Replace the success screen with the correct name
+      setResult((prev) =>
+        prev ? { ...prev, employeeName: data.employee_name ?? prev.employeeName } : prev
+      );
+      setCorrecting(null);
+      // Re-arm the auto-clear so the kiosk goes home
+      if (resultTimerRef.current) clearTimeout(resultTimerRef.current);
+      resultTimerRef.current = setTimeout(() => {
+        setResult(null);
+        setSelectedAction(null);
+        cooldownRef.current = false;
+        resultTimerRef.current = null;
+      }, 3000);
+    } catch (err) {
+      setCorrectError(err instanceof Error ? err.message : "Correction failed");
+    } finally {
+      setCorrectSubmitting(false);
+    }
+  };
 
   const handleSelectAction = (action: ClockAction) => {
     setSelectedAction(action);
@@ -238,29 +324,111 @@ export default function ClockInOut() {
     const isIn = result.action === "clock_in";
     const tone = isIn ? "bg-sw-gold-500 text-sw-white" : "bg-sw-lilac-500 text-sw-white";
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-sw-cream-50 px-4 py-6 sm:p-6">
-        <div className={`text-center px-6 py-10 sm:px-12 sm:py-12 rounded-sw-xl max-w-lg w-full shadow-sw-2 ${tone}`}>
-          <div className="text-base sm:text-lg font-medium mb-2 opacity-90">{isIn ? "Welcome" : "Goodbye"}</div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-2 break-words text-current">{result.employeeName}</h2>
-          <p className="text-base sm:text-lg font-medium mb-4 sm:mb-6 opacity-90">
-            {isIn ? "Clocked In" : "Clocked Out"}
-          </p>
-          <p
-            className="text-3xl sm:text-4xl md:text-5xl font-semibold text-current my-4 sm:my-6"
-            style={{ fontVariantNumeric: "tabular-nums" }}
-          >
-            {result.time}
-          </p>
-          {result.hoursWorked && (
-            <p className="text-sm sm:text-base opacity-80">
-              Hours today: {result.hoursWorked.toFixed(1)}h
+      <>
+        <div className="min-h-[100dvh] flex items-center justify-center bg-sw-cream-50 px-4 py-6 sm:p-6">
+          <div className={`text-center px-6 py-10 sm:px-12 sm:py-12 rounded-sw-xl max-w-lg w-full shadow-sw-2 ${tone}`}>
+            <div className="text-base sm:text-lg font-medium mb-2 opacity-90">{isIn ? "Welcome" : "Goodbye"}</div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-2 break-words text-current">{result.employeeName}</h2>
+            <p className="text-base sm:text-lg font-medium mb-4 sm:mb-6 opacity-90">
+              {isIn ? "Clocked In" : "Clocked Out"}
             </p>
-          )}
-          <div className="mt-5 sm:mt-6 text-xs sm:text-sm font-medium opacity-70">
-            Returning to home...
+            <p
+              className="text-3xl sm:text-4xl md:text-5xl font-semibold text-current my-4 sm:my-6"
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
+              {result.time}
+            </p>
+            {result.hoursWorked && (
+              <p className="text-sm sm:text-base opacity-80">
+                Hours today: {result.hoursWorked.toFixed(1)}h
+              </p>
+            )}
+            <div className="mt-5 sm:mt-6 text-xs sm:text-sm font-medium opacity-70">
+              Returning to home...
+            </div>
+            {result.timeLogId && (
+              <button
+                onClick={openNotMe}
+                className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium bg-white/15 hover:bg-white/25 text-white border border-white/20 transition-colors"
+              >
+                Not me?
+              </button>
+            )}
           </div>
         </div>
-      </div>
+
+        {/* Not Me correction modal */}
+        {correcting && (
+          <>
+            <div className="fixed inset-0 bg-black/50 z-40" onClick={closeNotMe} />
+            <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+                <h2 className="text-lg font-semibold text-sw-ink-900 mb-1">
+                  Re-attribute this clock event
+                </h2>
+                <p className="text-sm text-sw-ink-500 mb-4">
+                  System matched this scan as <span className="font-medium">{correcting.matchedName}</span>.
+                  Enter your real employee number and PIN to fix it.
+                </p>
+
+                <label className="block text-sm font-medium text-sw-ink-700 mb-1 mt-3">
+                  Employee number
+                </label>
+                <input
+                  type="text"
+                  inputMode="text"
+                  autoComplete="off"
+                  value={correctEmpNo}
+                  onChange={(e) => setCorrectEmpNo(e.target.value)}
+                  placeholder="e.g. 0042"
+                  className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
+                  autoFocus
+                />
+
+                <label className="block text-sm font-medium text-sw-ink-700 mb-1 mt-3">
+                  PIN
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={correctPin}
+                  onChange={(e) => setCorrectPin(e.target.value.replace(/\D/g, ""))}
+                  placeholder="4-6 digits"
+                  className="w-full h-10 px-3 rounded-xl border border-sw-ink-200 text-sm tracking-widest focus:outline-none focus:ring-2 focus:ring-[var(--color-sw-gold-500)]"
+                />
+                <p className="text-xs text-sw-ink-500 mt-1">
+                  No PIN set up yet? Ask HR to set one for you.
+                </p>
+
+                {correctError && (
+                  <div className="mt-3 px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs">
+                    {correctError}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={closeNotMe}
+                    className="px-4 py-2 rounded-full text-sm font-medium text-sw-ink-700 hover:bg-[var(--color-sw-ink-100)]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={submitNotMe}
+                    disabled={correctSubmitting || !correctEmpNo || correctPin.length < 4}
+                    className="px-5 py-2 rounded-full text-sm font-medium text-white disabled:opacity-50"
+                    style={{ background: "var(--color-sw-gold-500)" }}
+                  >
+                    {correctSubmitting ? "Verifying..." : "Confirm"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </>
     );
   }
 

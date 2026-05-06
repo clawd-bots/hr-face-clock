@@ -50,20 +50,27 @@ export async function detectFace(
 // Matching thresholds.
 //
 // MAX_DISTANCE: face-api Euclidean distance for a confident accept.
-//   The library's usual default is 0.6, but the original face-api paper
-//   reports EER around 0.6, meaning at 0.6 you get noticeable false
+//   The library's usual default is 0.6, but at 0.6 you get visible false
 //   positives on look-alikes. For an HR kiosk we want very few false
 //   accepts even at the cost of a slightly higher rejection rate.
 //
 // MIN_MARGIN: how much closer the best match must be vs the second-best.
-//   This is the bigger fix for the Paul/Ariyelle case: without a margin
-//   check, a 0.46 vs 0.47 result still "matches" the closer one even
-//   though both are essentially the same distance. The margin guards
-//   against ambiguous matches by rejecting them and asking the user
-//   to retry.
+//   Guards against the "0.45 vs 0.46" ambiguous case (Paul/Ariyelle).
+//
+// WEAK_RUNNER_UP / STRICT_MIN_MARGIN: when both candidates are weak
+//   (i.e. neither is a clean match), demand more separation before
+//   committing. This catches the Justine/Avegail case:
+//     best = 0.4348, runner-up = 0.4999
+//   Both checks above passed (margin 0.065 > 0.06; best 0.43 < 0.45),
+//   but the runner-up was unusually high — meaning the face wasn't a
+//   clean match for ANYONE, the system was just picking the
+//   less-bad of two mediocre candidates. Now we require margin > 0.10
+//   in that situation.
 // ----------------------------------------------------------------------
 export const MAX_DISTANCE = 0.45;
 export const MIN_MARGIN = 0.06;
+export const WEAK_RUNNER_UP = 0.45;
+export const STRICT_MIN_MARGIN = 0.10;
 
 /** Per-employee distance: median over enrolled descriptors instead of
  *  bare minimum. Median is robust to a single bad/blurry enrollment
@@ -149,6 +156,19 @@ export function findBestMatch(
   }
   if (margin < minMargin) {
     // Best and runner-up are too close — reject to avoid mis-identification
+    return {
+      employee: null,
+      distance: bestDistance,
+      runnerUpDistance: secondBestDistance,
+      margin,
+      reason: "ambiguous",
+    };
+  }
+
+  // Stricter margin when the runner-up itself is a weak match. If both
+  // candidates are >= 0.45, the face wasn't a clean match for anyone;
+  // demand a wider gap before committing.
+  if (secondBestDistance >= WEAK_RUNNER_UP && margin < STRICT_MIN_MARGIN) {
     return {
       employee: null,
       distance: bestDistance,
